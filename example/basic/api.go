@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	a := rest.NewAPI()
+	a := rest.NewApi()
 	a.WithVersion("1.1")
 	a.WithTitle("User API")
 	a.WithDescription("RESTful API for managing users")

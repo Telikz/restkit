@@ -17,18 +17,16 @@ func InitProject(moduleName string) error {
 		moduleName = filepath.Base(wd)
 	}
 
-	if _, err := os.Stat("go.mod"); err == nil {
-		return fmt.Errorf("go.mod already exists, project already initialized")
+	if _, err := os.Stat("go.mod"); err != nil {
+		cmd := exec.Command("go", "mod", "init", moduleName)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if err := cmd.Run(); err != nil {
+			return fmt.Errorf("failed to initialize go module: %w", err)
+		}
 	}
 
-	cmd := exec.Command("go", "mod", "init", moduleName)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to initialize go module: %w", err)
-	}
-
-	dirs := []string{"cmd/server", "endpoints", "internal"}
+	dirs := []string{"endpoints"}
 	for _, dir := range dirs {
 		if err := os.MkdirAll(dir, 0755); err != nil {
 			return fmt.Errorf("failed to create directory %s: %w", dir, err)
@@ -38,7 +36,7 @@ func InitProject(moduleName string) error {
 	type mainData struct {
 		Module string
 	}
-	if err := generateTemplateFile("cmd/server/main.go", mainTemplate, mainData{Module: moduleName}); err != nil {
+	if err := generateTemplateFile("main.go", mainTemplate, mainData{Module: moduleName}); err != nil {
 		return fmt.Errorf("failed to create main.go: %w", err)
 	}
 
@@ -46,12 +44,26 @@ func InitProject(moduleName string) error {
 		return fmt.Errorf("failed to create ping endpoint: %w", err)
 	}
 
-	cmd = exec.Command("go", "get", "github.com/telikz/restkit")
+	cmd := exec.Command("go", "get", "github.com/telikz/restkit")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("failed to add restkit dependency: %w", err)
+	}
+
+	cmd = exec.Command("go", "fmt", "./...")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to format code: %w", err)
+	}
+
+	cmd = exec.Command("go", "mod", "tidy")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to tidy go module: %w", err)
 	}
 
 	return nil
@@ -79,16 +91,23 @@ import (
 	"net/http"
 
 	"{{.Module}}/endpoints"
+
 	"github.com/telikz/restkit"
 )
 
 func main() {
-	api := restkit.New()
+	api := restkit.NewApi()
+	api.WithTitle("My API")
+	api.WithVersion("0.0.1")
+	api.WithDescription("My API description")
 
 	api.Add(endpoints.Ping())
 
+	api.WithSwaggerUI(true)
+	api.WithSwaggerUIPath("/docs")
+
 	log.Println("Server starting on :8080")
-	if err := http.ListenAndServe(":8080", api); err != nil {
+	if err := http.ListenAndServe(":8080", api.Mux()); err != nil {
 		log.Fatal(err)
 	}
 }

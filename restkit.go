@@ -13,9 +13,9 @@ import (
 	vd "github.com/telikz/restkit/internal/validation"
 )
 
-// API is the main struct for defining your API,
+// Api is the main struct for defining your API,
 // including metadata, endpoints, and middleware
-type API = api.API
+type Api = api.API
 
 // Group represents a collection of endpoints that share a common URL prefix and metadata
 type Group = ep.Group
@@ -50,8 +50,8 @@ var ValidateStruct = vd.ValidateStruct
 // RouteContext contains information about the current route and request
 type RouteContext = rc.RouteContext
 
-// NewAPI creates a new API instance
-func NewAPI() *API {
+// NewApi creates a new Api instance
+func NewApi() *Api {
 	return api.New()
 }
 

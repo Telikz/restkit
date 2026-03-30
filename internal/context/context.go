@@ -20,14 +20,12 @@ type RouteContext struct {
 }
 
 func NewRouteContext() *RouteContext {
-	return &RouteContext{
-		params: make(map[string]string),
-	}
+	return &RouteContext{}
 }
 
 // URLParam retrieves a URL parameter by name
 func (rc *RouteContext) URLParam(key string) string {
-	if rc == nil {
+	if rc == nil || rc.params == nil {
 		return ""
 	}
 	return rc.params[key]
@@ -35,6 +33,9 @@ func (rc *RouteContext) URLParam(key string) string {
 
 // SetURLParam sets a URL parameter
 func (rc *RouteContext) SetURLParam(key, value string) {
+	if rc.params == nil {
+		rc.params = make(map[string]string)
+	}
 	rc.params[key] = value
 }
 

@@ -18,6 +18,8 @@ type EndpointReq[Req any] struct {
 	Method      string
 	Path        string
 
+	pathParams []string
+
 	Handler    func(ctx context.Context, req Req) error
 	Validate   func(ctx context.Context, req Req) ValidationResult
 	Bind       func(r *http.Request) (Req, error)
@@ -125,6 +127,10 @@ func (e *EndpointReq[Req]) GetHandler() http.Handler {
 		e.RequestSchema = schema.SchemaFrom[Req]()
 	}
 
+	if e.pathParams == nil {
+		e.pathParams = extractPathParamNames(e.Path)
+	}
+
 	var h http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if e.Bind == nil {
 			http.Error(w, "endpoint bind function is nil", http.StatusInternalServerError)
@@ -136,16 +142,16 @@ func (e *EndpointReq[Req]) GetHandler() http.Handler {
 			return
 		}
 
-		routeCtx := routectx.NewRouteContext()
-
-		pathParams := extractPathParamNames(e.Path)
-		for _, paramName := range pathParams {
-			value := r.PathValue(paramName)
-			routeCtx.SetURLParam(paramName, value)
+		var ctx context.Context = r.Context()
+		if len(e.pathParams) > 0 {
+			routeCtx := routectx.NewRouteContext()
+			for _, paramName := range e.pathParams {
+				value := r.PathValue(paramName)
+				routeCtx.SetURLParam(paramName, value)
+			}
+			ctx = context.WithValue(r.Context(), routectx.RouteCtxKey, routeCtx)
+			r = r.WithContext(ctx)
 		}
-
-		ctx := context.WithValue(r.Context(), routectx.RouteCtxKey, routeCtx)
-		r = r.WithContext(ctx)
 
 		req, err := e.Bind(r)
 		if err != nil {

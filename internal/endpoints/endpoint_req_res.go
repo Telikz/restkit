@@ -13,11 +13,24 @@ import (
 	"github.com/telikz/restkit/internal/validation"
 )
 
+var pathParamRegex = regexp.MustCompile(`\{([^}]+)\}`)
+
+func extractPathParamNames(pattern string) []string {
+	var names []string
+	matches := pathParamRegex.FindAllStringSubmatch(pattern, -1)
+	for _, match := range matches {
+		names = append(names, match[1])
+	}
+	return names
+}
+
 type EndpointReqRes[Req any, Res any] struct {
 	Title       string
 	Description string
 	Method      string
 	Path        string
+
+	pathParams []string
 
 	Validate   func(ctx context.Context, req Req) ValidationResult
 	Handler    func(ctx context.Context, req Req) (Res, error)
@@ -157,6 +170,10 @@ func (e *EndpointReqRes[Req, Res]) GetHandler() http.Handler {
 		e.ResponseSchema = schema.SchemaFrom[Res]()
 	}
 
+	if e.pathParams == nil {
+		e.pathParams = extractPathParamNames(e.Path)
+	}
+
 	var h http.Handler = http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			if e.Bind == nil {
@@ -177,17 +194,16 @@ func (e *EndpointReqRes[Req, Res]) GetHandler() http.Handler {
 				return
 			}
 
-			routeCtx := routectx.NewRouteContext()
-
-			// Extract all path parameters from the pattern
-			pathParams := extractPathParamNames(e.Path)
-			for _, paramName := range pathParams {
-				value := r.PathValue(paramName)
-				routeCtx.SetURLParam(paramName, value)
+			var ctx context.Context = r.Context()
+			if len(e.pathParams) > 0 {
+				routeCtx := routectx.NewRouteContext()
+				for _, paramName := range e.pathParams {
+					value := r.PathValue(paramName)
+					routeCtx.SetURLParam(paramName, value)
+				}
+				ctx = context.WithValue(r.Context(), routectx.RouteCtxKey, routeCtx)
+				r = r.WithContext(ctx)
 			}
-
-			ctx := context.WithValue(r.Context(), routectx.RouteCtxKey, routeCtx)
-			r = r.WithContext(ctx)
 
 			req, err := e.Bind(r)
 			if err != nil {
@@ -269,17 +285,6 @@ func (e *EndpointReqRes[Req, Res]) handleErr(
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(apiErr.Status)
 	json.NewEncoder(w).Encode(apiErr)
-}
-
-// extractPathParamNames extracts parameter names from a path pattern like /users/{id}/posts/{postId}
-func extractPathParamNames(pattern string) []string {
-	var names []string
-	re := regexp.MustCompile(`\{([^}]+)\}`)
-	matches := re.FindAllStringSubmatch(pattern, -1)
-	for _, match := range matches {
-		names = append(names, match[1])
-	}
-	return names
 }
 
 func (e *EndpointReqRes[Req, Res]) Clone() *EndpointReqRes[Req, Res] {

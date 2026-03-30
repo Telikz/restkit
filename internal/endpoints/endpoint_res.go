@@ -17,6 +17,8 @@ type EndpointRes[Res any] struct {
 	Method      string
 	Path        string
 
+	pathParams []string
+
 	Handler    func(ctx context.Context) (Res, error)
 	Validate   func(ctx context.Context) ValidationResult
 	Write      func(w http.ResponseWriter, res Res) error
@@ -113,6 +115,10 @@ func (e *EndpointRes[Res]) GetHandler() http.Handler {
 		e.ResponseSchema = schema.SchemaFrom[Res]()
 	}
 
+	if e.pathParams == nil {
+		e.pathParams = extractPathParamNames(e.Path)
+	}
+
 	var h http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if e.Write == nil {
 			http.Error(w, "endpoint write function is nil", http.StatusInternalServerError)
@@ -124,16 +130,16 @@ func (e *EndpointRes[Res]) GetHandler() http.Handler {
 			return
 		}
 
-		routeCtx := routectx.NewRouteContext()
-
-		pathParams := extractPathParamNames(e.Path)
-		for _, paramName := range pathParams {
-			value := r.PathValue(paramName)
-			routeCtx.SetURLParam(paramName, value)
+		var ctx context.Context = r.Context()
+		if len(e.pathParams) > 0 {
+			routeCtx := routectx.NewRouteContext()
+			for _, paramName := range e.pathParams {
+				value := r.PathValue(paramName)
+				routeCtx.SetURLParam(paramName, value)
+			}
+			ctx = context.WithValue(r.Context(), routectx.RouteCtxKey, routeCtx)
+			r = r.WithContext(ctx)
 		}
-
-		ctx := context.WithValue(r.Context(), routectx.RouteCtxKey, routeCtx)
-		r = r.WithContext(ctx)
 
 		if e.Validate != nil {
 			result := e.Validate(ctx)

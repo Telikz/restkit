@@ -6,19 +6,22 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/telikz/restkit/internal/endpoints"
+	ep "github.com/telikz/restkit/internal/endpoints"
 )
 
 // GenerateOpenAPI generates an OpenAPI 3.0 specification from endpoints
-func GenerateOpenAPI(title, description, version string, endpoints []endpoints.Endpoint, groups []*endpoints.Group) map[string]any {
+func GenerateOpenAPI(
+	title, description, version string,
+	endpoints []ep.Endpoint, groups []*ep.Group,
+) map[string]any {
 	paths := make(map[string]any)
 	tags := make([]map[string]any, 0)
 
 	for _, group := range groups {
-		if group.GetTitle() != "" {
+		if group.Title != "" {
 			tags = append(tags, map[string]any{
-				"name":        group.GetTitle(),
-				"description": group.GetDescription(),
+				"name":        group.Title,
+				"description": group.Description,
 			})
 		}
 	}
@@ -80,17 +83,19 @@ func GenerateOpenAPI(title, description, version string, endpoints []endpoints.E
 }
 
 // buildOperation constructs an OpenAPI operation object from an endpoint definition
-func buildOperation(endpoint endpoints.Endpoint, groups []*endpoints.Group) map[string]any {
+func buildOperation(
+	endpoint ep.Endpoint, groups []*ep.Group,
+) map[string]any {
 	op := map[string]any{
 		"summary":     endpoint.GetTitle(),
 		"description": endpoint.GetDescription(),
 	}
 
 	for _, group := range groups {
-		if group.GetTitle() != "" {
+		if group.Title != "" {
 			for _, groupEndpoint := range group.GetEndpoints() {
 				if groupEndpoint.GetMethod() == endpoint.GetMethod() && groupEndpoint.GetPath() == endpoint.GetPath() {
-					op["tags"] = []string{group.GetTitle()}
+					op["tags"] = []string{group.Title}
 					break
 				}
 			}

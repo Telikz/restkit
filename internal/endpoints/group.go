@@ -45,21 +45,6 @@ func (g *Group) WithMiddleware(middleware ...func(http.Handler) http.Handler) *G
 	return g
 }
 
-// GetTitle returns the title of the group
-func (g *Group) GetTitle() string {
-	return g.Title
-}
-
-// GetDescription returns the description of the group
-func (g *Group) GetDescription() string {
-	return g.Description
-}
-
-// GetPrefix returns the URL path prefix of the group
-func (g *Group) GetPrefix() string {
-	return g.Prefix
-}
-
 // GetEndpoints returns all endpoints with group prefix and middleware applied
 func (g *Group) GetEndpoints() []Endpoint {
 	endpoints := make([]Endpoint, len(g.Endpoints))

@@ -48,8 +48,7 @@ func main() {
 		),
 	)
 
-	// Enable Swagger UI for API documentation
-	a.WithSwaggerUI(true).WithSwaggerUIPath("/docs")
+	a.WithSwaggerUI("/docs")
 
 	// Configure and HTTP server with timeouts
 	server := http.Server{

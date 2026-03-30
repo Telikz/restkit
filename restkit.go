@@ -29,6 +29,12 @@ type EndpointRes[Res any] = ep.EndpointRes[Res]
 // EndpointReq represents an API endpoint that only accepts a request body without returning a response body
 type EndpointReq[Req any] = ep.EndpointReq[Req]
 
+// MountedRoute represents a route from an external router mounted into RestKit
+type MountedRoute = sc.MountedRoute
+
+// ParamInfo represents a path parameter definition for OpenAPI documentation
+type ParamInfo = sc.ParamInfo
+
 // ValidationError represents a single validation error with field and message
 type ValidationError = err.ValidationError
 
@@ -127,8 +133,7 @@ func LoggingMiddleware() func(next http.Handler) http.Handler {
 }
 
 // CORSMiddleware adds CORS headers to responses with sensible defaults
-// Pass allowed origins as arguments (e.g., CORSMiddleware("https://example.com"))
-// Or use NewCORS for more control with functional options
+// Deprecated: Use NewCORS with options instead for more flexibility
 func CORSMiddleware(allowedOrigins ...string) func(next http.Handler) http.Handler {
 	return mw.CORSMiddleware(allowedOrigins...)
 }
@@ -137,22 +142,6 @@ func CORSMiddleware(allowedOrigins ...string) func(next http.Handler) http.Handl
 type CORSOption = mw.CORSOption
 
 // NewCORS creates a CORS middleware with sensible defaults and optional overrides
-// Usage:
-//
-//	// With defaults (reflective CORS)
-//	cors := rest.NewCORS()
-//
-//	// With specific origins
-//	cors := rest.NewCORS(rest.WithOrigins("https://example.com"))
-//
-//	// With full configuration
-//	cors := rest.NewCORS(
-//	  rest.WithOrigins("https://example.com", "https://app.com"),
-//	  rest.WithMethods("GET", "POST"),
-//	  rest.WithHeaders("X-Custom-Header"),
-//	  rest.WithCredentials(),
-//	  rest.WithMaxAge(3600),
-//	)
 func NewCORS(opts ...CORSOption) func(next http.Handler) http.Handler {
 	return mw.NewCORS(opts...)
 }

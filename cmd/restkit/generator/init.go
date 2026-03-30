@@ -103,8 +103,7 @@ func main() {
 
 	api.Add(endpoints.Ping())
 
-	api.WithSwaggerUI(true)
-	api.WithSwaggerUIPath("/docs")
+	api.WithSwaggerUI("/docs")
 
 	log.Println("Server starting on :8080")
 	if err := http.ListenAndServe(":8080", api.Mux()); err != nil {

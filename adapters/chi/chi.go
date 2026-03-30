@@ -1,5 +1,5 @@
-// Package chi provides an adapter to register RestKit API endpoints with the Chi router.
-package chi
+// Package restchi provides an adapter to register RestKit API endpoints with the Chi router.
+package restchi
 
 import (
 	"net/http"

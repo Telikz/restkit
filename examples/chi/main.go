@@ -24,7 +24,7 @@ func main() {
 		Groups:      []*ep.Group{userGroup()},
 		Endpoints:   []ep.Endpoint{pingEndpoint()},
 	}
-	api.WithSwaggerUI(true).WithSwaggerUIPath("/docs")
+	api.WithSwaggerUI("/docs")
 
 	restchi.RegisterRoutes(r, api)
 
@@ -88,10 +88,6 @@ func listUsersEndpoint() *rest.EndpointRes[[]UserResponse] {
 	}
 }
 
-type MessageResponse struct {
-	Message string `json:"message"`
-}
-
 func pingEndpoint() *rest.EndpointRes[MessageResponse] {
 	return &rest.EndpointRes[MessageResponse]{
 		Path:   "/ping",
@@ -101,4 +97,8 @@ func pingEndpoint() *rest.EndpointRes[MessageResponse] {
 			return MessageResponse{Message: "pong"}, nil
 		},
 	}
+}
+
+type MessageResponse struct {
+	Message string `json:"message"`
 }

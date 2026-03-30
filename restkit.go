@@ -1,4 +1,4 @@
-package rest
+package restkit
 
 import (
 	"context"

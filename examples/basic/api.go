@@ -6,7 +6,7 @@ import (
 	"time"
 
 	rest "github.com/telikz/restkit"
-	"github.com/telikz/restkit/example/basic/endpoints"
+	"github.com/telikz/restkit/examples/basic/endpoints"
 )
 
 func main() {

@@ -1,0 +1,27 @@
+#!/bin/sh
+# Pre-commit hook for Go projects
+# Runs go fmt and go test before allowing commits
+#
+# To install this hook locally, run:
+#   cp .github/hooks/pre-commit .git/hooks/pre-commit
+#   chmod +x .git/hooks/pre-commit
+
+set -e
+
+echo "Running pre-commit checks..."
+
+# Run go fmt
+echo "Checking Go formatting..."
+if ! go fmt ./...; then
+    echo "go fmt failed. Please fix formatting issues."
+    exit 1
+fi
+
+# Run tests
+echo "Running tests..."
+if ! go test ./...; then
+    echo "Tests failed. Please fix failing tests."
+    exit 1
+fi
+
+echo "Pre-commit checks passed!"

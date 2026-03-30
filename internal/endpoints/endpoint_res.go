@@ -103,7 +103,11 @@ func (e *EndpointRes[Res]) WithResponseSchema(schema map[string]any) *EndpointRe
 
 func (e *EndpointRes[Res]) GetHandler() http.Handler {
 	if e.Handler == nil {
-		panic("endpoint handler is nil")
+		return errorHandler(errors.NewAPIError(
+			http.StatusInternalServerError,
+			errors.ErrCodeConfiguration,
+			errors.ErrMsgHandlerNotSet,
+		))
 	}
 	if e.Write == nil {
 		e.Write = middleware.JSONWriter[Res]()
@@ -191,7 +195,7 @@ func (e *EndpointRes[Res]) handleErr(
 
 	apiErr := errors.NewAPIError(
 		http.StatusInternalServerError,
-		"internal",
+		errors.ErrCodeInternal,
 		err.Error(),
 	)
 	w.Header().Set("Content-Type", "application/json")

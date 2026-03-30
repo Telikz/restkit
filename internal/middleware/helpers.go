@@ -2,11 +2,13 @@ package middleware
 
 import (
 	"encoding/json"
-	"errors"
+	stderrors "errors"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/telikz/restkit/internal/errors"
 )
 
 // JSONBinder creates a bind function for JSON request bodies
@@ -37,7 +39,7 @@ func PathParamBinder[T any](
 		if paramStr == "" {
 			var zero T
 			return zero,
-				errors.New("missing path parameter")
+				stderrors.New(errors.ErrMsgMissingPathParam)
 		}
 
 		return convert(paramStr)
@@ -48,7 +50,7 @@ func PathParamBinder[T any](
 func StringToInt(s string) (int, error) {
 	n, err := strconv.Atoi(s)
 	if err != nil {
-		return 0, errors.New("invalid integer in path")
+		return 0, stderrors.New(errors.ErrMsgInvalidInteger)
 	}
 	return n, nil
 }
@@ -74,37 +76,21 @@ func JSONErrorWriter(w http.ResponseWriter, r *http.Request, err error) {
 	w.WriteHeader(http.StatusBadRequest)
 	json.NewEncoder(w).Encode(map[string]any{
 		"status":  http.StatusBadRequest,
-		"code":    "bad_request",
+		"code":    errors.ErrCodeBadRequest,
 		"message": err.Error(),
 	})
 }
 
-// LoggingMiddleware logs incoming requests with timing
-func LoggingMiddleware() func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			start := time.Now()
-			next.ServeHTTP(w, r)
-			log.Printf("[%s] %s completed in %v",
-				r.Method, r.URL.Path, time.Since(start))
-		})
+// joinStrings joins a slice of strings with a separator
+func joinStrings(strs []string, sep string) string {
+	if len(strs) == 0 {
+		return ""
 	}
-}
-
-// CORSMiddleware adds CORS headers to responses
-func CORSMiddleware() func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Access-Control-Allow-Origin", "*")
-			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-			if r.Method == http.MethodOptions {
-				w.WriteHeader(http.StatusOK)
-				return
-			}
-			next.ServeHTTP(w, r)
-		})
+	result := strs[0]
+	for i := 1; i < len(strs); i++ {
+		result += sep + strs[i]
 	}
+	return result
 }
 
 // RecoveryMiddleware recovers from panics and returns 500 error
@@ -122,6 +108,18 @@ func RecoveryMiddleware() func(next http.Handler) http.Handler {
 				}
 			}()
 			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+// LoggingMiddleware logs incoming requests with timing
+func LoggingMiddleware() func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			start := time.Now()
+			next.ServeHTTP(w, r)
+			log.Printf("[%s] %s completed in %v",
+				r.Method, r.URL.Path, time.Since(start))
 		})
 	}
 }

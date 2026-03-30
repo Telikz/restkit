@@ -18,8 +18,8 @@ func ValidateStruct(ctx context.Context, s any) errors.ValidationResult {
 
 	if err := validate.Struct(s); err != nil {
 		result.Status = 422
-		result.Code = "validation"
-		result.Message = "Validation failed"
+		result.Code = errors.ErrCodeValidation
+		result.Message = errors.ErrMsgValidation
 
 		if validationErrors, ok := err.(validator.ValidationErrors); ok {
 			for _, e := range validationErrors {

@@ -126,9 +126,60 @@ func LoggingMiddleware() func(next http.Handler) http.Handler {
 	return mw.LoggingMiddleware()
 }
 
-// CORSMiddleware adds CORS headers to responses
-func CORSMiddleware() func(next http.Handler) http.Handler {
-	return mw.CORSMiddleware()
+// CORSMiddleware adds CORS headers to responses with sensible defaults
+// Pass allowed origins as arguments (e.g., CORSMiddleware("https://example.com"))
+// Or use NewCORS for more control with functional options
+func CORSMiddleware(allowedOrigins ...string) func(next http.Handler) http.Handler {
+	return mw.CORSMiddleware(allowedOrigins...)
+}
+
+// CORSOption configures CORS middleware behavior
+type CORSOption = mw.CORSOption
+
+// NewCORS creates a CORS middleware with sensible defaults and optional overrides
+// Usage:
+//
+//	// With defaults (reflective CORS)
+//	cors := rest.NewCORS()
+//
+//	// With specific origins
+//	cors := rest.NewCORS(rest.WithOrigins("https://example.com"))
+//
+//	// With full configuration
+//	cors := rest.NewCORS(
+//	  rest.WithOrigins("https://example.com", "https://app.com"),
+//	  rest.WithMethods("GET", "POST"),
+//	  rest.WithHeaders("X-Custom-Header"),
+//	  rest.WithCredentials(),
+//	  rest.WithMaxAge(3600),
+//	)
+func NewCORS(opts ...CORSOption) func(next http.Handler) http.Handler {
+	return mw.NewCORS(opts...)
+}
+
+// WithOrigins sets the allowed origins for CORS
+func WithOrigins(origins ...string) CORSOption {
+	return mw.WithOrigins(origins...)
+}
+
+// WithMethods sets the allowed HTTP methods for CORS
+func WithMethods(methods ...string) CORSOption {
+	return mw.WithMethods(methods...)
+}
+
+// WithHeaders sets the allowed headers for CORS
+func WithHeaders(headers ...string) CORSOption {
+	return mw.WithHeaders(headers...)
+}
+
+// WithCredentials enables credentials support for CORS
+func WithCredentials() CORSOption {
+	return mw.WithCredentials()
+}
+
+// WithMaxAge sets the max age for preflight cache (in seconds)
+func WithMaxAge(seconds int) CORSOption {
+	return mw.WithMaxAge(seconds)
 }
 
 // RecoveryMiddleware recovers from panics and returns 500 error
@@ -145,3 +196,33 @@ func StringToInt(s string) (int, error) {
 func StringToString(s string) (string, error) {
 	return mw.StringToString(s)
 }
+
+// Error codes returned by the API for programmatic error handling
+const (
+	// ErrCodeInternal indicates an internal server error
+	ErrCodeInternal = err.ErrCodeInternal
+
+	// ErrCodeConfiguration indicates the endpoint is not properly configured
+	ErrCodeConfiguration = err.ErrCodeConfiguration
+
+	// ErrCodeValidation indicates validation failed
+	ErrCodeValidation = err.ErrCodeValidation
+
+	// ErrCodeBind indicates a request binding/parsing error
+	ErrCodeBind = err.ErrCodeBind
+
+	// ErrCodeNotFound indicates a resource was not found
+	ErrCodeNotFound = err.ErrCodeNotFound
+
+	// ErrCodeUnauthorized indicates authentication is required
+	ErrCodeUnauthorized = err.ErrCodeUnauthorized
+
+	// ErrCodeForbidden indicates access is denied
+	ErrCodeForbidden = err.ErrCodeForbidden
+
+	// ErrCodeBadRequest indicates a malformed request
+	ErrCodeBadRequest = err.ErrCodeBadRequest
+
+	// ErrCodeMissingParam indicates a missing path parameter
+	ErrCodeMissingParam = err.ErrCodeMissingParam
+)

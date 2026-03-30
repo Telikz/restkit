@@ -522,3 +522,109 @@ func TestEndpointWithMiddleware(t *testing.T) {
 		t.Errorf("Expected status 200, got %d", rec.Code)
 	}
 }
+
+// TestErrorCodes verifies that error codes are available through the public API
+func TestErrorCodes(t *testing.T) {
+	tests := []struct {
+		code  string
+		value string
+	}{
+		{rest.ErrCodeInternal, "internal"},
+		{rest.ErrCodeConfiguration, "configuration"},
+		{rest.ErrCodeValidation, "validation"},
+		{rest.ErrCodeBind, "bind"},
+		{rest.ErrCodeNotFound, "not_found"},
+		{rest.ErrCodeUnauthorized, "unauthorized"},
+		{rest.ErrCodeForbidden, "forbidden"},
+		{rest.ErrCodeBadRequest, "bad_request"},
+		{rest.ErrCodeMissingParam, "missing_param"},
+	}
+
+	for _, tt := range tests {
+		if tt.code != tt.value {
+			t.Errorf("Expected %s, got %s", tt.value, tt.code)
+		}
+	}
+}
+
+// TestNewCORS verifies the CORS configuration with functional options
+func TestNewCORS(t *testing.T) {
+	cors := rest.NewCORS(rest.WithOrigins("https://example.com"))
+
+	handler := cors(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := httptest.NewRequest(http.MethodOptions, "/test", nil)
+	req.Header.Set("Origin", "https://example.com")
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Errorf("Expected status 200 for OPTIONS, got %d", rec.Code)
+	}
+
+	origin := rec.Header().Get("Access-Control-Allow-Origin")
+	if origin != "https://example.com" {
+		t.Errorf("Expected origin 'https://example.com', got '%s'", origin)
+	}
+}
+
+// TestNewCORSWithFullConfig verifies CORS with all options
+func TestNewCORSWithFullConfig(t *testing.T) {
+	cors := rest.NewCORS(
+		rest.WithOrigins("https://example.com"),
+		rest.WithMethods("GET", "POST"),
+		rest.WithHeaders("Content-Type", "Authorization"),
+		rest.WithCredentials(),
+		rest.WithMaxAge(3600),
+	)
+
+	handler := cors(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := httptest.NewRequest(http.MethodOptions, "/test", nil)
+	req.Header.Set("Origin", "https://example.com")
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Errorf("Expected status 200 for OPTIONS, got %d", rec.Code)
+	}
+
+	origin := rec.Header().Get("Access-Control-Allow-Origin")
+	if origin != "https://example.com" {
+		t.Errorf("Expected origin 'https://example.com', got '%s'", origin)
+	}
+
+	credentials := rec.Header().Get("Access-Control-Allow-Credentials")
+	if credentials != "true" {
+		t.Errorf("Expected credentials 'true', got '%s'", credentials)
+	}
+
+	maxAge := rec.Header().Get("Access-Control-Max-Age")
+	if maxAge != "3600" {
+		t.Errorf("Expected max-age '3600', got '%s'", maxAge)
+	}
+}
+
+// TestNewCORSDefaults verifies CORS with default settings (reflective)
+func TestNewCORSDefaults(t *testing.T) {
+	cors := rest.NewCORS()
+
+	handler := cors(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req.Header.Set("Origin", "https://test.com")
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	// With no origins set, should reflect request origin
+	origin := rec.Header().Get("Access-Control-Allow-Origin")
+	if origin != "https://test.com" {
+		t.Errorf("Expected reflected origin 'https://test.com', got '%s'", origin)
+	}
+}

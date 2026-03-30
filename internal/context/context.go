@@ -3,11 +3,43 @@ package context
 import (
 	"context"
 	"regexp"
+	"sync"
 )
 
 var RouteCtxKey = &contextKey{"RouteContext"}
 
 var pathParamRegex = regexp.MustCompile(`\{([^}]+)\}`)
+
+// routeContextPool provides a pool for RouteContext to reduce allocations
+type routeContextPool struct {
+	pool sync.Pool
+}
+
+var rcPool = &routeContextPool{
+	pool: sync.Pool{
+		New: func() any {
+			return &RouteContext{
+				params: make(map[string]string),
+			}
+		},
+	},
+}
+
+// Get acquires a RouteContext from the pool
+func (p *routeContextPool) Get() *RouteContext {
+	rc := p.pool.Get().(*RouteContext)
+	for k := range rc.params {
+		delete(rc.params, k)
+	}
+	return rc
+}
+
+// Put returns a RouteContext to the pool
+func (p *routeContextPool) Put(rc *RouteContext) {
+	if rc != nil {
+		p.pool.Put(rc)
+	}
+}
 
 type contextKey struct {
 	name string
@@ -21,8 +53,14 @@ type RouteContext struct {
 	params map[string]string
 }
 
+// NewRouteContext creates a new RouteContext using the pool for efficiency
 func NewRouteContext() *RouteContext {
-	return &RouteContext{}
+	return rcPool.Get()
+}
+
+// ReleaseRouteContext returns a RouteContext to the pool for reuse
+func ReleaseRouteContext(rc *RouteContext) {
+	rcPool.Put(rc)
 }
 
 // URLParam retrieves a URL parameter by name

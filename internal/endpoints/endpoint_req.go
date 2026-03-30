@@ -110,7 +110,11 @@ func (e *EndpointReq[Req]) WithRequestSchema(schema map[string]any) *EndpointReq
 
 func (e *EndpointReq[Req]) GetHandler() http.Handler {
 	if e.Handler == nil {
-		panic("endpoint handler is nil")
+		return errorHandler(errors.NewAPIError(
+			http.StatusInternalServerError,
+			errors.ErrCodeConfiguration,
+			errors.ErrMsgHandlerNotSet,
+		))
 	}
 	if e.Bind == nil {
 		e.Bind = middleware.JSONBinder[Req]()
@@ -194,8 +198,8 @@ func (e *EndpointReq[Req]) handleBindErr(
 
 	apiErr := errors.NewAPIErrorWithDetails(
 		http.StatusBadRequest,
-		"bind",
-		"Failed to parse request",
+		errors.ErrCodeBind,
+		errors.ErrMsgBind,
 		err.Error(),
 	)
 	w.Header().Set("Content-Type", "application/json")
@@ -233,7 +237,7 @@ func (e *EndpointReq[Req]) handleErr(
 
 	apiErr := errors.NewAPIError(
 		http.StatusInternalServerError,
-		"internal",
+		errors.ErrCodeInternal,
 		err.Error(),
 	)
 	w.Header().Set("Content-Type", "application/json")

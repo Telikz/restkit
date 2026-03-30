@@ -8,6 +8,9 @@ import (
 
 	routectx "github.com/telikz/restkit/internal/context"
 	"github.com/telikz/restkit/internal/errors"
+	"github.com/telikz/restkit/internal/middleware"
+	"github.com/telikz/restkit/internal/schema"
+	"github.com/telikz/restkit/internal/validation"
 )
 
 type EndpointReqRes[Req any, Res any] struct {
@@ -26,10 +29,6 @@ type EndpointReqRes[Req any, Res any] struct {
 
 	RequestSchema  map[string]any
 	ResponseSchema map[string]any
-}
-
-func (e *EndpointReqRes[Req, Res]) Pattern() string {
-	return e.Method + " " + e.Path
 }
 
 func (e *EndpointReqRes[Req, Res]) GetMethod() string {
@@ -133,7 +132,31 @@ func (e *EndpointReqRes[Req, Res]) WithResponseSchema(
 	return e
 }
 
-func (e *EndpointReqRes[Req, Res]) HTTPHandler() http.Handler {
+func (e *EndpointReqRes[Req, Res]) GetHandler() http.Handler {
+	if e.Bind == nil {
+		e.Bind = middleware.JSONBinder[Req]()
+	}
+	if e.Write == nil {
+		e.Write = middleware.JSONWriter[Res]()
+	}
+	if e.OnError == nil {
+		e.OnError = middleware.JSONErrorWriter
+	}
+	if e.Method == "" {
+		e.Method = http.MethodPost
+	}
+	if e.Validate == nil {
+		e.Validate = func(ctx context.Context, req Req) ValidationResult {
+			return validation.ValidateStruct(ctx, req)
+		}
+	}
+	if e.RequestSchema == nil {
+		e.RequestSchema = schema.SchemaFrom[Req]()
+	}
+	if e.ResponseSchema == nil {
+		e.ResponseSchema = schema.SchemaFrom[Res]()
+	}
+
 	var h http.Handler = http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			if e.Bind == nil {

@@ -7,6 +7,9 @@ import (
 
 	routectx "github.com/telikz/restkit/internal/context"
 	"github.com/telikz/restkit/internal/errors"
+	"github.com/telikz/restkit/internal/middleware"
+	"github.com/telikz/restkit/internal/schema"
+	"github.com/telikz/restkit/internal/validation"
 )
 
 type EndpointReq[Req any] struct {
@@ -23,10 +26,6 @@ type EndpointReq[Req any] struct {
 	Middleware []func(next http.Handler) http.Handler
 
 	RequestSchema map[string]any
-}
-
-func (e *EndpointReq[Req]) Pattern() string {
-	return e.Method + " " + e.Path
 }
 
 func (e *EndpointReq[Req]) GetMethod() string {
@@ -107,7 +106,25 @@ func (e *EndpointReq[Req]) WithRequestSchema(schema map[string]any) *EndpointReq
 	return e
 }
 
-func (e *EndpointReq[Req]) HTTPHandler() http.Handler {
+func (e *EndpointReq[Req]) GetHandler() http.Handler {
+	if e.Bind == nil {
+		e.Bind = middleware.JSONBinder[Req]()
+	}
+	if e.OnError == nil {
+		e.OnError = middleware.JSONErrorWriter
+	}
+	if e.Method == "" {
+		e.Method = http.MethodDelete
+	}
+	if e.Validate == nil {
+		e.Validate = func(ctx context.Context, req Req) ValidationResult {
+			return validation.ValidateStruct(ctx, req)
+		}
+	}
+	if e.RequestSchema == nil {
+		e.RequestSchema = schema.SchemaFrom[Req]()
+	}
+
 	var h http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if e.Bind == nil {
 			http.Error(w, "endpoint bind function is nil", http.StatusInternalServerError)

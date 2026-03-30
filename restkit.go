@@ -15,7 +15,7 @@ import (
 
 // Api is the main struct for defining your API,
 // including metadata, endpoints, and middleware
-type Api = api.API
+type Api = api.Api
 
 // Group represents a collection of endpoints that share a common URL prefix and metadata
 type Group = ep.Group

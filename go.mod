@@ -2,7 +2,10 @@ module github.com/telikz/restkit
 
 go 1.26.1
 
-require github.com/go-playground/validator/v10 v10.11.0
+require (
+	github.com/go-chi/chi/v5 v5.2.5
+	github.com/go-playground/validator/v10 v10.11.0
+)
 
 // CLI dependencies
 require (

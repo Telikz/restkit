@@ -23,16 +23,43 @@ func GenerateOpenAPI(title, description, version string, endpoints []endpoints.E
 		}
 	}
 
-	for _, endpoint := range endpoints {
-		path := endpoint.GetPath()
-		method := strings.ToLower(endpoint.GetMethod())
+	// Add endpoints from groups
+	for _, group := range groups {
+		for _, endpoint := range group.GetEndpoints() {
+			path := endpoint.GetPath()
+			method := strings.ToLower(endpoint.GetMethod())
 
-		if paths[path] == nil {
-			paths[path] = make(map[string]any)
+			if paths[path] == nil {
+				paths[path] = make(map[string]any)
+			}
+
+			pathOps := paths[path].(map[string]any)
+			pathOps[method] = buildOperation(endpoint, groups)
 		}
+	}
 
-		pathOps := paths[path].(map[string]any)
-		pathOps[method] = buildOperation(endpoint, groups)
+	// Add individual endpoints (avoid duplicates)
+	registered := make(map[string]bool)
+	for _, group := range groups {
+		for _, ep := range group.GetEndpoints() {
+			key := ep.GetMethod() + " " + ep.GetPath()
+			registered[key] = true
+		}
+	}
+
+	for _, endpoint := range endpoints {
+		key := endpoint.GetMethod() + " " + endpoint.GetPath()
+		if !registered[key] {
+			path := endpoint.GetPath()
+			method := strings.ToLower(endpoint.GetMethod())
+
+			if paths[path] == nil {
+				paths[path] = make(map[string]any)
+			}
+
+			pathOps := paths[path].(map[string]any)
+			pathOps[method] = buildOperation(endpoint, groups)
+		}
 	}
 
 	spec := map[string]any{
@@ -62,7 +89,7 @@ func buildOperation(endpoint endpoints.Endpoint, groups []*endpoints.Group) map[
 	for _, group := range groups {
 		if group.GetTitle() != "" {
 			for _, groupEndpoint := range group.GetEndpoints() {
-				if groupEndpoint.Pattern() == endpoint.Pattern() {
+				if groupEndpoint.GetMethod() == endpoint.GetMethod() && groupEndpoint.GetPath() == endpoint.GetPath() {
 					op["tags"] = []string{group.GetTitle()}
 					break
 				}

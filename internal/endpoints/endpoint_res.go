@@ -7,6 +7,8 @@ import (
 
 	routectx "github.com/telikz/restkit/internal/context"
 	"github.com/telikz/restkit/internal/errors"
+	"github.com/telikz/restkit/internal/middleware"
+	"github.com/telikz/restkit/internal/schema"
 )
 
 type EndpointRes[Res any] struct {
@@ -22,10 +24,6 @@ type EndpointRes[Res any] struct {
 	Middleware []func(next http.Handler) http.Handler
 
 	ResponseSchema map[string]any
-}
-
-func (e *EndpointRes[Res]) Pattern() string {
-	return e.Method + " " + e.Path
 }
 
 func (e *EndpointRes[Res]) GetMethod() string {
@@ -101,7 +99,20 @@ func (e *EndpointRes[Res]) WithResponseSchema(schema map[string]any) *EndpointRe
 	return e
 }
 
-func (e *EndpointRes[Res]) HTTPHandler() http.Handler {
+func (e *EndpointRes[Res]) GetHandler() http.Handler {
+	if e.Write == nil {
+		e.Write = middleware.JSONWriter[Res]()
+	}
+	if e.OnError == nil {
+		e.OnError = middleware.JSONErrorWriter
+	}
+	if e.Method == "" {
+		e.Method = http.MethodGet
+	}
+	if e.ResponseSchema == nil {
+		e.ResponseSchema = schema.SchemaFrom[Res]()
+	}
+
 	var h http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if e.Write == nil {
 			http.Error(w, "endpoint write function is nil", http.StatusInternalServerError)
@@ -153,7 +164,7 @@ func (e *EndpointRes[Res]) HTTPHandler() http.Handler {
 
 func (e *EndpointRes[Res]) handleValidation(
 	w http.ResponseWriter,
-	r *http.Request,
+	_ *http.Request,
 	result ValidationResult,
 ) {
 	w.Header().Set("Content-Type", "application/json")
@@ -169,7 +180,7 @@ func (e *EndpointRes[Res]) handleValidation(
 
 func (e *EndpointRes[Res]) handleErr(
 	w http.ResponseWriter,
-	r *http.Request,
+	_ *http.Request,
 	err error,
 ) {
 	if apiErr, ok := errors.IsAPIError(err); ok {

@@ -102,6 +102,9 @@ func (e *EndpointRes[Res]) WithResponseSchema(schema map[string]any) *EndpointRe
 }
 
 func (e *EndpointRes[Res]) GetHandler() http.Handler {
+	if e.Handler == nil {
+		panic("endpoint handler is nil")
+	}
 	if e.Write == nil {
 		e.Write = middleware.JSONWriter[Res]()
 	}
@@ -120,16 +123,6 @@ func (e *EndpointRes[Res]) GetHandler() http.Handler {
 	}
 
 	var h http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if e.Write == nil {
-			http.Error(w, "endpoint write function is nil", http.StatusInternalServerError)
-			return
-		}
-
-		if e.Handler == nil {
-			http.Error(w, "endpoint handler is nil", http.StatusInternalServerError)
-			return
-		}
-
 		var ctx context.Context = r.Context()
 		if len(e.pathParams) > 0 {
 			routeCtx := routectx.NewRouteContext()

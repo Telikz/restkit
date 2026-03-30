@@ -7,6 +7,8 @@ import (
 
 var RouteCtxKey = &contextKey{"RouteContext"}
 
+var pathParamRegex = regexp.MustCompile(`\{([^}]+)\}`)
+
 type contextKey struct {
 	name string
 }
@@ -58,14 +60,13 @@ func RouteCtxFromContext(ctx context.Context) *RouteContext {
 func ExtractPathParams(pattern, path string) map[string]string {
 	params := make(map[string]string)
 
-	re := regexp.MustCompile(`\{([^}]+)\}`)
-	matches := re.FindAllStringSubmatch(pattern, -1)
+	matches := pathParamRegex.FindAllStringSubmatch(pattern, -1)
 	paramNames := make([]string, len(matches))
 	for i, match := range matches {
 		paramNames[i] = match[1]
 	}
 
-	regexPattern := re.ReplaceAllString(pattern, `([^/]+)`)
+	regexPattern := pathParamRegex.ReplaceAllString(pattern, `([^/]+)`)
 	regexPattern = "^" + regexPattern + "$"
 
 	pathRegex, err := regexp.Compile(regexPattern)

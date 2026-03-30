@@ -1,7 +1,8 @@
-package main
+package restkit_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -14,6 +15,17 @@ import (
 	restchi "github.com/telikz/restkit/adapters/chi"
 	ep "github.com/telikz/restkit/internal/endpoints"
 )
+
+type CreateUserRequest struct {
+	Name  string `json:"name" validate:"required"`
+	Email string `json:"email" validate:"required,email"`
+}
+
+type UserResponse struct {
+	ID    int    `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
 
 // BenchmarkRestKitPing tests GET /ping using RestKit handler
 func BenchmarkRestKitPing(b *testing.B) {
@@ -290,4 +302,49 @@ func setupStdlibMux() *http.ServeMux {
 	})
 
 	return mux
+}
+
+func userGroup() *ep.Group {
+	return &ep.Group{
+		Prefix:      "/users",
+		Title:       "User Management",
+		Description: "Endpoints for managing users",
+		Endpoints:   []ep.Endpoint{createUserEndpoint(), getUserEndpoint(), listUsersEndpoint()},
+	}
+}
+
+func createUserEndpoint() *rest.Endpoint[CreateUserRequest, UserResponse] {
+	return rest.NewEndpoint[CreateUserRequest, UserResponse]().
+		WithPath("").
+		WithMethod(http.MethodPost).
+		WithHandler(func(ctx context.Context, req CreateUserRequest) (UserResponse, error) {
+			return UserResponse{ID: 1, Name: req.Name, Email: req.Email}, nil
+		})
+}
+
+func getUserEndpoint() *rest.EndpointRes[UserResponse] {
+	return rest.NewEndpointRes[UserResponse]().
+		WithPath("/{id}").
+		WithMethod(http.MethodGet).
+		WithHandler(func(ctx context.Context) (UserResponse, error) {
+			return UserResponse{ID: 1, Name: "John", Email: "john@example.com"}, nil
+		})
+}
+
+func listUsersEndpoint() *rest.EndpointRes[[]UserResponse] {
+	return rest.NewEndpointRes[[]UserResponse]().
+		WithPath("").
+		WithMethod(http.MethodGet).
+		WithHandler(func(ctx context.Context) ([]UserResponse, error) {
+			return []UserResponse{{ID: 1, Name: "John", Email: "john@example.com"}}, nil
+		})
+}
+
+func pingEndpoint() *rest.EndpointRes[map[string]string] {
+	return rest.NewEndpointRes[map[string]string]().
+		WithPath("/ping").
+		WithMethod(http.MethodGet).
+		WithHandler(func(ctx context.Context) (map[string]string, error) {
+			return map[string]string{"message": "pong"}, nil
+		})
 }

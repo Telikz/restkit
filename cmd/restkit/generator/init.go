@@ -1,0 +1,120 @@
+package generator
+
+import (
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"text/template"
+)
+
+func InitProject(moduleName string) error {
+	if moduleName == "" {
+		wd, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("failed to get current directory: %w", err)
+		}
+		moduleName = filepath.Base(wd)
+	}
+
+	if _, err := os.Stat("go.mod"); err == nil {
+		return fmt.Errorf("go.mod already exists, project already initialized")
+	}
+
+	cmd := exec.Command("go", "mod", "init", moduleName)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to initialize go module: %w", err)
+	}
+
+	dirs := []string{"cmd/server", "endpoints", "internal"}
+	for _, dir := range dirs {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return fmt.Errorf("failed to create directory %s: %w", dir, err)
+		}
+	}
+
+	type mainData struct {
+		Module string
+	}
+	if err := generateTemplateFile("cmd/server/main.go", mainTemplate, mainData{Module: moduleName}); err != nil {
+		return fmt.Errorf("failed to create main.go: %w", err)
+	}
+
+	if err := os.WriteFile("endpoints/ping.go", []byte(pingEndpointTemplate), 0644); err != nil {
+		return fmt.Errorf("failed to create ping endpoint: %w", err)
+	}
+
+	cmd = exec.Command("go", "get", "github.com/telikz/restkit")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to add restkit dependency: %w", err)
+	}
+
+	return nil
+}
+
+func generateTemplateFile(filename, tmplStr string, data interface{}) error {
+	tmpl, err := template.New("file").Parse(tmplStr)
+	if err != nil {
+		return err
+	}
+
+	f, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	return tmpl.Execute(f, data)
+}
+
+const mainTemplate = `package main
+
+import (
+	"log"
+	"net/http"
+
+	"{{.Module}}/endpoints"
+	"github.com/telikz/restkit"
+)
+
+func main() {
+	api := restkit.New()
+
+	api.Add(endpoints.Ping())
+
+	log.Println("Server starting on :8080")
+	if err := http.ListenAndServe(":8080", api); err != nil {
+		log.Fatal(err)
+	}
+}
+`
+
+const pingEndpointTemplate = `package endpoints
+
+import (
+	"context"
+	"net/http"
+
+	"github.com/telikz/restkit"
+)
+
+type PingResponse struct {
+	Message string ` + "`" + `json:"message"` + "`" + `
+}
+
+func Ping() *restkit.EndpointRes[PingResponse] {
+	return restkit.NewEndpointRes[PingResponse]().
+		WithMethod(http.MethodGet).
+		WithPath("/ping").
+		WithTitle("Ping").
+		WithDescription("Health check endpoint").
+		WithHandler(func(ctx context.Context) (PingResponse, error) {
+			return PingResponse{Message: "pong"}, nil
+		})
+}
+`

@@ -1,0 +1,69 @@
+package main
+
+import (
+	"log"
+	"net/http"
+	"time"
+
+	rest "github.com/telikz/restkit"
+	"github.com/telikz/restkit/example/basic/endpoints"
+)
+
+func main() {
+	a := rest.NewAPI()
+	a.WithVersion("1.1")
+	a.WithTitle("User API")
+	a.WithDescription("RESTful API for managing users")
+
+	// Add global middleware (applies to all endpoints)
+	a.WithMiddleware(rest.CORSMiddleware())
+	a.WithMiddleware(rest.LoggingMiddleware())
+
+	// Add individual endpoints
+	a.Add(endpoints.Ping())
+
+	// Example of grouping endpoints under a common prefix
+	a.AddGroup(rest.NewGroup("/api/v1").
+		WithTitle("User Management v1").
+		WithDescription("All user-related endpoints").
+		WithEndpoints(
+			endpoints.GetUser(),
+			endpoints.ListUsers(),
+			endpoints.CreateUser(),
+			endpoints.UpdateUser(),
+			endpoints.DeleteUser(),
+		),
+	)
+
+	// Example of a second group with a different prefix
+	a.AddGroup(rest.NewGroup("/api/v2").
+		WithTitle("User Management v2").
+		WithDescription("All user-related endpoints").
+		WithEndpoints(
+			endpoints.GetUser().WithPath("/get-user"),
+			endpoints.ListUsers().WithPath("/list-users"),
+			endpoints.CreateUser().WithPath("/create-user"),
+			endpoints.UpdateUser().WithPath("/update-user"),
+			endpoints.DeleteUser().WithPath("/delete-user"),
+		),
+	)
+
+	// Enable Swagger UI for API documentation
+	a.WithSwaggerUI(true).WithSwaggerUIPath("/docs")
+
+	// Configure and HTTP server with timeouts
+	server := http.Server{
+		Addr:         ":8080",
+		Handler:      a.Mux(),
+		ReadTimeout:  15 * time.Second,
+		WriteTimeout: 15 * time.Second,
+		IdleTimeout:  60 * time.Second,
+	}
+
+	// Start the server
+	log.Println("Starting API server on :8080")
+	log.Println("Swagger UI available at http://localhost:8080/docs")
+	if err := server.ListenAndServe(); err != nil {
+		log.Fatal(err)
+	}
+}

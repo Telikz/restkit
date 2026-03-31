@@ -3,9 +3,9 @@ package api
 import (
 	"net/http"
 
-	"github.com/telikz/restkit/internal/schema"
 	"github.com/telikz/restkit/internal/docs"
 	ep "github.com/telikz/restkit/internal/endpoints"
+	"github.com/telikz/restkit/internal/schema"
 )
 
 // Api is the main struct for defining your API
@@ -42,6 +42,13 @@ func (api *Api) WithDescription(description string) *Api {
 	return api
 }
 
+// AddEndpoint adds one or more endpoints to the API
+func (api *Api) AddEndpoint(eps ...ep.Endpoint) *Api {
+	api.Endpoints = append(api.Endpoints, eps...)
+	return api
+}
+
+// Deprecated: use AddEndpoint instead
 func (api *Api) Add(eps ...ep.Endpoint) *Api {
 	api.Endpoints = append(api.Endpoints, eps...)
 	return api
@@ -69,19 +76,28 @@ func (api *Api) WithSwaggerUIPath(path string) *Api {
 	return api
 }
 
-func (api *Api) WithMiddleware(middleware ...func(http.Handler) http.Handler) *Api {
+func (api *Api) WithMiddleware(
+	middleware ...func(http.Handler) http.Handler,
+) *Api {
 	api.Middleware = append(api.Middleware, middleware...)
 	return api
 }
 
 // MountRouter mounts an external router (e.g., Chi, Gin) into the RestKit API
 // with route definitions for OpenAPI documentation. The prefix is prepended to all routes.
-func (api *Api) MountRouter(prefix string, router http.Handler, routes []schema.MountedRoute) *Api {
-	api.MountedRouters = append(api.MountedRouters, schema.MountedRouter{
-		Prefix: prefix,
-		Router: router,
-		Routes: routes,
-	})
+func (api *Api) MountRouter(
+	prefix string,
+	router http.Handler,
+	routes []schema.MountedRoute,
+) *Api {
+	api.MountedRouters = append(
+		api.MountedRouters,
+		schema.MountedRouter{
+			Prefix: prefix,
+			Router: router,
+			Routes: routes,
+		},
+	)
 	return api
 }
 
@@ -96,7 +112,10 @@ func (api *Api) Mux() http.Handler {
 			handler = api.Middleware[i](handler)
 		}
 
-		mux.Handle(endpoint.GetMethod()+" "+endpoint.GetPath(), handler)
+		mux.Handle(
+			endpoint.GetMethod()+" "+endpoint.GetPath(),
+			handler,
+		)
 	}
 
 	// Register mounted routers
@@ -110,7 +129,10 @@ func (api *Api) Mux() http.Handler {
 
 	if api.SwaggerUIEnabled {
 		mux.HandleFunc("GET "+api.SwaggerUIPath, api.serveSwaggerUI)
-		mux.HandleFunc("GET "+api.SwaggerUIPath+"/openapi.json", api.ServeOpenAPI)
+		mux.HandleFunc(
+			"GET "+api.SwaggerUIPath+"/openapi.json",
+			api.ServeOpenAPI,
+		)
 	}
 
 	return mux
@@ -122,11 +144,21 @@ func (api *Api) Serve(addr string) error {
 
 // GenerateOpenAPI generates an OpenAPI spec including both RestKit endpoints and mounted routes
 func (api *Api) GenerateOpenAPI() map[string]any {
-	spec := docs.GenerateOpenAPI(api.Title, api.Description, api.Version, api.Endpoints, api.Groups)
+	spec := docs.GenerateOpenAPI(
+		api.Title,
+		api.Description,
+		api.Version,
+		api.Endpoints,
+		api.Groups,
+	)
 
 	// Add mounted router routes to the OpenAPI spec
 	for _, mounted := range api.MountedRouters {
-		docs.AddMountedRoutesToSpec(spec, mounted.Prefix, mounted.Routes)
+		docs.AddMountedRoutesToSpec(
+			spec,
+			mounted.Prefix,
+			mounted.Routes,
+		)
 	}
 
 	return spec
@@ -139,6 +171,9 @@ func (api *Api) ServeOpenAPI(w http.ResponseWriter, r *http.Request) {
 }
 
 // serveSwaggerUI serves the Swagger UI HTML
-func (api *Api) serveSwaggerUI(w http.ResponseWriter, r *http.Request) {
+func (api *Api) serveSwaggerUI(
+	w http.ResponseWriter,
+	r *http.Request,
+) {
 	docs.ServeSwaggerUI(w, api.SwaggerUIPath)
 }

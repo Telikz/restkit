@@ -41,9 +41,15 @@ func RegisterRoutes(r chi.Router, api *api.Api) {
 
 	// Register Swagger UI if enabled
 	if api.SwaggerUIEnabled {
-		r.Get(api.SwaggerUIPath, func(w http.ResponseWriter, r *http.Request) {
-			docs.ServeSwaggerUI(w, api.SwaggerUIPath)
-		})
-		r.Get(api.SwaggerUIPath+"/openapi.json", api.ServeOpenAPI)
+		r.Get(
+			api.SwaggerUIPath,
+			func(w http.ResponseWriter, r *http.Request) {
+				docs.ServeSwaggerUI(w, api.SwaggerUIPath)
+			},
+		)
+		r.Get(
+			api.SwaggerUIPath+"/openapi.json",
+			api.ServeOpenAPI,
+		)
 	}
 }

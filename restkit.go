@@ -35,6 +35,12 @@ type MountedRoute = sc.MountedRoute
 // ParamInfo represents a path parameter definition for OpenAPI documentation
 type ParamInfo = sc.ParamInfo
 
+// RouteInfo contains metadata for a route used by adapters
+type RouteInfo = sc.RouteInfo
+
+// RouteMeta represents a route with its metadata for extraction
+type RouteMeta = sc.RouteMeta
+
 // ValidationError represents a single validation error with field and message
 type ValidationError = err.ValidationError
 
@@ -113,8 +119,10 @@ func SchemaFrom[T any]() map[string]any {
 
 // PathParamBinder creates a bind function that extracts the last path segment
 // and converts it to the specified type
-func PathParamBinder[T any](convert func(string) (T, error)) func(r *http.Request) (T, error) {
-	return mw.PathParamBinder[T](convert)
+func PathParamBinder[T any](
+	convert func(string) (T, error),
+) func(r *http.Request) (T, error) {
+	return mw.PathParamBinder(convert)
 }
 
 // JSONWriter creates a write function for JSON responses
@@ -123,7 +131,11 @@ func JSONWriter[Res any]() func(w http.ResponseWriter, res Res) error {
 }
 
 // JSONErrorWriter writes error responses as JSON
-func JSONErrorWriter(w http.ResponseWriter, r *http.Request, err error) {
+func JSONErrorWriter(
+	w http.ResponseWriter,
+	r *http.Request,
+	err error,
+) {
 	mw.JSONErrorWriter(w, r, err)
 }
 
@@ -134,7 +146,9 @@ func LoggingMiddleware() func(next http.Handler) http.Handler {
 
 // CORSMiddleware adds CORS headers to responses with sensible defaults
 // Deprecated: Use NewCORS with options instead for more flexibility
-func CORSMiddleware(allowedOrigins ...string) func(next http.Handler) http.Handler {
+func CORSMiddleware(
+	allowedOrigins ...string,
+) func(next http.Handler) http.Handler {
 	return mw.CORSMiddleware(allowedOrigins...)
 }
 
@@ -142,7 +156,9 @@ func CORSMiddleware(allowedOrigins ...string) func(next http.Handler) http.Handl
 type CORSOption = mw.CORSOption
 
 // NewCORS creates a CORS middleware with sensible defaults and optional overrides
-func NewCORS(opts ...CORSOption) func(next http.Handler) http.Handler {
+func NewCORS(
+	opts ...CORSOption,
+) func(next http.Handler) http.Handler {
 	return mw.NewCORS(opts...)
 }
 

@@ -22,30 +22,45 @@ func main() {
 	router.Post("/users/{id}/posts", createUserPost)
 
 	api := restkit.NewApi().
-		WithTitle("My API").
-		WithSwaggerUI("/docs")
+		WithTitle("My API").WithSwaggerUI()
 
-	meta, _ := restchi.Extract(router, restchi.Metas(
-		restchi.Meta("GET", "/users", restchi.Info{
-			Summary:      "List users",
-			ResponseType: []User{},
-		}),
-		restchi.Meta("GET", "/users/{id}", restchi.Info{
-			Summary:      "Get user",
-			ResponseType: User{},
-		}),
-		restchi.Meta("GET", "/users/{id}/posts", restchi.Info{
-			Summary:      "List user's posts",
-			ResponseType: []Post{},
-		}),
-		restchi.Meta("POST", "/users/{id}/posts", restchi.Info{
-			Summary:      "Create post for user",
-			RequestType:  CreatePostRequest{},
-			ResponseType: Post{},
-		}),
-	))
-	api.MountRouter("/", router, meta)
+	meta := []restkit.RouteMeta{
+		{
+			Method: "GET",
+			Path:   "/users",
+			Info: restkit.RouteInfo{
+				Summary:      "List users",
+				ResponseType: []User{},
+			},
+		},
+		{
+			Method: "GET",
+			Path:   "/users/{id}",
+			Info: restkit.RouteInfo{
+				Summary:      "Get user",
+				ResponseType: User{},
+			},
+		},
+		{
+			Method: "GET",
+			Path:   "/users/{id}/posts",
+			Info: restkit.RouteInfo{
+				Summary:      "List user's posts",
+				ResponseType: []Post{},
+			},
+		},
+		{
+			Method: "POST",
+			Path:   "/users/{id}/posts",
+			Info: restkit.RouteInfo{
+				Summary:      "Create post for user",
+				RequestType:  CreatePostRequest{},
+				ResponseType: Post{},
+			},
+		},
+	}
 
+	restchi.Mount(api, "/", router, meta)
 	http.ListenAndServe(":8080", api.Mux())
 }
 
@@ -78,5 +93,6 @@ func listUserPosts(w http.ResponseWriter, r *http.Request) {
 func createUserPost(w http.ResponseWriter, r *http.Request) {
 	var req CreatePostRequest
 	json.NewDecoder(r.Body).Decode(&req)
-	json.NewEncoder(w).Encode(Post{ID: 2, UserID: 1, Title: req.Title, Content: req.Content})
+	json.NewEncoder(w).
+		Encode(Post{ID: 2, UserID: 1, Title: req.Title, Content: req.Content})
 }

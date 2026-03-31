@@ -1,102 +1,38 @@
 package restchi
 
 import (
-	"fmt"
-	"net/http"
+	"errors"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/telikz/restkit"
+	api "github.com/telikz/restkit/internal"
 	"github.com/telikz/restkit/internal/schema"
 )
 
-type Info struct {
-	Summary      string
-	Description  string
-	RequestType  any
-	ResponseType any
-	PathParams   []restkit.ParamInfo
-}
-
-func Meta(method, path string, info Info) routeMeta {
-	return routeMeta{
-		method: method,
-		path:   path,
-		info:   info,
-	}
-}
-
-func Metas(metas ...routeMeta) []routeMeta {
-	return metas
-}
-
-type routeMeta struct {
-	method string
-	path   string
-	info   Info
-}
-
-func Extract(router chi.Router, metas []routeMeta) ([]schema.MountedRoute, error) {
-	metaMap := make(map[string]Info)
-	for _, m := range metas {
-		key := routeKey(m.method, m.path)
-		metaMap[key] = m.info
-	}
-
+// Mount mounts a Chi router to a RestKit API with automatic route extraction.
+// It can optionally accept metadata to enhance route documentation.
+// Pass nil for metas to extract all routes without additional metadata.
+func Mount(
+	a *api.Api,
+	prefix string,
+	router chi.Router,
+	metas []schema.RouteMeta,
+) error {
 	var routes []schema.MountedRoute
+	var err error
 
-	err := chi.Walk(router, func(method string, route string, handler http.Handler, middlewares ...func(http.Handler) http.Handler) error {
-		key := routeKey(method, route)
-		info, found := metaMap[key]
-
-		if !found {
-			return nil
-		}
-
-		routes = append(routes, schema.MountedRoute{
-			Method:       method,
-			Path:         route,
-			Handler:      handler,
-			Summary:      info.Summary,
-			Description:  info.Description,
-			RequestType:  info.RequestType,
-			ResponseType: info.ResponseType,
-			PathParams:   extractParams(route, info.PathParams),
-		})
-		return nil
-	})
+	if len(metas) > 0 {
+		routes, err = Extract(router, metas)
+	} else {
+		routes, err = ExtractAll(router)
+	}
 
 	if err != nil {
-		return nil, fmt.Errorf("walking chi router: %w", err)
+		return errors.New(
+			"extracting routes from chi router: " + err.Error(),
+		)
 	}
 
-	return routes, nil
-}
+	a.MountRouter(prefix, router, routes)
 
-func routeKey(method, path string) string {
-	return method + " " + path
-}
-
-func extractParams(path string, provided []restkit.ParamInfo) []restkit.ParamInfo {
-	if len(provided) > 0 {
-		return provided
-	}
-	return extractPathParams(path)
-}
-
-func extractPathParams(pattern string) []restkit.ParamInfo {
-	var params []restkit.ParamInfo
-	start := -1
-	for i, c := range pattern {
-		if c == '{' {
-			start = i + 1
-		} else if c == '}' && start != -1 {
-			params = append(params, restkit.ParamInfo{
-				Name:     pattern[start:i],
-				Type:     "string",
-				Required: true,
-			})
-			start = -1
-		}
-	}
-	return params
+	return nil
 }

@@ -8,7 +8,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/reststore/restkit"
 	restchi "github.com/reststore/restkit/adapters/chi"
-	_ "github.com/reststore/restkit/validation/playground"
 )
 
 type User struct {

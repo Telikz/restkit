@@ -7,7 +7,7 @@ import (
 
 	rest "github.com/reststore/restkit"
 	"github.com/reststore/restkit/examples/basic/endpoints"
-	_ "github.com/reststore/restkit/validation/playground"
+	_ "github.com/reststore/restkit/validation/playground" // Opt-in validation
 )
 
 func main() {

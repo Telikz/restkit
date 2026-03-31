@@ -4,13 +4,13 @@ import (
 	"context"
 	"net/http"
 
-	api "github.com/RestStore/RestKit/internal"
-	rc "github.com/RestStore/RestKit/internal/context"
-	ep "github.com/RestStore/RestKit/internal/endpoints"
-	err "github.com/RestStore/RestKit/internal/errors"
-	mw "github.com/RestStore/RestKit/internal/middleware"
-	sc "github.com/RestStore/RestKit/internal/schema"
-	vd "github.com/RestStore/RestKit/internal/validation"
+	api "github.com/reststore/restkit/internal"
+	rc "github.com/reststore/restkit/internal/context"
+	ep "github.com/reststore/restkit/internal/endpoints"
+	err "github.com/reststore/restkit/internal/errors"
+	mw "github.com/reststore/restkit/internal/middleware"
+	sc "github.com/reststore/restkit/internal/schema"
+	vd "github.com/reststore/restkit/internal/validation"
 )
 
 // Api is the main struct for defining your API,

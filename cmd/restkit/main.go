@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"charm.land/fang/v2"
-	"github.com/RestStore/RestKit/cmd/restkit/cli"
+	"github.com/reststore/restkit/cmd/restkit/cli"
 )
 
 func main() {

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	rest "github.com/RestStore/RestKit"
+	rest "github.com/reststore/restkit"
 )
 
 // Test Types

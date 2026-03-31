@@ -9,11 +9,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	rest "github.com/reststore/restkit"
+	restchi "github.com/reststore/restkit/adapters/chi"
+	ep "github.com/reststore/restkit/internal/endpoints"
 	"github.com/go-chi/chi/v5"
 	chiMiddleware "github.com/go-chi/chi/v5/middleware"
-	rest "github.com/RestStore/RestKit"
-	restchi "github.com/RestStore/RestKit/adapters/chi"
-	ep "github.com/RestStore/RestKit/internal/endpoints"
 )
 
 type CreateUserRequest struct {

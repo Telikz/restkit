@@ -44,7 +44,7 @@ func InitProject(moduleName string) error {
 		return fmt.Errorf("failed to create ping endpoint: %w", err)
 	}
 
-	cmd := exec.Command("go", "get", "github.com/RestStore/RestKit")
+	cmd := exec.Command("go", "get", "github.com/reststore/restkit")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
@@ -92,7 +92,7 @@ import (
 
 	"{{.Module}}/endpoints"
 
-	"github.com/RestStore/RestKit"
+	"github.com/reststore/restkit"
 )
 
 func main() {
@@ -118,7 +118,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/RestStore/RestKit"
+	"github.com/reststore/restkit"
 )
 
 type PingResponse struct {

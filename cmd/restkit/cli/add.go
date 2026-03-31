@@ -3,8 +3,8 @@ package cli
 import (
 	"fmt"
 
+	"github.com/reststore/restkit/cmd/restkit/generator"
 	"github.com/spf13/cobra"
-	"github.com/RestStore/RestKit/cmd/restkit/generator"
 )
 
 type AddCmd struct {

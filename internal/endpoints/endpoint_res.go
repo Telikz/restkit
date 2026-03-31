@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"net/http"
 
-	routectx "github.com/RestStore/RestKit/internal/context"
-	"github.com/RestStore/RestKit/internal/errors"
-	"github.com/RestStore/RestKit/internal/middleware"
-	"github.com/RestStore/RestKit/internal/schema"
+	routectx "github.com/reststore/restkit/internal/context"
+	"github.com/reststore/restkit/internal/errors"
+	"github.com/reststore/restkit/internal/middleware"
+	"github.com/reststore/restkit/internal/schema"
 )
 
 type EndpointRes[Res any] struct {

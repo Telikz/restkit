@@ -2,7 +2,7 @@
 
 [![Go Version](https://img.shields.io/github/go-mod/go-version/RestStore/RestKit?style=flat-square&label=go)](https://golang.org/)
 [![Tests](https://github.com/RestStore/RestKit/actions/workflows/go.yml/badge.svg)](https://github.com/RestStore/RestKit/actions)
-[![Go Report Card](https://goreportcard.com/badge/github.com/RestStore/RestKit)](https://goreportcard.com/report/github.com/RestStore/RestKit)
+[![Go Report Card](https://goreportcard.com/badge/github.com/reststore/restkit)](https://goreportcard.com/report/github.com/reststore/restkit)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/RestStore/RestKit/blob/main/LICENCE)
 [![Maintained](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/RestStore/RestKit/graphs/commit-activity)
 [![GitHub stars](https://img.shields.io/github/stars/RestStore/RestKit?style=flat-square)](https://github.com/RestStore/RestKit/stargazers)
@@ -27,7 +27,7 @@ RestKit is a modern Go framework for building type-safe REST APIs with automatic
 RestKit requires **Go 1.26 or higher**. Install it with:
 
 ```bash
-go get -u github.com/RestStore/RestKit
+go get -u github.com/reststore/restkit
 ```
 
 ## ⚡️ Quickstart
@@ -43,7 +43,7 @@ import (
 	"net/http"
 	"time"
 
-	rest "github.com/RestStore/RestKit"
+	rest "github.com/reststore/restkit"
 )
 
 // Define your request and response types
@@ -360,7 +360,7 @@ RestKit is built on Go's standard net/http. Use adapters to integrate with other
 ### Chi Router Adapter
 
 ```go
-import restchi "github.com/RestStore/RestKit/adapters/chi"
+import restchi "github.com/reststore/restkit/adapters/chi"
 
 // Register RestKit endpoints with Chi
 chiRouter := chi.NewRouter()

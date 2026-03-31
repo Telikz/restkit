@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/RestStore/RestKit/internal/errors"
+	"github.com/reststore/restkit/internal/errors"
 )
 
 // APIError is an alias for errors.APIError

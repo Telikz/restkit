@@ -4,9 +4,9 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/RestStore/RestKit/internal/middleware"
-	"github.com/RestStore/RestKit/internal/schema"
-	"github.com/RestStore/RestKit/internal/validation"
+	"github.com/reststore/restkit/internal/middleware"
+	"github.com/reststore/restkit/internal/schema"
+	"github.com/reststore/restkit/internal/validation"
 )
 
 // NewEndpoint creates a new Endpoint with auto-generated schemas and sensible defaults

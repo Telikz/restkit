@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	rest "github.com/RestStore/RestKit"
-	"github.com/RestStore/RestKit/examples/basic/endpoints"
+	rest "github.com/reststore/restkit"
+	"github.com/reststore/restkit/examples/basic/endpoints"
 )
 
 func main() {

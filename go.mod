@@ -1,4 +1,4 @@
-module github.com/RestStore/RestKit
+module github.com/reststore/restkit
 
 go 1.26.1
 

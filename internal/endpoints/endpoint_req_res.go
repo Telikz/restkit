@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"regexp"
 
-	routectx "github.com/RestStore/RestKit/internal/context"
-	"github.com/RestStore/RestKit/internal/errors"
-	"github.com/RestStore/RestKit/internal/middleware"
-	"github.com/RestStore/RestKit/internal/schema"
-	"github.com/RestStore/RestKit/internal/validation"
+	routectx "github.com/reststore/restkit/internal/context"
+	"github.com/reststore/restkit/internal/errors"
+	"github.com/reststore/restkit/internal/middleware"
+	"github.com/reststore/restkit/internal/schema"
+	"github.com/reststore/restkit/internal/validation"
 )
 
 var pathParamRegex = regexp.MustCompile(`\{([^}]+)\}`)

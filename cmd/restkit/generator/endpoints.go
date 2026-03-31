@@ -79,7 +79,7 @@ import (
 	"context"
 	"net/http"
 
-	api "github.com/RestStore/RestKit"
+	api "github.com/reststore/restkit"
 )
 
 type {{.PascalName}}Request struct {
@@ -115,7 +115,7 @@ import (
 	"context"
 	"net/http"
 
-	api "github.com/RestStore/RestKit"
+	api "github.com/reststore/restkit"
 )
 
 type {{.PascalName}}Request struct {
@@ -147,7 +147,7 @@ import (
 	"context"
 	"net/http"
 
-	api "github.com/RestStore/RestKit"
+	api "github.com/reststore/restkit"
 )
 
 type {{.PascalName}}Response struct {

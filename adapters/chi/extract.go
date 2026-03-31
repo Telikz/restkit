@@ -87,8 +87,7 @@ func ExtractAll(router chi.Router) ([]schema.MountedRoute, error) {
 	return routes, nil
 }
 
-// routeKey creates a unique key for a route using method
-// and path.
+// routeKey creates a unique key for a route using method and path.
 func routeKey(method, path string) string {
 	return method + " " + path
 }
@@ -106,8 +105,7 @@ func extractParams(
 }
 
 // extractPathParams extracts path parameters from a Chi path pattern.
-//
-//	For example, "/users/{id}" returns a ParamInfo for "id".
+// For example, "/users/{id}" returns a ParamInfo for "id".
 func extractPathParams(pattern string) []schema.ParamInfo {
 	var params []schema.ParamInfo
 	start := -1

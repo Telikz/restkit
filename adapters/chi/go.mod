@@ -1,0 +1,10 @@
+module github.com/reststore/restkit/adapters/chi
+
+go 1.26.1
+
+require (
+	github.com/go-chi/chi/v5 v5.2.5
+	github.com/reststore/restkit v0.0.0
+)
+
+replace github.com/reststore/restkit => ../..

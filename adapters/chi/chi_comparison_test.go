@@ -1,4 +1,4 @@
-package restkit_test
+package restchi_test
 
 import (
 	"bytes"

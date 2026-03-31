@@ -67,7 +67,7 @@ func GenerateEndpoint(
 	if err := generateFile(filename, tmpl, data); err != nil {
 		return err
 	}
-	
+
 	return exec.Command("gofmt", "-w", filename).Run()
 }
 

@@ -15,7 +15,10 @@ type ValidationError struct {
 }
 
 // HasErrors returns true if there are validation errors
-func (v ValidationResult) HasErrors() bool {
+func (v *ValidationResult) HasErrors() bool {
+	if v == nil {
+		return false
+	}
 	return len(v.Errors) > 0
 }
 

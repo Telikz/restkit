@@ -21,7 +21,7 @@ func errorHandler(apiErr errors.APIError) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(apiErr.Status)
-		json.NewEncoder(w).Encode(apiErr)
+		_ = json.NewEncoder(w).Encode(apiErr)
 	})
 }
 

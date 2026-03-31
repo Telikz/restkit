@@ -67,10 +67,8 @@ func GenerateEndpoint(
 	if err := generateFile(filename, tmpl, data); err != nil {
 		return err
 	}
-
-	exec.Command("gofmt", "-w", filename).Run()
-
-	return nil
+	
+	return exec.Command("gofmt", "-w", filename).Run()
 }
 
 const fullEndpointTemplate = `package {{.Package}}

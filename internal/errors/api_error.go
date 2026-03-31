@@ -1,5 +1,7 @@
 package errors
 
+import "errors"
+
 // APIError represents a standardized API error response
 type APIError struct {
 	Status  int    `json:"status"`
@@ -36,7 +38,7 @@ func NewAPIErrorWithDetails(
 
 // IsAPIError checks if an error is an APIError
 func IsAPIError(err error) (APIError, bool) {
-	if apiErr, ok := err.(APIError); ok {
+	if apiErr, ok := errors.AsType[APIError](err); ok {
 		return apiErr, true
 	}
 	return APIError{}, false

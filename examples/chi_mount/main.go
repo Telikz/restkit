@@ -60,8 +60,10 @@ func main() {
 		},
 	}
 
-	restchi.Mount(api, "/", router, meta)
-	http.ListenAndServe(":8080", api.Mux())
+	_ = restchi.Mount(api, "/", router, meta)
+	if err := http.ListenAndServe(":8080", api.Mux()); err != nil {
+		panic(err)
+	}
 }
 
 type Post struct {
@@ -77,22 +79,22 @@ type CreatePostRequest struct {
 }
 
 func listUsers(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode([]User{{ID: 1, Name: "Alice"}})
+	_ = json.NewEncoder(w).Encode([]User{{ID: 1, Name: "Alice"}})
 }
 
 func getUser(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode(User{ID: 1, Name: "Alice"})
+	_ = json.NewEncoder(w).Encode(User{ID: 1, Name: "Alice"})
 }
 
 func listUserPosts(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode([]Post{
+	_ = json.NewEncoder(w).Encode([]Post{
 		{ID: 1, UserID: 1, Title: "Hello", Content: "World"},
 	})
 }
 
 func createUserPost(w http.ResponseWriter, r *http.Request) {
 	var req CreatePostRequest
-	json.NewDecoder(r.Body).Decode(&req)
-	json.NewEncoder(w).
+	_ = json.NewDecoder(r.Body).Decode(&req)
+	_ = json.NewEncoder(w).
 		Encode(Post{ID: 2, UserID: 1, Title: req.Title, Content: req.Content})
 }

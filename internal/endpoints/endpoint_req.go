@@ -218,7 +218,7 @@ func (e *EndpointReq[Req]) handleBindErr(
 	)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(apiErr.Status)
-	json.NewEncoder(w).Encode(apiErr)
+	_ = json.NewEncoder(w).Encode(apiErr)
 }
 
 func (e *EndpointReq[Req]) handleValidation(
@@ -228,8 +228,7 @@ func (e *EndpointReq[Req]) handleValidation(
 ) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(result.Status)
-	// Convert ValidationResult to APIError format
-	json.NewEncoder(w).Encode(map[string]any{
+	_ = json.NewEncoder(w).Encode(map[string]any{
 		"status":  result.Status,
 		"code":    result.Code,
 		"message": result.Message,
@@ -239,13 +238,13 @@ func (e *EndpointReq[Req]) handleValidation(
 
 func (e *EndpointReq[Req]) handleErr(
 	w http.ResponseWriter,
-	r *http.Request,
+	_ *http.Request,
 	err error,
 ) {
 	if apiErr, ok := errors.IsAPIError(err); ok {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(apiErr.Status)
-		json.NewEncoder(w).Encode(apiErr)
+		_ = json.NewEncoder(w).Encode(apiErr)
 		return
 	}
 
@@ -256,11 +255,11 @@ func (e *EndpointReq[Req]) handleErr(
 	)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(apiErr.Status)
-	json.NewEncoder(w).Encode(apiErr)
+	_ = json.NewEncoder(w).Encode(apiErr)
 }
 
-func (e EndpointReq[Req]) Clone() *EndpointReq[Req] {
-	cp := e
+func (e *EndpointReq[Req]) Clone() *EndpointReq[Req] {
+	cp := *e
 
 	if e.Middleware != nil {
 		cp.Middleware = append(

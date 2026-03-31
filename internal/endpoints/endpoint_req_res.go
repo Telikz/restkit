@@ -13,7 +13,7 @@ import (
 	"github.com/reststore/restkit/internal/validation"
 )
 
-var pathParamRegex = regexp.MustCompile(`\{([^}]+)\}`)
+var pathParamRegex = regexp.MustCompile(`\{([^}]+)}`)
 
 func extractPathParamNames(pattern string) []string {
 	var names []string
@@ -258,7 +258,7 @@ func (e *EndpointReqRes[Req, Res]) handleBindErr(
 	)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(apiErr.Status)
-	json.NewEncoder(w).Encode(apiErr)
+	_ = json.NewEncoder(w).Encode(apiErr)
 }
 
 func (e *EndpointReqRes[Req, Res]) handleValidation(
@@ -266,7 +266,7 @@ func (e *EndpointReqRes[Req, Res]) handleValidation(
 ) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(result.Status)
-	json.NewEncoder(w).Encode(map[string]any{
+	_ = json.NewEncoder(w).Encode(map[string]any{
 		"status":  result.Status,
 		"code":    result.Code,
 		"message": result.Message,
@@ -280,7 +280,7 @@ func (e *EndpointReqRes[Req, Res]) handleErr(
 	if apiErr, ok := errors.IsAPIError(err); ok {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(apiErr.Status)
-		json.NewEncoder(w).Encode(apiErr)
+		_ = json.NewEncoder(w).Encode(apiErr)
 		return
 	}
 
@@ -291,7 +291,7 @@ func (e *EndpointReqRes[Req, Res]) handleErr(
 	)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(apiErr.Status)
-	json.NewEncoder(w).Encode(apiErr)
+	_ = json.NewEncoder(w).Encode(apiErr)
 }
 
 func (e *EndpointReqRes[Req, Res]) Clone() *EndpointReqRes[Req, Res] {

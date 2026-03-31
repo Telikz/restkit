@@ -46,8 +46,8 @@ func GenerateOpenAPI(
 	// Add individual endpoints (avoid duplicates)
 	registered := make(map[string]bool)
 	for _, group := range groups {
-		for _, ep := range group.GetEndpoints() {
-			key := ep.GetMethod() + " " + ep.GetPath()
+		for _, e := range group.GetEndpoints() {
+			key := e.GetMethod() + " " + e.GetPath()
 			registered[key] = true
 		}
 	}
@@ -257,54 +257,12 @@ func generateSchema(v any) map[string]any {
 	}
 
 	t := reflect.TypeOf(v)
-	return typeToSchema(t)
-}
-
-// typeToSchema converts a reflect.Type to a JSON schema
-func typeToSchema(t reflect.Type) map[string]any {
-	if t == nil {
-		return map[string]any{"type": "null"}
-	}
-
-	if t.Kind() == reflect.Pointer {
-		return typeToSchema(t.Elem())
-	}
-
-	schema := make(map[string]any)
-
-	switch t.Kind() {
-	case reflect.Struct:
-		return structToSchema(t)
-	case reflect.String:
-		schema["type"] = "string"
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		schema["type"] = "integer"
-	case reflect.Uint,
-		reflect.Uint8,
-		reflect.Uint16,
-		reflect.Uint32,
-		reflect.Uint64:
-		schema["type"] = "integer"
-	case reflect.Float32, reflect.Float64:
-		schema["type"] = "number"
-	case reflect.Bool:
-		schema["type"] = "boolean"
-	case reflect.Slice, reflect.Array:
-		schema["type"] = "array"
-		schema["items"] = typeToSchema(t.Elem())
-	case reflect.Map:
-		schema["type"] = "object"
-		schema["additionalProperties"] = typeToSchema(t.Elem())
-	default:
-		schema["type"] = "string"
-	}
-
-	return schema
+	return schema.TypeToSchema(t)
 }
 
 // structToSchema converts a struct type to a JSON schema
 func structToSchema(t reflect.Type) map[string]any {
-	schema := map[string]any{
+	sc := map[string]any{
 		"type": "object",
 	}
 
@@ -330,7 +288,7 @@ func structToSchema(t reflect.Type) map[string]any {
 			continue
 		}
 
-		fieldSchema := typeToSchema(field.Type)
+		fieldSchema := schema.TypeToSchema(field.Type)
 
 		// Add description from openapi tag if present
 		if desc := field.Tag.Get("openapi"); desc != "" {
@@ -345,12 +303,12 @@ func structToSchema(t reflect.Type) map[string]any {
 		}
 	}
 
-	schema["properties"] = properties
+	sc["properties"] = properties
 	if len(required) > 0 {
-		schema["required"] = required
+		sc["required"] = required
 	}
 
-	return schema
+	return sc
 }
 
 func AddMountedRoutesToSpec(
@@ -520,7 +478,7 @@ func buildMountedRouteOperation(route schema.MountedRoute) map[string]any {
 
 // extractPathParameters extracts parameter names from a path pattern like "/users/{id}"
 func extractPathParameters(path string) []string {
-	re := regexp.MustCompile(`\{([^}]+)\}`)
+	re := regexp.MustCompile(`\{([^}]+)}`)
 	matches := re.FindAllStringSubmatch(path, -1)
 	params := make([]string, 0)
 	for _, match := range matches {
@@ -533,5 +491,5 @@ func extractPathParameters(path string) []string {
 func ServeOpenAPI(w http.ResponseWriter, spec map[string]any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(spec)
+	_ = json.NewEncoder(w).Encode(spec)
 }

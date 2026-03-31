@@ -48,12 +48,6 @@ func (api *Api) AddEndpoint(eps ...ep.Endpoint) *Api {
 	return api
 }
 
-// Deprecated: use AddEndpoint instead
-func (api *Api) Add(eps ...ep.Endpoint) *Api {
-	api.Endpoints = append(api.Endpoints, eps...)
-	return api
-}
-
 func (api *Api) AddGroup(group *ep.Group) *Api {
 	api.Groups = append(api.Groups, group)
 	api.Endpoints = append(api.Endpoints, group.GetEndpoints()...)
@@ -129,8 +123,7 @@ func (api *Api) Mux() http.Handler {
 
 	if api.SwaggerUIEnabled {
 		mux.HandleFunc("GET "+api.SwaggerUIPath, api.serveSwaggerUI)
-		mux.HandleFunc(
-			"GET "+api.SwaggerUIPath+"/openapi.json",
+		mux.HandleFunc("GET "+api.SwaggerUIPath+"/openapi.json",
 			api.ServeOpenAPI,
 		)
 	}
@@ -165,7 +158,7 @@ func (api *Api) GenerateOpenAPI() map[string]any {
 }
 
 // ServeOpenAPI serves the OpenAPI spec as JSON
-func (api *Api) ServeOpenAPI(w http.ResponseWriter, r *http.Request) {
+func (api *Api) ServeOpenAPI(w http.ResponseWriter, _ *http.Request) {
 	spec := api.GenerateOpenAPI()
 	docs.ServeOpenAPI(w, spec)
 }
@@ -173,7 +166,7 @@ func (api *Api) ServeOpenAPI(w http.ResponseWriter, r *http.Request) {
 // serveSwaggerUI serves the Swagger UI HTML
 func (api *Api) serveSwaggerUI(
 	w http.ResponseWriter,
-	r *http.Request,
+	_ *http.Request,
 ) {
 	docs.ServeSwaggerUI(w, api.SwaggerUIPath)
 }

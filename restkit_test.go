@@ -131,7 +131,7 @@ func TestURLParam(t *testing.T) {
 		})
 
 	// Create API and add endpoint
-	api := rest.NewApi().Add(endpoint)
+	api := rest.NewApi().AddEndpoint(endpoint)
 	mux := api.Mux()
 
 	// Make request
@@ -164,7 +164,7 @@ func TestRouteCtxFromContext(t *testing.T) {
 			}, nil
 		})
 
-	api := rest.NewApi().Add(endpoint)
+	api := rest.NewApi().AddEndpoint(endpoint)
 	mux := api.Mux()
 
 	req := httptest.NewRequest(http.MethodGet, "/users/123/posts/456", nil)
@@ -335,14 +335,6 @@ func TestLoggingMiddleware(t *testing.T) {
 	}
 }
 
-// Test CORSMiddleware
-func TestCORSMiddleware(t *testing.T) {
-	middleware := rest.CORSMiddleware()
-	if middleware == nil {
-		t.Fatal("CORSMiddleware() returned nil")
-	}
-}
-
 // Test RecoveryMiddleware
 func TestRecoveryMiddleware(t *testing.T) {
 	middleware := rest.RecoveryMiddleware()
@@ -406,7 +398,7 @@ func TestApiWithMiddleware(t *testing.T) {
 
 	api := rest.NewApi().
 		WithMiddleware(testMiddleware).
-		Add(endpoint)
+		AddEndpoint(endpoint)
 
 	mux := api.Mux()
 
@@ -498,7 +490,7 @@ func TestEndpointWithValidation(t *testing.T) {
 			return PingResponse{Message: "pong"}, nil
 		})
 
-	api := rest.NewApi().Add(endpoint)
+	api := rest.NewApi().AddEndpoint(endpoint)
 	mux := api.Mux()
 
 	req := httptest.NewRequest(http.MethodGet, "/ping", nil)
@@ -528,7 +520,7 @@ func TestEndpointWithMiddleware(t *testing.T) {
 			return PingResponse{Message: "pong"}, nil
 		})
 
-	api := rest.NewApi().Add(endpoint)
+	api := rest.NewApi().AddEndpoint(endpoint)
 	mux := api.Mux()
 
 	req := httptest.NewRequest(http.MethodGet, "/ping", nil)

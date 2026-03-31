@@ -8,7 +8,7 @@ import (
 
 var RouteCtxKey = &contextKey{"RouteContext"}
 
-var pathParamRegex = regexp.MustCompile(`\{([^}]+)\}`)
+var pathParamRegex = regexp.MustCompile(`\{([^}]+)}`)
 
 // routeContextPool provides a pool for RouteContext to reduce allocations
 type routeContextPool struct {
@@ -58,11 +58,6 @@ func NewRouteContext() *RouteContext {
 	return rcPool.Get()
 }
 
-// ReleaseRouteContext returns a RouteContext to the pool for reuse
-func ReleaseRouteContext(rc *RouteContext) {
-	rcPool.Put(rc)
-}
-
 // URLParam retrieves a URL parameter by name
 func (rc *RouteContext) URLParam(key string) string {
 	if rc == nil || rc.params == nil {
@@ -93,7 +88,7 @@ func RouteCtxFromContext(ctx context.Context) *RouteContext {
 	return val
 }
 
-// ExtractPathParams extracts parameters from a URL path using a pattern
+// ExtractPathParams extracts parameters from a URL path using a
 // Pattern should be like "/users/{id}/posts/{postId}"
 func ExtractPathParams(pattern, path string) map[string]string {
 	params := make(map[string]string)

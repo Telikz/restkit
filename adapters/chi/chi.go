@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	api "github.com/reststore/restkit/internal"
+	"github.com/reststore/restkit/internal/api"
 	"github.com/reststore/restkit/internal/docs"
 	"github.com/reststore/restkit/internal/endpoints"
 )

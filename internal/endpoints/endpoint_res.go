@@ -184,8 +184,7 @@ func (e *EndpointRes[Res]) handleValidation(
 ) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(result.Status)
-	// Convert ValidationResult to APIError format
-	json.NewEncoder(w).Encode(map[string]any{
+	_ = json.NewEncoder(w).Encode(map[string]any{
 		"status":  result.Status,
 		"code":    result.Code,
 		"message": result.Message,
@@ -201,7 +200,7 @@ func (e *EndpointRes[Res]) handleErr(
 	if apiErr, ok := errors.IsAPIError(err); ok {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(apiErr.Status)
-		json.NewEncoder(w).Encode(apiErr)
+		_ = json.NewEncoder(w).Encode(apiErr)
 		return
 	}
 
@@ -212,5 +211,5 @@ func (e *EndpointRes[Res]) handleErr(
 	)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(apiErr.Status)
-	json.NewEncoder(w).Encode(apiErr)
+	_ = json.NewEncoder(w).Encode(apiErr)
 }

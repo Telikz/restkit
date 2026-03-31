@@ -11,7 +11,7 @@ type MountedRouter struct {
 	Routes []MountedRoute
 }
 
-// RouteMeta represents a route with its metadata for extraction.
+// MountedRoute represents a route with its metadata for extraction.
 type MountedRoute struct {
 	Method       string
 	Path         string

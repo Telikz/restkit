@@ -31,5 +31,5 @@ func ServeSwaggerUI(w http.ResponseWriter, swaggerUIPath string) {
 </body>
 </html>`
 	w.Header().Set("Content-Type", "text/html")
-	w.Write([]byte(html))
+	_, _ = w.Write([]byte(html))
 }

@@ -74,7 +74,7 @@ func JSONErrorWriter(w http.ResponseWriter, r *http.Request, err error) {
 	log.Printf("Error handling %s %s: %v", r.Method, r.URL.Path, err)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusBadRequest)
-	json.NewEncoder(w).Encode(map[string]any{
+	_ = json.NewEncoder(w).Encode(map[string]any{
 		"status":  http.StatusBadRequest,
 		"code":    errors.ErrCodeBadRequest,
 		"message": err.Error(),
@@ -102,7 +102,7 @@ func RecoveryMiddleware() func(next http.Handler) http.Handler {
 					log.Printf("Panic in %s %s: %v", r.Method, r.URL.Path, err)
 					w.Header().Set("Content-Type", "application/json")
 					w.WriteHeader(http.StatusInternalServerError)
-					json.NewEncoder(w).Encode(map[string]string{
+					_ = json.NewEncoder(w).Encode(map[string]string{
 						"error": "internal server error",
 					})
 				}

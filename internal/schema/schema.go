@@ -9,16 +9,16 @@ import (
 // SchemaFrom generates a JSON Schema from a Go type using reflection
 func SchemaFrom[T any]() map[string]any {
 	var zero T
-	return typeToSchema(reflect.TypeOf(zero))
+	return TypeToSchema(reflect.TypeOf(zero))
 }
 
-func typeToSchema(t reflect.Type) map[string]any {
+func TypeToSchema(t reflect.Type) map[string]any {
 	if t == nil {
 		return map[string]any{"type": "null"}
 	}
 
 	if t.Kind() == reflect.Pointer {
-		return typeToSchema(t.Elem())
+		return TypeToSchema(t.Elem())
 	}
 
 	schema := make(map[string]any)
@@ -42,10 +42,10 @@ func typeToSchema(t reflect.Type) map[string]any {
 		schema["type"] = "boolean"
 	case reflect.Slice, reflect.Array:
 		schema["type"] = "array"
-		schema["items"] = typeToSchema(t.Elem())
+		schema["items"] = TypeToSchema(t.Elem())
 	case reflect.Map:
 		schema["type"] = "object"
-		schema["additionalProperties"] = typeToSchema(t.Elem())
+		schema["additionalProperties"] = TypeToSchema(t.Elem())
 	default:
 		schema["type"] = "string"
 	}
@@ -86,7 +86,7 @@ func structToSchema(t reflect.Type) map[string]any {
 			continue
 		}
 
-		fieldSchema := typeToSchema(field.Type)
+		fieldSchema := TypeToSchema(field.Type)
 
 		// Add description from openapi tag if present
 		if desc := field.Tag.Get("openapi"); desc != "" {

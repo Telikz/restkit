@@ -131,15 +131,3 @@ func WithMaxAge(seconds int) CORSOption {
 		c.maxAge = seconds
 	}
 }
-
-// CORSMiddleware adds CORS headers to responses with sensible defaults
-// Deprecated: Use NewCORS(opts...) for more control
-func CORSMiddleware(
-	allowedOrigins ...string,
-) func(next http.Handler) http.Handler {
-	opts := []CORSOption{}
-	if len(allowedOrigins) > 0 {
-		opts = append(opts, WithOrigins(allowedOrigins...))
-	}
-	return NewCORS(opts...)
-}

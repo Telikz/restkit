@@ -2,7 +2,6 @@ package errors
 
 // Common error codes used throughout the API
 const (
-	// Error categories
 	ErrCodeInternal      = "internal"      // Internal server error
 	ErrCodeConfiguration = "configuration" // Configuration/setup error
 	ErrCodeValidation    = "validation"    // Validation failed
@@ -13,7 +12,6 @@ const (
 	ErrCodeBadRequest    = "bad_request"   // Malformed request
 	ErrCodeMissingParam  = "missing_param" // Missing path parameter
 
-	// Error messages
 	ErrMsgInternal         = "An internal server error occurred"
 	ErrMsgConfiguration    = "Endpoint is not properly configured"
 	ErrMsgValidation       = "Validation failed"

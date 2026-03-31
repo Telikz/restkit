@@ -2,39 +2,47 @@ package validation
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/reststore/restkit/internal/errors"
+	errs "github.com/reststore/restkit/internal/errors"
 )
 
 // validate is the instance of the validator used for struct validation
 var validate = validator.New()
 
 // ValidateStruct validates a struct using go-playground/validator tags
-func ValidateStruct(ctx context.Context, s any) errors.ValidationResult {
-	result := errors.ValidationResult{}
+func ValidateStruct(ctx context.Context, s any) errs.ValidationResult {
+	result := errs.ValidationResult{}
+
+	// Handle nil input gracefully
+	if s == nil {
+		result.Status = 422
+		result.Code = errs.ErrCodeValidation
+		result.Message = errs.ErrMsgValidation
+		result.Errors = append(result.Errors, errs.ValidationError{
+			Field:   "",
+			Message: "request body is required",
+		})
+		return result
+	}
 
 	if err := validate.Struct(s); err != nil {
 		result.Status = 422
-		result.Code = errors.ErrCodeValidation
-		result.Message = errors.ErrMsgValidation
+		result.Code = errs.ErrCodeValidation
+		result.Message = errs.ErrMsgValidation
 
-		if validationErrors, ok := err.(validator.ValidationErrors); ok {
+		if validationErrors, ok := errors.AsType[validator.ValidationErrors](err); ok {
 			for _, e := range validationErrors {
 				field := strings.ToLower(e.Field())
 				message := getErrorMessage(e)
-				result.Errors = append(result.Errors, errors.ValidationError{
+				result.Errors = append(result.Errors, errs.ValidationError{
 					Field:   field,
 					Message: message,
 				})
 			}
-		} else {
-			result.Errors = append(result.Errors, errors.ValidationError{
-				Field:   "",
-				Message: err.Error(),
-			})
 		}
 	}
 

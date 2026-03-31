@@ -16,11 +16,11 @@ func main() {
 	a.WithDescription("RESTful API for managing users")
 
 	// Add global middleware (applies to all endpoints)
-	a.WithMiddleware(rest.CORSMiddleware())
+	a.WithMiddleware(rest.NewCORS())
 	a.WithMiddleware(rest.LoggingMiddleware())
 
 	// Add individual endpoints
-	a.Add(endpoints.Ping())
+	a.AddEndpoint(endpoints.Ping())
 
 	// Example of grouping endpoints under a common prefix
 	a.AddGroup(rest.NewGroup("/api/v1").

@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	api "github.com/reststore/restkit/internal"
+	"github.com/reststore/restkit/internal/api"
 	rc "github.com/reststore/restkit/internal/context"
 	ep "github.com/reststore/restkit/internal/endpoints"
 	err "github.com/reststore/restkit/internal/errors"
@@ -142,14 +142,6 @@ func JSONErrorWriter(
 // LoggingMiddleware logs incoming requests with timing
 func LoggingMiddleware() func(next http.Handler) http.Handler {
 	return mw.LoggingMiddleware()
-}
-
-// CORSMiddleware adds CORS headers to responses with sensible defaults
-// Deprecated: Use NewCORS with options instead for more flexibility
-func CORSMiddleware(
-	allowedOrigins ...string,
-) func(next http.Handler) http.Handler {
-	return mw.CORSMiddleware(allowedOrigins...)
 }
 
 // CORSOption configures CORS middleware behavior

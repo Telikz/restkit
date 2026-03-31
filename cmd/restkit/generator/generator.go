@@ -13,12 +13,12 @@ func generateFile(filename, tmpl string, data TemplateData) error {
 	}
 	defer f.Close()
 
-	template, err := template.New("endpoint").Parse(tmpl)
+	tempt, err := template.New("endpoint").Parse(tmpl)
 	if err != nil {
 		return err
 	}
 
-	return template.Execute(f, data)
+	return tempt.Execute(f, data)
 }
 
 func toPascalCase(s string) string {

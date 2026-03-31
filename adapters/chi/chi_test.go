@@ -12,7 +12,7 @@ import (
 	"github.com/reststore/restkit/internal/schema"
 )
 
-// TestRegisterRoutes tests registering routes with Chi router
+
 func TestRegisterRoutes(t *testing.T) {
 	t.Run("register group endpoints", func(t *testing.T) {
 		r := chi.NewRouter()
@@ -21,7 +21,7 @@ func TestRegisterRoutes(t *testing.T) {
 		endpoint := ep.NewEndpointRes[string]().
 			WithMethod("GET").
 			WithPath("/users").
-			WithHandler(func(ctx context.Context) (string, error) {
+			WithHandler(func(ctx context.Context, _ ep.NoRequest) (string, error) {
 				return "users", nil
 			})
 
@@ -30,7 +30,7 @@ func TestRegisterRoutes(t *testing.T) {
 
 		RegisterRoutes(r, apiInstance)
 
-		// Test the route
+		// Group prefix now works with typed endpoints!
 		req := httptest.NewRequest("GET", "/api/v1/users", nil)
 		rec := httptest.NewRecorder()
 		r.ServeHTTP(rec, req)
@@ -47,7 +47,7 @@ func TestRegisterRoutes(t *testing.T) {
 		endpoint := ep.NewEndpointRes[string]().
 			WithMethod("POST").
 			WithPath("/login").
-			WithHandler(func(ctx context.Context) (string, error) {
+			WithHandler(func(ctx context.Context, _ ep.NoRequest) (string, error) {
 				return "logged in", nil
 			})
 
@@ -71,7 +71,7 @@ func TestRegisterRoutes(t *testing.T) {
 		endpoint := ep.NewEndpointRes[string]().
 			WithMethod("GET").
 			WithPath("/test").
-			WithHandler(func(ctx context.Context) (string, error) {
+			WithHandler(func(ctx context.Context, _ ep.NoRequest) (string, error) {
 				return "test", nil
 			})
 
@@ -138,7 +138,7 @@ func TestRegisterRoutes(t *testing.T) {
 	})
 }
 
-// TestExtract tests route extraction with metadata
+
 func TestExtract(t *testing.T) {
 	t.Run("extract with metadata", func(t *testing.T) {
 		r := chi.NewRouter()
@@ -313,7 +313,7 @@ func TestExtract(t *testing.T) {
 	})
 }
 
-// TestExtractAll tests extracting all routes without metadata
+
 func TestExtractAll(t *testing.T) {
 	t.Run("extract all routes", func(t *testing.T) {
 		r := chi.NewRouter()
@@ -379,7 +379,7 @@ func TestExtractAll(t *testing.T) {
 	})
 }
 
-// TestRouteKey tests the route key generation
+
 func TestRouteKey(t *testing.T) {
 	tests := []struct {
 		method   string
@@ -400,7 +400,7 @@ func TestRouteKey(t *testing.T) {
 	}
 }
 
-// TestExtractParams tests the parameter extraction helper
+
 func TestExtractParams(t *testing.T) {
 	t.Run("use provided params", func(t *testing.T) {
 		provided := []schema.ParamInfo{
@@ -444,7 +444,7 @@ func TestExtractParams(t *testing.T) {
 	})
 }
 
-// TestExtractPathParams tests path parameter extraction from Chi patterns
+
 func TestExtractPathParams(t *testing.T) {
 	tests := []struct {
 		pattern  string
@@ -484,7 +484,7 @@ func TestExtractPathParams(t *testing.T) {
 	}
 }
 
-// TestMount tests the Mount function
+
 func TestMount(t *testing.T) {
 	t.Run("mount with metadata", func(t *testing.T) {
 		r := chi.NewRouter()

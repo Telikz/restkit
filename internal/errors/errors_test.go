@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-// TestNewAPIError tests the APIError constructor
+
 func TestNewAPIError(t *testing.T) {
 	apiErr := NewAPIError(404, "not_found", "Resource not found")
 
@@ -26,7 +26,7 @@ func TestNewAPIError(t *testing.T) {
 	}
 }
 
-// TestNewAPIErrorWithDetails tests the constructor with details
+
 func TestNewAPIErrorWithDetails(t *testing.T) {
 	apiErr := NewAPIErrorWithDetails(
 		500,
@@ -48,7 +48,7 @@ func TestNewAPIErrorWithDetails(t *testing.T) {
 	}
 }
 
-// TestAPIErrorError tests the Error() method
+
 func TestAPIErrorError(t *testing.T) {
 	apiErr := NewAPIError(400, "bad_request", "Invalid input")
 
@@ -58,7 +58,7 @@ func TestAPIErrorError(t *testing.T) {
 	}
 }
 
-// TestIsAPIError tests the type checking function
+
 func TestIsAPIError(t *testing.T) {
 	t.Run("with APIError", func(t *testing.T) {
 		apiErr := NewAPIError(404, "not_found", "Not found")
@@ -107,7 +107,7 @@ func TestIsAPIError(t *testing.T) {
 	})
 }
 
-// TestNewValidation tests the ValidationResult constructor
+
 func TestNewValidation(t *testing.T) {
 	result := NewValidation()
 
@@ -120,7 +120,7 @@ func TestNewValidation(t *testing.T) {
 	}
 }
 
-// TestValidationFailed tests creating a failed validation with single error
+
 func TestValidationFailed(t *testing.T) {
 	result := ValidationFailed(
 		422,
@@ -155,7 +155,7 @@ func TestValidationFailed(t *testing.T) {
 	}
 }
 
-// TestValidationFailedMulti tests creating a failed validation with multiple errors
+
 func TestValidationFailedMulti(t *testing.T) {
 	errors := []ValidationError{
 		{Field: "name", Message: "Name is required"},
@@ -174,7 +174,7 @@ func TestValidationFailedMulti(t *testing.T) {
 	}
 }
 
-// TestValidationResultAddError tests adding errors
+
 func TestValidationResultAddError(t *testing.T) {
 	result := NewValidation()
 
@@ -195,7 +195,7 @@ func TestValidationResultAddError(t *testing.T) {
 	}
 }
 
-// TestValidationResultWithStatus tests setting status
+
 func TestValidationResultWithStatus(t *testing.T) {
 	result := NewValidation()
 	result.WithStatus(400)
@@ -205,7 +205,7 @@ func TestValidationResultWithStatus(t *testing.T) {
 	}
 }
 
-// TestValidationResultWithCode tests setting code
+
 func TestValidationResultWithCode(t *testing.T) {
 	result := NewValidation()
 	result.WithCode("bad_request")
@@ -215,7 +215,7 @@ func TestValidationResultWithCode(t *testing.T) {
 	}
 }
 
-// TestValidationResultWithMessage tests setting message
+
 func TestValidationResultWithMessage(t *testing.T) {
 	result := NewValidation()
 	result.WithMessage("Invalid request")
@@ -225,7 +225,7 @@ func TestValidationResultWithMessage(t *testing.T) {
 	}
 }
 
-// TestValidationResultHasErrors tests the error check
+
 func TestValidationResultHasErrors(t *testing.T) {
 	t.Run("no errors", func(t *testing.T) {
 		result := NewValidation()
@@ -255,7 +255,7 @@ func TestValidationResultHasErrors(t *testing.T) {
 	})
 }
 
-// TestErrorCodes tests that error code constants are defined
+
 func TestErrorCodes(t *testing.T) {
 	// Just verify constants exist and have expected values
 	codes := []string{
@@ -286,7 +286,7 @@ func TestErrorCodes(t *testing.T) {
 	}
 }
 
-// TestErrorMessages tests that error message constants are defined
+
 func TestErrorMessages(t *testing.T) {
 	messages := []string{
 		ErrMsgInternal,

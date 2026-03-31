@@ -35,22 +35,26 @@ type MessageResponse struct {
 	Message string `json:"message"`
 }
 
-func GetUser() *rest.EndpointRes[User] {
+func GetUser() *rest.Endpoint[rest.NoRequest, User] {
 	return rest.NewEndpointRes[User]().
 		WithMethod(http.MethodGet).
 		WithPath("/users/{id}").
 		WithTitle("Get User").
 		WithDescription("Get a user by ID").
-		WithHandler(getUserHandler)
+		WithHandler(func(ctx context.Context, _ rest.NoRequest) (User, error) {
+			return getUserHandler(ctx)
+		})
 }
 
-func ListUsers() *rest.EndpointRes[[]User] {
+func ListUsers() *rest.Endpoint[rest.NoRequest, []User] {
 	return rest.NewEndpointRes[[]User]().
 		WithMethod(http.MethodGet).
 		WithPath("/users").
 		WithTitle("List Users").
 		WithDescription("Get a list of all users").
-		WithHandler(listUsersHandler)
+		WithHandler(func(ctx context.Context, _ rest.NoRequest) ([]User, error) {
+			return listUsersHandler(ctx)
+		})
 }
 
 func CreateUser() *rest.Endpoint[CreateUserRequest, *User] {
@@ -62,21 +66,25 @@ func CreateUser() *rest.Endpoint[CreateUserRequest, *User] {
 		WithHandler(createUserHandler)
 }
 
-func UpdateUser() *rest.EndpointReq[UpdateUserRequest] {
+func UpdateUser() *rest.Endpoint[UpdateUserRequest, rest.NoResponse] {
 	return rest.NewEndpointReq[UpdateUserRequest]().
 		WithMethod(http.MethodPatch).
 		WithPath("/users/{id}").
 		WithTitle("Update User").
 		WithDescription("Update a user by ID").
-		WithHandler(updateUserHandler)
+		WithHandler(func(ctx context.Context, req UpdateUserRequest) (rest.NoResponse, error) {
+			return rest.NoResponse{}, updateUserHandler(ctx, req)
+		})
 }
 
-func DeleteUser() *rest.EndpointRes[MessageResponse] {
+func DeleteUser() *rest.Endpoint[rest.NoRequest, MessageResponse] {
 	return rest.NewEndpointRes[MessageResponse]().
 		WithMethod(http.MethodDelete).
 		WithPath("/users/{id}").
 		WithTitle("Delete User").
-		WithHandler(deleteUserHandler).
+		WithHandler(func(ctx context.Context, _ rest.NoRequest) (MessageResponse, error) {
+			return deleteUserHandler(ctx)
+		}).
 		WithDescription("Delete a user by ID")
 }
 

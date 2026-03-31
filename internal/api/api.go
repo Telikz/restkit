@@ -14,7 +14,7 @@ type Api struct {
 	Title       string
 	Description string
 
-	Endpoints      []ep.Endpoint
+	Endpoints      []ep.Route
 	Groups         []*ep.Group
 	Middleware     []func(http.Handler) http.Handler
 	MountedRouters []schema.MountedRouter
@@ -43,14 +43,20 @@ func (api *Api) WithDescription(description string) *Api {
 }
 
 // AddEndpoint adds one or more endpoints to the API
-func (api *Api) AddEndpoint(eps ...ep.Endpoint) *Api {
-	api.Endpoints = append(api.Endpoints, eps...)
+func (api *Api) AddEndpoint(eps ...any) *Api {
+	for _, e := range eps {
+		if endpoint, ok := e.(ep.Route); ok {
+			api.Endpoints = append(api.Endpoints, endpoint)
+		}
+	}
 	return api
 }
 
 func (api *Api) AddGroup(group *ep.Group) *Api {
 	api.Groups = append(api.Groups, group)
-	api.Endpoints = append(api.Endpoints, group.GetEndpoints()...)
+	for _, e := range group.GetEndpoints() {
+		api.Endpoints = append(api.Endpoints, e)
+	}
 	return api
 }
 

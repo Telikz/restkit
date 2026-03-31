@@ -17,7 +17,7 @@ func BenchmarkBuilderAPI(b *testing.B) {
 		}]().
 			WithPath("/ping").
 			WithMethod(http.MethodGet).
-			WithHandler(func(ctx context.Context) (struct {
+			WithHandler(func(ctx context.Context, _ rest.NoRequest) (struct {
 				Message string `json:"message"`
 			}, error,
 			) {
@@ -32,12 +32,12 @@ func BenchmarkBuilderAPI(b *testing.B) {
 
 func BenchmarkStructDirect(b *testing.B) {
 	for b.Loop() {
-		ep := &endpoints.EndpointRes[struct {
+		ep := &endpoints.Endpoint[rest.NoRequest, struct {
 			Message string `json:"message"`
 		}]{
 			Path:   "/ping",
 			Method: http.MethodGet,
-			Handler: func(ctx context.Context) (struct {
+			Handler: func(ctx context.Context, _ rest.NoRequest) (struct {
 				Message string `json:"message"`
 			}, error,
 			) {
@@ -60,7 +60,7 @@ func BenchmarkBuilderAPIWithDefaults(b *testing.B) {
 			WithMethod(http.MethodGet).
 			WithTitle("Ping Endpoint").
 			WithDescription("Health check endpoint").
-			WithHandler(func(ctx context.Context) (struct {
+			WithHandler(func(ctx context.Context, _ rest.NoRequest) (struct {
 				Message string `json:"message"`
 			}, error,
 			) {
@@ -75,14 +75,14 @@ func BenchmarkBuilderAPIWithDefaults(b *testing.B) {
 
 func BenchmarkStructDirectWithDefaults(b *testing.B) {
 	for b.Loop() {
-		ep := &endpoints.EndpointRes[struct {
+		ep := &endpoints.Endpoint[rest.NoRequest, struct {
 			Message string `json:"message"`
 		}]{
 			Title:       "Ping Endpoint",
 			Description: "Health check endpoint",
 			Path:        "/ping",
 			Method:      http.MethodGet,
-			Handler: func(ctx context.Context) (struct {
+			Handler: func(ctx context.Context, _ rest.NoRequest) (struct {
 				Message string `json:"message"`
 			}, error,
 			) {
@@ -127,7 +127,7 @@ func BenchmarkStructDirectRequest(b *testing.B) {
 	}
 
 	for b.Loop() {
-		ep := &endpoints.EndpointReqRes[Req, Res]{
+		ep := &endpoints.Endpoint[Req, Res]{
 			Path:   "/users",
 			Method: http.MethodPost,
 			Handler: func(ctx context.Context, req Req) (Res, error) {
@@ -147,7 +147,7 @@ func BenchmarkBuilderFullRequest(b *testing.B) {
 	ep := rest.NewEndpointRes[Res]().
 		WithPath("/ping").
 		WithMethod(http.MethodGet).
-		WithHandler(func(ctx context.Context) (Res, error) {
+		WithHandler(func(ctx context.Context, _ rest.NoRequest) (Res, error) {
 			return Res{Message: "pong"}, nil
 		})
 
@@ -168,10 +168,10 @@ func BenchmarkStructFullRequest(b *testing.B) {
 		Message string `json:"message"`
 	}
 
-	ep := &endpoints.EndpointRes[Res]{
+	ep := &endpoints.Endpoint[rest.NoRequest, Res]{
 		Path:   "/ping",
 		Method: http.MethodGet,
-		Handler: func(ctx context.Context) (Res, error) {
+		Handler: func(ctx context.Context, _ rest.NoRequest) (Res, error) {
 			return Res{Message: "pong"}, nil
 		},
 	}

@@ -13,21 +13,21 @@ import (
 	vd "github.com/reststore/restkit/internal/validation"
 )
 
-// Api is the main struct for defining your API,
-// including metadata, endpoints, and middleware
+// Api is the main struct for defining your API, including metadata, endpoints, and middleware
 type Api = api.Api
 
 // Group represents a collection of endpoints that share a common URL prefix and metadata
 type Group = ep.Group
 
-// Endpoint represents an API endpoint with both request and response bodies
-type Endpoint[Req any, Res any] = ep.EndpointReqRes[Req, Res]
+// Endpoint represents a unified API endpoint with configurable request and response bodies.
+// Use NoRequest or NoResponse as type parameters when you don't need a request body or response body.
+type Endpoint[Req any, Res any] = ep.Endpoint[Req, Res]
 
-// EndpointRes represents an API endpoint that only returns a response body without accepting a request body
-type EndpointRes[Res any] = ep.EndpointRes[Res]
+// NoRequest is a sentinel type for endpoints without a request body.
+type NoRequest = ep.NoRequest
 
-// EndpointReq represents an API endpoint that only accepts a request body without returning a response body
-type EndpointReq[Req any] = ep.EndpointReq[Req]
+// NoResponse is a sentinel type for endpoints without a response body.
+type NoResponse = ep.NoResponse
 
 // MountedRoute represents a route from an external router mounted into RestKit
 type MountedRoute = sc.MountedRoute
@@ -72,21 +72,24 @@ func NewGroup(prefix string) *Group {
 	return ep.NewGroup(prefix)
 }
 
-// NewEndpoint creates a new endpoint with both request and response bodies
-// Sets up sensible defaults: POST method, JSON bind/write, auto-generated schemas
+// NewEndpoint creates a new endpoint with both request and response bodies.
+// Sets up sensible defaults: POST method (or GET for NoRequest, DELETE for NoResponse),
+// JSON bind/write (when applicable), auto-generated schemas.
 func NewEndpoint[Req any, Res any]() *Endpoint[Req, Res] {
 	return ep.NewEndpoint[Req, Res]()
 }
 
-// NewEndpointRes creates an endpoint that only returns a response body without accepting a request body
-// Sets up sensible defaults: GET method, JSON write, auto-generated response schema
-func NewEndpointRes[Res any]() *EndpointRes[Res] {
+// NewEndpointRes creates an endpoint that only returns a response body without accepting a request body.
+// Sets up sensible defaults: GET method, JSON write, auto-generated response schema.
+// This is equivalent to NewEndpoint[NoRequest, Res]().
+func NewEndpointRes[Res any]() *Endpoint[NoRequest, Res] {
 	return ep.NewEndpointRes[Res]()
 }
 
-// NewEndpointReq creates an endpoint that only accepts a request body without returning a response body
-// Sets up sensible defaults: DELETE method, JSON bind, auto-generated request schema
-func NewEndpointReq[Req any]() *EndpointReq[Req] {
+// NewEndpointReq creates an endpoint that only accepts a request body without returning a response body.
+// Sets up sensible defaults: DELETE method, JSON bind, auto-generated request schema.
+// This is equivalent to NewEndpoint[Req, NoResponse]().
+func NewEndpointReq[Req any]() *Endpoint[Req, NoResponse] {
 	return ep.NewEndpointReq[Req]()
 }
 

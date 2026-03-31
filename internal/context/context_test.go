@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-// TestNewRouteContext tests the RouteContext constructor
+
 func TestNewRouteContext(t *testing.T) {
 	rc := NewRouteContext()
 	if rc == nil {
@@ -17,7 +17,7 @@ func TestNewRouteContext(t *testing.T) {
 	}
 }
 
-// TestRouteContextPool tests that RouteContext uses pooling
+
 func TestRouteContextPool(t *testing.T) {
 	// Get a context from pool
 	rc1 := NewRouteContext()
@@ -33,7 +33,7 @@ func TestRouteContextPool(t *testing.T) {
 	}
 }
 
-// TestRouteContextURLParam tests URL parameter retrieval
+
 func TestRouteContextURLParam(t *testing.T) {
 	t.Run("get existing param", func(t *testing.T) {
 		rc := NewRouteContext()
@@ -73,7 +73,7 @@ func TestRouteContextURLParam(t *testing.T) {
 	})
 }
 
-// TestRouteContextSetURLParam tests URL parameter setting
+
 func TestRouteContextSetURLParam(t *testing.T) {
 	t.Run("set new param", func(t *testing.T) {
 		rc := NewRouteContext()
@@ -104,7 +104,7 @@ func TestRouteContextSetURLParam(t *testing.T) {
 	})
 }
 
-// TestURLParamFromContext tests extracting URL param from context
+
 func TestURLParamFromContext(t *testing.T) {
 	t.Run("extract from context with RouteContext", func(t *testing.T) {
 		rc := NewRouteContext()
@@ -137,7 +137,7 @@ func TestURLParamFromContext(t *testing.T) {
 	})
 }
 
-// TestRouteCtxFromContext tests extracting RouteContext from context
+
 func TestRouteCtxFromContext(t *testing.T) {
 	t.Run("extract valid RouteContext", func(t *testing.T) {
 		rc := NewRouteContext()
@@ -174,7 +174,7 @@ func TestRouteCtxFromContext(t *testing.T) {
 	})
 }
 
-// TestExtractPathParams tests path parameter extraction
+
 func TestExtractPathParams(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -256,9 +256,9 @@ func TestExtractPathParams(t *testing.T) {
 	}
 }
 
-// TestExtractPathParamsInvalidPattern tests handling of invalid regex patterns
+
 func TestExtractPathParamsInvalidPattern(t *testing.T) {
-	// Test with a pattern that might cause regex compilation issues
+	
 	// Most invalid patterns are handled by escaping, but let's test edge cases
 
 	// This pattern should work even with special characters
@@ -271,13 +271,13 @@ func TestExtractPathParamsInvalidPattern(t *testing.T) {
 	}
 }
 
-// TestContextKey tests the context key
+
 func TestContextKey(t *testing.T) {
 	if RouteCtxKey == nil {
 		t.Error("RouteCtxKey should not be nil")
 	}
 
-	// Test that the key is unique
+	
 	if RouteCtxKey.String() != "api context value RouteContext" {
 		t.Errorf("unexpected context key string: %s", RouteCtxKey.String())
 	}

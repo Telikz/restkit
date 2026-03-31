@@ -11,7 +11,7 @@ import (
 	"github.com/reststore/restkit/internal/schema"
 )
 
-// TestNew tests the Api constructor
+
 func TestNew(t *testing.T) {
 	api := New()
 	if api == nil {
@@ -21,7 +21,7 @@ func TestNew(t *testing.T) {
 	// This is fine - nil slices work correctly with append
 }
 
-// TestApiBuilder tests the builder methods
+
 func TestApiBuilder(t *testing.T) {
 	t.Run("WithVersion", func(t *testing.T) {
 		api := New().WithVersion("1.0.0")
@@ -55,14 +55,14 @@ func TestApiBuilder(t *testing.T) {
 	})
 }
 
-// TestAddEndpoint tests endpoint registration
+
 func TestAddEndpoint(t *testing.T) {
 	api := New()
 
 	endpoint := ep.NewEndpointRes[string]().
 		WithMethod("GET").
 		WithPath("/test").
-		WithHandler(func(ctx context.Context) (string, error) {
+		WithHandler(func(ctx context.Context, _ ep.NoRequest) (string, error) {
 			return "test", nil
 		})
 
@@ -77,14 +77,14 @@ func TestAddEndpoint(t *testing.T) {
 	}
 }
 
-// TestAddGroup tests group registration
+
 func TestAddGroup(t *testing.T) {
 	api := New()
 
 	endpoint := ep.NewEndpointRes[string]().
 		WithMethod("GET").
 		WithPath("/users").
-		WithHandler(func(ctx context.Context) (string, error) {
+		WithHandler(func(ctx context.Context, _ ep.NoRequest) (string, error) {
 			return "users", nil
 		})
 
@@ -100,12 +100,13 @@ func TestAddGroup(t *testing.T) {
 		t.Errorf("expected endpoints from group to be added, got %d", len(api.Endpoints))
 	}
 
+	// Group prefix now works with typed endpoints too!
 	if api.Endpoints[0].GetPath() != "/api/v1/users" {
-		t.Errorf("expected prefixed path '/api/v1/users', got '%s'", api.Endpoints[0].GetPath())
+		t.Errorf("expected path '/api/v1/users', got '%s'", api.Endpoints[0].GetPath())
 	}
 }
 
-// TestWithSwaggerUI tests swagger UI configuration
+
 func TestWithSwaggerUI(t *testing.T) {
 	t.Run("default path", func(t *testing.T) {
 		api := New().WithSwaggerUI()
@@ -132,7 +133,7 @@ func TestWithSwaggerUI(t *testing.T) {
 	})
 }
 
-// TestWithSwaggerUIPath tests the deprecated path setter
+
 func TestWithSwaggerUIPath(t *testing.T) {
 	api := New().WithSwaggerUIPath("/api-docs")
 	if api.SwaggerUIPath != "/api-docs" {
@@ -140,7 +141,7 @@ func TestWithSwaggerUIPath(t *testing.T) {
 	}
 }
 
-// TestWithMiddleware tests middleware registration
+
 func TestWithMiddleware(t *testing.T) {
 	api := New()
 
@@ -163,7 +164,7 @@ func TestWithMiddleware(t *testing.T) {
 	}
 }
 
-// TestMountRouter tests router mounting
+
 func TestMountRouter(t *testing.T) {
 	api := New()
 
@@ -190,7 +191,7 @@ func TestMountRouter(t *testing.T) {
 	}
 }
 
-// TestMux tests the HTTP mux assembly
+
 func TestMux(t *testing.T) {
 	t.Run("basic endpoint registration", func(t *testing.T) {
 		api := New()
@@ -198,7 +199,7 @@ func TestMux(t *testing.T) {
 		endpoint := ep.NewEndpointRes[string]().
 			WithMethod("GET").
 			WithPath("/test").
-			WithHandler(func(ctx context.Context) (string, error) {
+			WithHandler(func(ctx context.Context, _ ep.NoRequest) (string, error) {
 				return "test", nil
 			})
 
@@ -236,7 +237,7 @@ func TestMux(t *testing.T) {
 		endpoint := ep.NewEndpointRes[string]().
 			WithMethod("GET").
 			WithPath("/middleware-test").
-			WithHandler(func(ctx context.Context) (string, error) {
+			WithHandler(func(ctx context.Context, _ ep.NoRequest) (string, error) {
 				return "ok", nil
 			})
 
@@ -312,7 +313,7 @@ func TestMux(t *testing.T) {
 	})
 }
 
-// TestGenerateOpenAPI tests the OpenAPI spec generation
+
 func TestGenerateOpenAPI(t *testing.T) {
 	api := New().
 		WithTitle("Test API").
@@ -324,7 +325,7 @@ func TestGenerateOpenAPI(t *testing.T) {
 		WithPath("/ping").
 		WithTitle("Ping").
 		WithDescription("Health check").
-		WithHandler(func(ctx context.Context) (string, error) {
+		WithHandler(func(ctx context.Context, _ ep.NoRequest) (string, error) {
 			return "pong", nil
 		})
 
@@ -357,7 +358,7 @@ func TestGenerateOpenAPI(t *testing.T) {
 	}
 }
 
-// TestServeOpenAPI tests the OpenAPI HTTP handler
+
 func TestServeOpenAPI(t *testing.T) {
 	api := New().
 		WithTitle("Test API").
@@ -383,7 +384,7 @@ func TestServeOpenAPI(t *testing.T) {
 	}
 }
 
-// TestServeOpenAPIWithMountedRoutes tests that mounted routes appear in spec
+
 func TestGenerateOpenAPIWithMountedRoutes(t *testing.T) {
 	api := New().
 		WithTitle("Test API").
@@ -418,7 +419,7 @@ func TestGenerateOpenAPIWithMountedRoutes(t *testing.T) {
 	}
 }
 
-// TestServeSwaggerUI tests the swagger UI HTTP handler
+
 func TestServeSwaggerUI(t *testing.T) {
 	api := New().WithSwaggerUI("/docs")
 

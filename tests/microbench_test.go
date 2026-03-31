@@ -76,7 +76,7 @@ func BenchmarkDirectHandlerWithPathParam(b *testing.B) {
 	endpoint := rest.NewEndpointRes[Res]().
 		WithPath("/users/{id}").
 		WithMethod(http.MethodGet).
-		WithHandler(func(ctx context.Context) (Res, error) {
+		WithHandler(func(ctx context.Context, _ rest.NoRequest) (Res, error) {
 			return Res{ID: 1, Name: "John", Email: "john@example.com"}, nil
 		})
 
@@ -112,7 +112,7 @@ func BenchmarkNoPathParamsEndpoint(b *testing.B) {
 	endpoint := rest.NewEndpointRes[Res]().
 		WithPath("/ping").
 		WithMethod(http.MethodGet).
-		WithHandler(func(ctx context.Context) (Res, error) {
+		WithHandler(func(ctx context.Context, _ rest.NoRequest) (Res, error) {
 			return Res{Message: "pong"}, nil
 		})
 
@@ -135,12 +135,12 @@ func BenchmarkEndpointCall(b *testing.B) {
 		Message string `json:"message"`
 	}
 
-	endpoint := &endpoints.EndpointRes[Res]{
+	endpoint := &endpoints.Endpoint[rest.NoRequest, Res]{
 		Title:       "Ping",
 		Description: "Health check",
 		Method:      http.MethodGet,
 		Path:        "/ping",
-		Handler: func(ctx context.Context) (Res, error) {
+		Handler: func(ctx context.Context, _ rest.NoRequest) (Res, error) {
 			return Res{Message: "pong"}, nil
 		},
 	}
@@ -149,7 +149,7 @@ func BenchmarkEndpointCall(b *testing.B) {
 
 	for b.Loop() {
 		ctx := context.Background()
-		res, err := endpoint.Handler(ctx)
+		res, err := endpoint.Handler(ctx, rest.NoRequest{})
 		if err != nil {
 			b.Fatal(err)
 		}

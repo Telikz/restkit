@@ -10,7 +10,7 @@ import (
 	errs "github.com/reststore/restkit/internal/errors"
 )
 
-// TestNewGroup tests the Group constructor
+
 func TestNewGroup(t *testing.T) {
 	group := NewGroup("/api/v1")
 	if group == nil {
@@ -24,7 +24,7 @@ func TestNewGroup(t *testing.T) {
 	}
 }
 
-// TestGroupBuilder tests the Group builder methods
+
 func TestGroupBuilder(t *testing.T) {
 	t.Run("WithTitle", func(t *testing.T) {
 		group := NewGroup("/api").WithTitle("User API")
@@ -80,13 +80,14 @@ func TestGroupBuilder(t *testing.T) {
 	})
 }
 
-// TestGroupGetEndpoints tests getting endpoints with prefix and middleware
+
 func TestGroupGetEndpoints(t *testing.T) {
 	t.Run("endpoints with prefix", func(t *testing.T) {
+		// Group prefix now works with typed endpoints too!
 		endpoint := NewEndpointRes[string]().
 			WithMethod("GET").
 			WithPath("/users").
-			WithHandler(func(ctx context.Context) (string, error) {
+			WithHandler(func(ctx context.Context, _ NoRequest) (string, error) {
 				return "users", nil
 			})
 
@@ -97,12 +98,14 @@ func TestGroupGetEndpoints(t *testing.T) {
 			t.Fatalf("expected 1 endpoint, got %d", len(endpoints))
 		}
 
+		// Path should be prefixed for typed endpoints too
 		if endpoints[0].GetPath() != "/api/v1/users" {
 			t.Errorf("expected path '/api/v1/users', got '%s'", endpoints[0].GetPath())
 		}
 	})
 
 	t.Run("endpoints with middleware", func(t *testing.T) {
+		// Group middleware now works with typed endpoints too!
 		middlewareCalled := false
 		middleware := func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -114,7 +117,7 @@ func TestGroupGetEndpoints(t *testing.T) {
 		endpoint := NewEndpointRes[string]().
 			WithMethod("GET").
 			WithPath("/test").
-			WithHandler(func(ctx context.Context) (string, error) {
+			WithHandler(func(ctx context.Context, _ NoRequest) (string, error) {
 				return "test", nil
 			})
 
@@ -124,7 +127,7 @@ func TestGroupGetEndpoints(t *testing.T) {
 
 		endpoints := group.GetEndpoints()
 
-		// Test that middleware is applied
+		// Middleware should be applied for typed endpoints too
 		req := httptest.NewRequest("GET", "/api/test", nil)
 		rec := httptest.NewRecorder()
 		endpoints[0].GetHandler().ServeHTTP(rec, req)
@@ -152,7 +155,7 @@ func TestGroupGetEndpoints(t *testing.T) {
 	})
 }
 
-// TestNewEndpoint tests the constructor for full request-response endpoints
+
 func TestNewEndpoint(t *testing.T) {
 	type TestReq struct {
 		Name string `json:"name"`
@@ -166,24 +169,25 @@ func TestNewEndpoint(t *testing.T) {
 		t.Fatal("NewEndpoint() returned nil")
 	}
 
-	if endpoint.Method != "POST" {
-		t.Errorf("expected default method 'POST', got '%s'", endpoint.Method)
+	// Defaults are lazy-initialized in GetHandler(), so they're initially empty/zero values
+	if endpoint.Method != "" {
+		t.Errorf("expected empty method initially, got '%s'", endpoint.Method)
 	}
 
-	if endpoint.Bind == nil {
-		t.Error("Bind should be initialized with JSONBinder")
+	if endpoint.Bind != nil {
+		t.Error("Bind should be nil initially (lazy-initialized)")
 	}
 
-	if endpoint.Write == nil {
-		t.Error("Write should be initialized with JSONWriter")
+	if endpoint.Write != nil {
+		t.Error("Write should be nil initially (lazy-initialized)")
 	}
 
-	if endpoint.Validate == nil {
-		t.Error("Validate should be initialized with defaultValidator")
+	if endpoint.Validate != nil {
+		t.Error("Validate should be nil initially (lazy-initialized)")
 	}
 }
 
-// TestNewEndpointRes tests the constructor for response-only endpoints
+
 func TestNewEndpointRes(t *testing.T) {
 	type TestRes struct {
 		Message string `json:"message"`
@@ -194,19 +198,20 @@ func TestNewEndpointRes(t *testing.T) {
 		t.Fatal("NewEndpointRes() returned nil")
 	}
 
-	if endpoint.Method != "GET" {
-		t.Errorf("expected default method 'GET', got '%s'", endpoint.Method)
+	// Defaults are lazy-initialized in GetHandler(), so they're initially empty/zero values
+	if endpoint.Method != "" {
+		t.Errorf("expected empty method initially, got '%s'", endpoint.Method)
 	}
 
-	if endpoint.Write == nil {
-		t.Error("Write should be initialized with JSONWriter")
+	if endpoint.Write != nil {
+		t.Error("Write should be nil initially (lazy-initialized)")
 	}
 
 	// Handler is intentionally nil by default and must be set via WithHandler
 	// This is expected behavior
 }
 
-// TestNewEndpointReq tests the constructor for request-only endpoints
+
 func TestNewEndpointReq(t *testing.T) {
 	type TestReq struct {
 		Name string `json:"name"`
@@ -217,16 +222,17 @@ func TestNewEndpointReq(t *testing.T) {
 		t.Fatal("NewEndpointReq() returned nil")
 	}
 
-	if endpoint.Method != "DELETE" {
-		t.Errorf("expected default method 'DELETE', got '%s'", endpoint.Method)
+	// Defaults are lazy-initialized in GetHandler(), so they're initially empty/zero values
+	if endpoint.Method != "" {
+		t.Errorf("expected empty method initially, got '%s'", endpoint.Method)
 	}
 
-	if endpoint.Bind == nil {
-		t.Error("Bind should be initialized with JSONBinder")
+	if endpoint.Bind != nil {
+		t.Error("Bind should be nil initially (lazy-initialized)")
 	}
 }
 
-// TestEndpointReqResBuilder tests the EndpointReqRes builder methods
+
 func TestEndpointReqResBuilder(t *testing.T) {
 	type TestReq struct {
 		Name string `json:"name"`
@@ -292,7 +298,7 @@ func TestEndpointReqResBuilder(t *testing.T) {
 	})
 }
 
-// TestEndpointReqResGetHandler tests the HTTP handler assembly
+
 func TestEndpointReqResGetHandler(t *testing.T) {
 	type TestReq struct {
 		Name string `json:"name" validate:"required"`
@@ -367,7 +373,7 @@ func TestEndpointReqResGetHandler(t *testing.T) {
 	})
 }
 
-// TestEndpointReqResClone tests endpoint cloning
+
 func TestEndpointReqResClone(t *testing.T) {
 	type TestReq struct{}
 	type TestRes struct{}
@@ -403,7 +409,7 @@ func TestEndpointReqResClone(t *testing.T) {
 	}
 }
 
-// TestEndpointResBuilder tests the EndpointRes builder methods
+
 func TestEndpointResBuilder(t *testing.T) {
 	type TestRes struct {
 		Message string `json:"message"`
@@ -418,13 +424,13 @@ func TestEndpointResBuilder(t *testing.T) {
 
 	t.Run("WithHandler", func(t *testing.T) {
 		handlerCalled := false
-		handler := func(ctx context.Context) (TestRes, error) {
+		handler := func(ctx context.Context, _ NoRequest) (TestRes, error) {
 			handlerCalled = true
 			return TestRes{Message: "ok"}, nil
 		}
 
 		endpoint := NewEndpointRes[TestRes]().WithHandler(handler)
-		endpoint.Handler(context.Background())
+		endpoint.Handler(context.Background(), NoRequest{})
 
 		if !handlerCalled {
 			t.Error("handler was not set")
@@ -432,7 +438,7 @@ func TestEndpointResBuilder(t *testing.T) {
 	})
 }
 
-// TestEndpointResGetHandler tests the HTTP handler for response-only endpoints
+
 func TestEndpointResGetHandler(t *testing.T) {
 	type TestRes struct {
 		Status string `json:"status"`
@@ -442,7 +448,7 @@ func TestEndpointResGetHandler(t *testing.T) {
 		endpoint := NewEndpointRes[TestRes]().
 			WithMethod("GET").
 			WithPath("/status").
-			WithHandler(func(ctx context.Context) (TestRes, error) {
+			WithHandler(func(ctx context.Context, _ NoRequest) (TestRes, error) {
 				return TestRes{Status: "ok"}, nil
 			})
 
@@ -465,7 +471,7 @@ func TestEndpointResGetHandler(t *testing.T) {
 		endpoint := NewEndpointRes[TestRes]().
 			WithMethod("GET").
 			WithPath("/error").
-			WithHandler(func(ctx context.Context) (TestRes, error) {
+			WithHandler(func(ctx context.Context, _ NoRequest) (TestRes, error) {
 				return TestRes{}, errs.NewAPIError(500, "internal", "server error")
 			})
 
@@ -481,7 +487,7 @@ func TestEndpointResGetHandler(t *testing.T) {
 	})
 }
 
-// TestEndpointReqBuilder tests the EndpointReq builder methods
+
 func TestEndpointReqBuilder(t *testing.T) {
 	type TestReq struct {
 		ID int `json:"id"`
@@ -496,9 +502,9 @@ func TestEndpointReqBuilder(t *testing.T) {
 
 	t.Run("WithHandler", func(t *testing.T) {
 		handlerCalled := false
-		handler := func(ctx context.Context, req TestReq) error {
+		handler := func(ctx context.Context, req TestReq) (NoResponse, error) {
 			handlerCalled = true
-			return nil
+			return NoResponse{}, nil
 		}
 
 		endpoint := NewEndpointReq[TestReq]().WithHandler(handler)
@@ -510,7 +516,7 @@ func TestEndpointReqBuilder(t *testing.T) {
 	})
 }
 
-// TestEndpointReqGetHandler tests the HTTP handler for request-only endpoints
+
 func TestEndpointReqGetHandler(t *testing.T) {
 	type TestReq struct {
 		ID int `json:"id" validate:"required,gt=0"`
@@ -520,8 +526,8 @@ func TestEndpointReqGetHandler(t *testing.T) {
 		endpoint := NewEndpointReq[TestReq]().
 			WithMethod("DELETE").
 			WithPath("/users/{id}").
-			WithHandler(func(ctx context.Context, req TestReq) error {
-				return nil
+			WithHandler(func(ctx context.Context, req TestReq) (NoResponse, error) {
+				return NoResponse{}, nil
 			})
 
 		handler := endpoint.GetHandler()
@@ -540,8 +546,8 @@ func TestEndpointReqGetHandler(t *testing.T) {
 		endpoint := NewEndpointReq[TestReq]().
 			WithMethod("DELETE").
 			WithPath("/users/{id}").
-			WithHandler(func(ctx context.Context, req TestReq) error {
-				return nil
+			WithHandler(func(ctx context.Context, req TestReq) (NoResponse, error) {
+				return NoResponse{}, nil
 			})
 
 		handler := endpoint.GetHandler()
@@ -557,7 +563,7 @@ func TestEndpointReqGetHandler(t *testing.T) {
 	})
 }
 
-// TestEndpointReqClone tests request-only endpoint cloning
+
 func TestEndpointReqClone(t *testing.T) {
 	type TestReq struct{}
 
@@ -571,37 +577,8 @@ func TestEndpointReqClone(t *testing.T) {
 	}
 }
 
-// TestDefaultValidator tests the default validation function
-func TestDefaultValidator(t *testing.T) {
-	type TestStruct struct {
-		Name  string `json:"name" validate:"required"`
-		Email string `json:"email" validate:"required,email"`
-	}
 
-	t.Run("valid data", func(t *testing.T) {
-		data := TestStruct{Name: "John", Email: "john@example.com"}
-		result := defaultValidator[TestStruct]()(context.Background(), data)
 
-		if result.HasErrors() {
-			t.Errorf("expected no validation errors, got %v", result.Errors)
-		}
-	})
-
-	t.Run("invalid data", func(t *testing.T) {
-		data := TestStruct{Name: "", Email: "invalid"}
-		result := defaultValidator[TestStruct]()(context.Background(), data)
-
-		if !result.HasErrors() {
-			t.Error("expected validation errors")
-		}
-
-		if result.Status != 422 {
-			t.Errorf("expected status 422, got %d", result.Status)
-		}
-	})
-}
-
-// TestErrorHandler tests the error handler function
 func TestErrorHandler(t *testing.T) {
 	apiErr := errs.NewAPIError(404, "not_found", "Resource not found")
 	handler := errorHandler(apiErr)
@@ -626,27 +603,4 @@ func TestErrorHandler(t *testing.T) {
 	}
 }
 
-// TestEndpointWrapper tests the endpointWrapper struct
-func TestEndpointWrapper(t *testing.T) {
-	original := NewEndpointRes[string]().
-		WithMethod("GET").
-		WithPath("/users").
-		WithTitle("List Users")
 
-	wrapper := &endpointWrapper{
-		definition:   original,
-		pathOverride: "/api/v1/users",
-	}
-
-	if wrapper.GetMethod() != "GET" {
-		t.Error("wrapper should return original method")
-	}
-
-	if wrapper.GetPath() != "/api/v1/users" {
-		t.Errorf("wrapper should return overridden path, got '%s'", wrapper.GetPath())
-	}
-
-	if wrapper.GetTitle() != "List Users" {
-		t.Error("wrapper should return original title")
-	}
-}

@@ -11,10 +11,10 @@ import (
 	"github.com/reststore/restkit/internal/schema"
 )
 
-// TestGenerateOpenAPI tests the main OpenAPI spec generation
+
 func TestGenerateOpenAPI(t *testing.T) {
 	t.Run("basic spec generation", func(t *testing.T) {
-		endpoints := []ep.Endpoint{}
+		endpoints := []ep.Route{}
 		groups := []*ep.Group{}
 
 		spec := GenerateOpenAPI("Test API", "Test Description", "1.0.0", endpoints, groups)
@@ -54,7 +54,7 @@ func TestGenerateOpenAPI(t *testing.T) {
 			WithEndpoints(endpoint)
 
 		groups := []*ep.Group{group}
-		spec := GenerateOpenAPI("API", "", "1.0", []ep.Endpoint{}, groups)
+		spec := GenerateOpenAPI("API", "", "1.0", []ep.Route{}, groups)
 
 		// Check tags
 		tags, ok := spec["tags"].([]map[string]any)
@@ -72,6 +72,7 @@ func TestGenerateOpenAPI(t *testing.T) {
 			t.Fatal("paths should be a map")
 		}
 
+		// Group prefix now works with typed endpoints!
 		if _, ok := paths["/api/v1/ping"]; !ok {
 			t.Error("/api/v1/ping should be in paths")
 		}
@@ -83,7 +84,7 @@ func TestGenerateOpenAPI(t *testing.T) {
 			WithPath("/health").
 			WithTitle("Health")
 
-		endpoints := []ep.Endpoint{endpoint}
+		endpoints := []ep.Route{endpoint}
 		spec := GenerateOpenAPI("API", "", "1.0", endpoints, []*ep.Group{})
 
 		paths, ok := spec["paths"].(map[string]any)
@@ -97,14 +98,20 @@ func TestGenerateOpenAPI(t *testing.T) {
 	})
 
 	t.Run("duplicate detection", func(t *testing.T) {
-		endpoint := ep.NewEndpointRes[string]().
+		// Create endpoint for group (will be prefixed to /api/ping)
+		groupEndpoint := ep.NewEndpointRes[string]().
 			WithMethod("GET").
 			WithPath("/ping")
 
-		group := ep.NewGroup("/api").WithEndpoints(endpoint)
+		group := ep.NewGroup("/api").WithEndpoints(groupEndpoint)
 
-		// Add both to group and individually - should not duplicate
-		endpoints := []ep.Endpoint{endpoint}
+		// Create separate endpoint for individual registration (stays at /ping)
+		individualEndpoint := ep.NewEndpointRes[string]().
+			WithMethod("GET").
+			WithPath("/ping")
+
+		// Add both to group and individually - should result in two different paths
+		endpoints := []ep.Route{individualEndpoint}
 		groups := []*ep.Group{group}
 
 		spec := GenerateOpenAPI("API", "", "1.0", endpoints, groups)
@@ -114,19 +121,31 @@ func TestGenerateOpenAPI(t *testing.T) {
 			t.Fatal("paths should be a map")
 		}
 
-		pathData, ok := paths["/api/ping"].(map[string]any)
+		// Group prefix now works with typed endpoints!
+		// The endpoint in the group gets prefixed to "/api/ping"
+		// The individual endpoint stays at "/ping"
+		// So we have two different paths, not duplicates
+		pathDataGrouped, ok := paths["/api/ping"].(map[string]any)
 		if !ok {
-			t.Fatal("/api/ping should exist")
+			t.Fatal("/api/ping should exist (grouped endpoint)")
 		}
 
-		// Should only have one operation
-		if len(pathData) != 1 {
-			t.Errorf("expected 1 operation (no duplicates), got %d", len(pathData))
+		pathDataIndividual, ok := paths["/ping"].(map[string]any)
+		if !ok {
+			t.Fatal("/ping should exist (individual endpoint)")
+		}
+
+		// Each should only have one operation
+		if len(pathDataGrouped) != 1 {
+			t.Errorf("expected 1 operation for grouped endpoint, got %d", len(pathDataGrouped))
+		}
+		if len(pathDataIndividual) != 1 {
+			t.Errorf("expected 1 operation for individual endpoint, got %d", len(pathDataIndividual))
 		}
 	})
 }
 
-// TestBuildOperation tests operation construction
+
 func TestBuildOperation(t *testing.T) {
 	t.Run("basic operation", func(t *testing.T) {
 		endpoint := ep.NewEndpointRes[string]().
@@ -182,6 +201,9 @@ func TestBuildOperation(t *testing.T) {
 			WithMethod("POST").
 			WithPath("/test")
 
+		// Trigger schema generation by calling GetHandler
+		_ = endpoint.GetHandler()
+
 		op := buildOperation(endpoint, []*ep.Group{})
 
 		reqBody, ok := op["requestBody"].(map[string]any)
@@ -202,6 +224,9 @@ func TestBuildOperation(t *testing.T) {
 		endpoint := ep.NewEndpointRes[TestRes]().
 			WithMethod("GET").
 			WithPath("/test")
+
+		// Trigger schema generation by calling GetHandler
+		_ = endpoint.GetHandler()
 
 		op := buildOperation(endpoint, []*ep.Group{})
 
@@ -297,7 +322,7 @@ func TestBuildOperation(t *testing.T) {
 	})
 }
 
-// TestGenerateSchema tests schema generation
+
 func TestGenerateSchema(t *testing.T) {
 	t.Run("nil value", func(t *testing.T) {
 		schema := generateSchema(nil)
@@ -331,7 +356,7 @@ func TestGenerateSchema(t *testing.T) {
 	})
 }
 
-// TestStructToSchema tests the struct schema conversion
+
 func TestStructToSchema(t *testing.T) {
 	t.Run("with openapi tag", func(t *testing.T) {
 		type TestStruct struct {
@@ -430,7 +455,7 @@ func TestStructToSchema(t *testing.T) {
 	})
 }
 
-// TestAddMountedRoutesToSpec tests adding mounted routes
+
 func TestAddMountedRoutesToSpec(t *testing.T) {
 	t.Run("add routes with prefix", func(t *testing.T) {
 		spec := map[string]any{
@@ -492,7 +517,7 @@ func TestAddMountedRoutesToSpec(t *testing.T) {
 	})
 }
 
-// TestBuildMountedRouteOperation tests mounted route operation building
+
 func TestBuildMountedRouteOperation(t *testing.T) {
 	t.Run("basic operation", func(t *testing.T) {
 		route := schema.MountedRoute{
@@ -648,7 +673,7 @@ func TestBuildMountedRouteOperation(t *testing.T) {
 	})
 }
 
-// TestExtractPathParameters tests path parameter extraction
+
 func TestExtractPathParameters(t *testing.T) {
 	tests := []struct {
 		path     string
@@ -679,7 +704,7 @@ func TestExtractPathParameters(t *testing.T) {
 	}
 }
 
-// TestServeOpenAPI tests the OpenAPI HTTP handler
+
 func TestServeOpenAPI(t *testing.T) {
 	spec := map[string]any{
 		"openapi": "3.0.0",
@@ -712,7 +737,7 @@ func TestServeOpenAPI(t *testing.T) {
 	}
 }
 
-// TestServeSwaggerUI tests the Swagger UI HTTP handler
+
 func TestServeSwaggerUI(t *testing.T) {
 	rec := httptest.NewRecorder()
 	ServeSwaggerUI(rec, "/swagger")

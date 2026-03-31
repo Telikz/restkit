@@ -17,14 +17,13 @@ func main() {
 	r.Use(chiMiddleware.Logger)
 	r.Use(chiMiddleware.Recoverer)
 
-	api := &rest.Api{
-		Version:     "1.0.0",
-		Title:       "Example API",
-		Description: "An example API using RestKit with Chi",
-		Groups:      []*ep.Group{userGroup()},
-		Endpoints:   []ep.Endpoint{pingEndpoint()},
-	}
-	api.WithSwaggerUI("/docs")
+	api := rest.NewApi().
+		WithVersion("1.0.0").
+		WithTitle("Example API").
+		WithDescription("An example API using RestKit with Chi").
+		AddGroup(userGroup()).
+		AddEndpoint(pingEndpoint()).
+		WithSwaggerUI("/docs")
 
 	restchi.RegisterRoutes(r, api)
 
@@ -44,69 +43,63 @@ type UserResponse struct {
 }
 
 func userGroup() *ep.Group {
-	return &ep.Group{
-		Prefix:      "/users",
-		Title:       "User Management",
-		Description: "Endpoints for managing users",
-		Endpoints: []ep.Endpoint{
+	return ep.NewGroup("/users").
+		WithTitle("User Management").
+		WithDescription("Endpoints for managing users").
+		WithEndpoints(
 			createUserEndpoint(),
 			getUserEndpoint(),
 			listUsersEndpoint(),
-		},
-	}
+		)
 }
 
 func createUserEndpoint() *rest.Endpoint[CreateUserRequest, UserResponse] {
-	return &rest.Endpoint[CreateUserRequest, UserResponse]{
-		Path:        "",
-		Method:      "POST",
-		Title:       "Create User",
-		Description: "Create a new user with the provided name and email",
-		Handler: func(ctx context.Context, req CreateUserRequest) (UserResponse, error) {
+	return rest.NewEndpoint[CreateUserRequest, UserResponse]().
+		WithPath("/").
+		WithMethod("POST").
+		WithTitle("Create User").
+		WithDescription("Create a new user with the provided name and email").
+		WithHandler(func(ctx context.Context, req CreateUserRequest) (UserResponse, error) {
 			return UserResponse{ID: 1, Name: req.Name, Email: req.Email}, nil
-		},
-	}
+		})
 }
 
-func getUserEndpoint() *rest.EndpointRes[UserResponse] {
-	return &rest.EndpointRes[UserResponse]{
-		Path:        "/{id}",
-		Method:      "GET",
-		Title:       "Get User",
-		Description: "Retrieve details for a specific user by ID",
-		Handler: func(ctx context.Context) (UserResponse, error) {
+func getUserEndpoint() *rest.Endpoint[rest.NoRequest, UserResponse] {
+	return rest.NewEndpointRes[UserResponse]().
+		WithPath("/{id}").
+		WithMethod("GET").
+		WithTitle("Get User").
+		WithDescription("Retrieve details for a specific user by ID").
+		WithHandler(func(ctx context.Context, _ rest.NoRequest) (UserResponse, error) {
 			return UserResponse{
 				ID:    1,
 				Name:  "John",
 				Email: "john@example.com",
 			}, nil
-		},
-	}
+		})
 }
 
-func listUsersEndpoint() *rest.EndpointRes[[]UserResponse] {
-	return &rest.EndpointRes[[]UserResponse]{
-		Path:        "",
-		Method:      "GET",
-		Title:       "List Users",
-		Description: "Retrieve a list of all users",
-		Handler: func(ctx context.Context) ([]UserResponse, error) {
+func listUsersEndpoint() *rest.Endpoint[rest.NoRequest, []UserResponse] {
+	return rest.NewEndpointRes[[]UserResponse]().
+		WithPath("/").
+		WithMethod("GET").
+		WithTitle("List Users").
+		WithDescription("Retrieve a list of all users").
+		WithHandler(func(ctx context.Context, _ rest.NoRequest) ([]UserResponse, error) {
 			return []UserResponse{
 				{ID: 1, Name: "John", Email: "john@example.com"},
 			}, nil
-		},
-	}
+		})
 }
 
-func pingEndpoint() *rest.EndpointRes[MessageResponse] {
-	return &rest.EndpointRes[MessageResponse]{
-		Path:   "/ping",
-		Method: "GET",
-		Title:  "Ping Endpoint",
-		Handler: func(ctx context.Context) (MessageResponse, error) {
+func pingEndpoint() *rest.Endpoint[rest.NoRequest, MessageResponse] {
+	return rest.NewEndpointRes[MessageResponse]().
+		WithPath("/ping").
+		WithMethod("GET").
+		WithTitle("Ping Endpoint").
+		WithHandler(func(ctx context.Context, _ rest.NoRequest) (MessageResponse, error) {
 			return MessageResponse{Message: "pong"}, nil
-		},
-	}
+		})
 }
 
 type MessageResponse struct {

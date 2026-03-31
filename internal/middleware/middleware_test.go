@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-// TestJSONBinder tests the JSON request body binder
+
 func TestJSONBinder(t *testing.T) {
 	type TestRequest struct {
 		Name  string `json:"name"`
@@ -80,7 +80,7 @@ func TestJSONBinder(t *testing.T) {
 	})
 }
 
-// TestPathParamBinder tests the path parameter binder
+
 func TestPathParamBinder(t *testing.T) {
 	t.Run("extract string param", func(t *testing.T) {
 		binder := PathParamBinder(StringToString)
@@ -151,7 +151,7 @@ func TestPathParamBinder(t *testing.T) {
 	})
 }
 
-// TestStringToInt tests the string to int converter
+
 func TestStringToInt(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -185,7 +185,7 @@ func TestStringToInt(t *testing.T) {
 	}
 }
 
-// TestStringToString tests the string identity function
+
 func TestStringToString(t *testing.T) {
 	tests := []string{"hello", "world", "123", "", "with spaces"}
 
@@ -202,7 +202,7 @@ func TestStringToString(t *testing.T) {
 	}
 }
 
-// TestJSONWriter tests the JSON response writer
+
 func TestJSONWriter(t *testing.T) {
 	type TestResponse struct {
 		ID   int    `json:"id"`
@@ -250,7 +250,7 @@ func TestJSONWriter(t *testing.T) {
 	})
 }
 
-// TestJSONErrorWriter tests the JSON error response writer
+
 func TestJSONErrorWriter(t *testing.T) {
 	t.Run("writes error response", func(t *testing.T) {
 		rec := httptest.NewRecorder()
@@ -279,7 +279,7 @@ func TestJSONErrorWriter(t *testing.T) {
 	})
 }
 
-// TestJoinStrings tests the string join helper
+
 func TestJoinStrings(t *testing.T) {
 	tests := []struct {
 		strs     []string
@@ -301,7 +301,7 @@ func TestJoinStrings(t *testing.T) {
 	}
 }
 
-// TestRecoveryMiddleware tests the panic recovery middleware
+
 func TestRecoveryMiddleware(t *testing.T) {
 	t.Run("recovers from panic", func(t *testing.T) {
 		middleware := RecoveryMiddleware()
@@ -357,7 +357,7 @@ func TestRecoveryMiddleware(t *testing.T) {
 	})
 }
 
-// TestLoggingMiddleware tests the request logging middleware
+
 func TestLoggingMiddleware(t *testing.T) {
 	middleware := LoggingMiddleware()
 
@@ -378,7 +378,7 @@ func TestLoggingMiddleware(t *testing.T) {
 	}
 }
 
-// TestNewCORS tests the CORS middleware
+
 func TestNewCORS(t *testing.T) {
 	t.Run("default CORS headers", func(t *testing.T) {
 		middleware := NewCORS()

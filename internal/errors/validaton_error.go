@@ -14,6 +14,18 @@ type ValidationError struct {
 	Message string `json:"message"`
 }
 
+func (v ValidationResult) IsValid() bool {
+	return len(v.Errors) == 0
+}
+
+func (v ValidationResult) ToAPIError() APIError {
+	return APIError{
+		Status:  v.Status,
+		Code:    v.Code,
+		Message: v.Message,
+	}
+}
+
 // HasErrors returns true if there are validation errors
 func (v *ValidationResult) HasErrors() bool {
 	if v == nil {

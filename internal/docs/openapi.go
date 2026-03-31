@@ -2,6 +2,7 @@ package docs
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"reflect"
 	"regexp"
@@ -14,7 +15,7 @@ import (
 // GenerateOpenAPI generates an OpenAPI 3.0 specification from endpoints
 func GenerateOpenAPI(
 	title, description, version string,
-	endpoints []ep.Endpoint, groups []*ep.Group,
+	endpoints []ep.Route, groups []*ep.Group,
 ) map[string]any {
 	paths := make(map[string]any)
 	tags := make([]map[string]any, 0)
@@ -47,13 +48,13 @@ func GenerateOpenAPI(
 	registered := make(map[string]bool)
 	for _, group := range groups {
 		for _, e := range group.GetEndpoints() {
-			key := e.GetMethod() + " " + e.GetPath()
+			key := fmt.Sprintf("%s %s", e.GetMethod(), e.GetPath())
 			registered[key] = true
 		}
 	}
 
 	for _, endpoint := range endpoints {
-		key := endpoint.GetMethod() + " " + endpoint.GetPath()
+		key := fmt.Sprintf("%s %s", endpoint.GetMethod(), endpoint.GetPath())
 		if !registered[key] {
 			path := endpoint.GetPath()
 			method := strings.ToLower(endpoint.GetMethod())
@@ -86,7 +87,7 @@ func GenerateOpenAPI(
 
 // buildOperation constructs an OpenAPI operation object from an endpoint definition
 func buildOperation(
-	endpoint ep.Endpoint, groups []*ep.Group,
+	endpoint ep.Route, groups []*ep.Group,
 ) map[string]any {
 	op := map[string]any{
 		"summary":     endpoint.GetTitle(),
@@ -109,7 +110,7 @@ func buildOperation(
 	}
 
 	reqSchema := endpoint.GetRequestSchema()
-	if reqSchema != nil {
+	if reqSchema != nil && !isEmptyRequestSchema(reqSchema) {
 		op["requestBody"] = map[string]any{
 			"required": true,
 			"content": map[string]any{
@@ -492,4 +493,19 @@ func ServeOpenAPI(w http.ResponseWriter, spec map[string]any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(spec)
+}
+
+func isEmptyRequestSchema(schema map[string]any) bool {
+	if schema == nil {
+		return true
+	}
+
+	if schemaType, ok := schema["type"].(string); ok && schemaType == "object" {
+		if properties, ok := schema["properties"].(map[string]any); ok {
+			return len(properties) == 0
+		}
+		return true
+	}
+
+	return false
 }

@@ -2,18 +2,22 @@
 package restchi
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/reststore/restkit/internal/api"
 	"github.com/reststore/restkit/internal/docs"
-	"github.com/reststore/restkit/internal/endpoints"
 )
 
 // RegisterRoutes registers all routes from a RestKit API with Chi router.
 func RegisterRoutes(r chi.Router, api *api.Api) {
+	registered := make(map[string]bool)
+
 	for _, group := range api.Groups {
 		for _, endpoint := range group.GetEndpoints() {
+			key := fmt.Sprintf("%s %s", endpoint.GetMethod(), endpoint.GetPath())
+			registered[key] = true
 			r.MethodFunc(
 				endpoint.GetMethod(),
 				endpoint.GetPath(),
@@ -22,15 +26,9 @@ func RegisterRoutes(r chi.Router, api *api.Api) {
 		}
 	}
 
-	registered := make(map[endpoints.Endpoint]bool)
-	for _, group := range api.Groups {
-		for _, ep := range group.GetEndpoints() {
-			registered[ep] = true
-		}
-	}
-
 	for _, endpoint := range api.Endpoints {
-		if !registered[endpoint] {
+		key := fmt.Sprintf("%s %s", endpoint.GetMethod(), endpoint.GetPath())
+		if !registered[key] {
 			r.MethodFunc(
 				endpoint.GetMethod(),
 				endpoint.GetPath(),

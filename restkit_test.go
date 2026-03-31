@@ -11,7 +11,7 @@ import (
 	rest "github.com/reststore/restkit"
 )
 
-// Test Types
+
 type TestRequest struct {
 	Name  string `json:"name"  validate:"required"`
 	Email string `json:"email" validate:"required,email"`
@@ -27,7 +27,7 @@ type PingResponse struct {
 	Message string `json:"message"`
 }
 
-// Test NewApi
+
 func TestNewApi(t *testing.T) {
 	api := rest.NewApi()
 	if api == nil {
@@ -35,7 +35,7 @@ func TestNewApi(t *testing.T) {
 	}
 }
 
-// Test NewGroup
+
 func TestNewGroup(t *testing.T) {
 	group := rest.NewGroup("/api/v1")
 	if group == nil {
@@ -46,46 +46,49 @@ func TestNewGroup(t *testing.T) {
 	}
 }
 
-// Test NewEndpoint (Req/Res)
+
 func TestNewEndpoint(t *testing.T) {
 	endpoint := rest.NewEndpoint[TestRequest, TestResponse]()
 	if endpoint == nil {
 		t.Fatal("NewEndpoint() returned nil")
 	}
 
-	// Check default method is POST
-	if endpoint.GetMethod() != http.MethodPost {
-		t.Errorf("Expected default method POST, got %s", endpoint.GetMethod())
+	// Default method is empty initially (lazy-initialized in GetHandler)
+	// It will be POST when GetHandler is called
+	if endpoint.GetMethod() != "" {
+		t.Errorf("Expected empty method initially, got %s", endpoint.GetMethod())
 	}
 }
 
-// Test NewEndpointRes
+
 func TestNewEndpointRes(t *testing.T) {
 	endpoint := rest.NewEndpointRes[PingResponse]()
 	if endpoint == nil {
 		t.Fatal("NewEndpointRes() returned nil")
 	}
 
-	// Check default method is GET
-	if endpoint.GetMethod() != http.MethodGet {
-		t.Errorf("Expected default method GET, got %s", endpoint.GetMethod())
+	// Default method is empty initially (lazy-initialized in GetHandler)
+	// It will be GET when GetHandler is called
+	if endpoint.GetMethod() != "" {
+		t.Errorf("Expected empty method initially, got %s", endpoint.GetMethod())
 	}
 }
 
-// Test NewEndpointReq
+
 func TestNewEndpointReq(t *testing.T) {
 	endpoint := rest.NewEndpointReq[TestRequest]()
 	if endpoint == nil {
 		t.Fatal("NewEndpointReq() returned nil")
 	}
 
-	// Check default method is DELETE
-	if endpoint.GetMethod() != http.MethodDelete {
-		t.Errorf("Expected default method DELETE, got %s", endpoint.GetMethod())
+	// Default method is empty initially (lazy-initialized in GetHandler)
+	// It will be DELETE when GetHandler is called
+	if endpoint.GetMethod() != "" {
+		t.Errorf("Expected empty method initially, got %s", endpoint.GetMethod())
 	}
 }
 
-// Test ExtractPathParams
+
 func TestExtractPathParams(t *testing.T) {
 	tests := []struct {
 		pattern  string
@@ -120,12 +123,12 @@ func TestExtractPathParams(t *testing.T) {
 	}
 }
 
-// Test URLParam
+
 func TestURLParam(t *testing.T) {
 	// Create an endpoint that extracts URL params
 	endpoint := rest.NewEndpointRes[map[string]string]().
 		WithPath("/users/{id}").
-		WithHandler(func(ctx context.Context) (map[string]string, error) {
+		WithHandler(func(ctx context.Context, _ rest.NoRequest) (map[string]string, error) {
 			id := rest.URLParam(ctx, "id")
 			return map[string]string{"id": id}, nil
 		})
@@ -149,11 +152,11 @@ func TestURLParam(t *testing.T) {
 	}
 }
 
-// Test RouteCtxFromContext
+
 func TestRouteCtxFromContext(t *testing.T) {
 	endpoint := rest.NewEndpointRes[map[string]string]().
 		WithPath("/users/{id}/posts/{postId}").
-		WithHandler(func(ctx context.Context) (map[string]string, error) {
+		WithHandler(func(ctx context.Context, _ rest.NoRequest) (map[string]string, error) {
 			routeCtx := rest.RouteCtxFromContext(ctx)
 			if routeCtx == nil {
 				return nil, errors.New("route context is nil")
@@ -182,7 +185,7 @@ func TestRouteCtxFromContext(t *testing.T) {
 	}
 }
 
-// Test JSONBinder
+
 func TestJSONBinder(t *testing.T) {
 	binder := rest.JSONBinder[TestRequest]()
 	if binder == nil {
@@ -211,7 +214,7 @@ func TestJSONBinder(t *testing.T) {
 	}
 }
 
-// Test JSONWriter
+
 func TestJSONWriter(t *testing.T) {
 	writer := rest.JSONWriter[TestResponse]()
 	if writer == nil {
@@ -236,7 +239,7 @@ func TestJSONWriter(t *testing.T) {
 	}
 }
 
-// Test JSONErrorWriter
+
 func TestJSONErrorWriter(t *testing.T) {
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
@@ -258,7 +261,7 @@ func TestJSONErrorWriter(t *testing.T) {
 	}
 }
 
-// Test SchemaFrom
+
 func TestSchemaFrom(t *testing.T) {
 	schema := rest.SchemaFrom[TestResponse]()
 	if schema == nil {
@@ -284,22 +287,22 @@ func TestSchemaFrom(t *testing.T) {
 	}
 }
 
-// Test PathParamBinder
+
 func TestPathParamBinder(t *testing.T) {
-	// Test with int converter
+	
 	intBinder := rest.PathParamBinder(rest.StringToInt)
 	if intBinder == nil {
 		t.Fatal("PathParamBinder(StringToInt) returned nil")
 	}
 
-	// Test with string converter (no-op)
+	
 	stringBinder := rest.PathParamBinder(rest.StringToString)
 	if stringBinder == nil {
 		t.Fatal("PathParamBinder(StringToString) returned nil")
 	}
 }
 
-// Test StringToInt
+
 func TestStringToInt(t *testing.T) {
 	val, err := rest.StringToInt("123")
 	if err != nil {
@@ -309,14 +312,14 @@ func TestStringToInt(t *testing.T) {
 		t.Errorf("Expected 123, got %d", val)
 	}
 
-	// Test invalid input
+	
 	_, err = rest.StringToInt("abc")
 	if err == nil {
 		t.Error("StringToInt should return error for non-numeric string")
 	}
 }
 
-// Test StringToString
+
 func TestStringToString(t *testing.T) {
 	val, err := rest.StringToString("hello")
 	if err != nil {
@@ -327,7 +330,7 @@ func TestStringToString(t *testing.T) {
 	}
 }
 
-// Test LoggingMiddleware
+
 func TestLoggingMiddleware(t *testing.T) {
 	middleware := rest.LoggingMiddleware()
 	if middleware == nil {
@@ -335,7 +338,7 @@ func TestLoggingMiddleware(t *testing.T) {
 	}
 }
 
-// Test RecoveryMiddleware
+
 func TestRecoveryMiddleware(t *testing.T) {
 	middleware := rest.RecoveryMiddleware()
 	if middleware == nil {
@@ -343,7 +346,7 @@ func TestRecoveryMiddleware(t *testing.T) {
 	}
 }
 
-// Test Api with Groups
+
 func TestApiWithGroups(t *testing.T) {
 	// Create a group
 	userGroup := rest.NewGroup("/users").
@@ -354,7 +357,7 @@ func TestApiWithGroups(t *testing.T) {
 	listEndpoint := rest.NewEndpointRes[[]TestResponse]().
 		WithPath("/").
 		WithMethod(http.MethodGet).
-		WithHandler(func(ctx context.Context) ([]TestResponse, error) {
+		WithHandler(func(ctx context.Context, _ rest.NoRequest) ([]TestResponse, error) {
 			return []TestResponse{}, nil
 		})
 
@@ -369,8 +372,8 @@ func TestApiWithGroups(t *testing.T) {
 
 	mux := api.Mux()
 
-	// Test group endpoint
-	req := httptest.NewRequest(http.MethodGet, "/users/", nil)
+	
+	req := httptest.NewRequest(http.MethodGet, "/users", nil)
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
 
@@ -379,7 +382,7 @@ func TestApiWithGroups(t *testing.T) {
 	}
 }
 
-// Test Api WithMiddleware
+
 func TestApiWithMiddleware(t *testing.T) {
 	called := false
 	testMiddleware := func(next http.Handler) http.Handler {
@@ -392,7 +395,7 @@ func TestApiWithMiddleware(t *testing.T) {
 	endpoint := rest.NewEndpointRes[PingResponse]().
 		WithPath("/ping").
 		WithMethod(http.MethodGet).
-		WithHandler(func(ctx context.Context) (PingResponse, error) {
+		WithHandler(func(ctx context.Context, _ rest.NoRequest) (PingResponse, error) {
 			return PingResponse{Message: "pong"}, nil
 		})
 
@@ -414,15 +417,15 @@ func TestApiWithMiddleware(t *testing.T) {
 	}
 }
 
-// Test Validation types and functions
+
 func TestValidationTypes(t *testing.T) {
-	// Test NewValidation
+	
 	validation := rest.NewValidation()
 	if validation.HasErrors() {
 		t.Error("New validation should not have errors")
 	}
 
-	// Test ValidationFailed
+	
 	failedValidation := rest.ValidationFailed(
 		400,
 		"error",
@@ -434,7 +437,7 @@ func TestValidationTypes(t *testing.T) {
 		t.Error("Failed validation should have errors")
 	}
 
-	// Test ValidationFailedMulti
+	
 	multiValidation := rest.ValidationFailedMulti(
 		422, "validation", "multiple errors",
 		rest.ValidationError{Field: "field1", Message: "error1"},
@@ -445,7 +448,7 @@ func TestValidationTypes(t *testing.T) {
 	}
 }
 
-// Test ValidateStruct
+
 func TestValidateStruct(t *testing.T) {
 	ctx := context.Background()
 
@@ -471,12 +474,12 @@ func TestValidateStruct(t *testing.T) {
 	}
 }
 
-// Test Endpoint WithValidation
+
 func TestEndpointWithValidation(t *testing.T) {
 	endpoint := rest.NewEndpointRes[PingResponse]().
 		WithPath("/ping").
 		WithMethod(http.MethodGet).
-		WithValidation(func(ctx context.Context) rest.ValidationResult {
+		WithValidation(func(ctx context.Context, _ rest.NoRequest) rest.ValidationResult {
 			// Always fail validation for testing
 			return rest.ValidationFailed(
 				400,
@@ -486,7 +489,7 @@ func TestEndpointWithValidation(t *testing.T) {
 				"error",
 			)
 		}).
-		WithHandler(func(ctx context.Context) (PingResponse, error) {
+		WithHandler(func(ctx context.Context, _ rest.NoRequest) (PingResponse, error) {
 			return PingResponse{Message: "pong"}, nil
 		})
 
@@ -502,7 +505,7 @@ func TestEndpointWithValidation(t *testing.T) {
 	}
 }
 
-// Test Endpoint WithMiddleware
+
 func TestEndpointWithMiddleware(t *testing.T) {
 	called := false
 	endpointMiddleware := func(next http.Handler) http.Handler {
@@ -516,7 +519,7 @@ func TestEndpointWithMiddleware(t *testing.T) {
 		WithPath("/ping").
 		WithMethod(http.MethodGet).
 		WithMiddleware(endpointMiddleware).
-		WithHandler(func(ctx context.Context) (PingResponse, error) {
+		WithHandler(func(ctx context.Context, _ rest.NoRequest) (PingResponse, error) {
 			return PingResponse{Message: "pong"}, nil
 		})
 
@@ -535,7 +538,7 @@ func TestEndpointWithMiddleware(t *testing.T) {
 	}
 }
 
-// TestErrorCodes verifies that error codes are available through the public API
+
 func TestErrorCodes(t *testing.T) {
 	tests := []struct {
 		code  string
@@ -559,7 +562,7 @@ func TestErrorCodes(t *testing.T) {
 	}
 }
 
-// TestNewCORS verifies the CORS configuration with functional options
+
 func TestNewCORS(t *testing.T) {
 	cors := rest.NewCORS(rest.WithOrigins("https://example.com"))
 
@@ -584,7 +587,7 @@ func TestNewCORS(t *testing.T) {
 	}
 }
 
-// TestNewCORSWithFullConfig verifies CORS with all options
+
 func TestNewCORSWithFullConfig(t *testing.T) {
 	cors := rest.NewCORS(
 		rest.WithOrigins("https://example.com"),
@@ -625,7 +628,7 @@ func TestNewCORSWithFullConfig(t *testing.T) {
 	}
 }
 
-// TestNewCORSDefaults verifies CORS with default settings (reflective)
+
 func TestNewCORSDefaults(t *testing.T) {
 	cors := rest.NewCORS()
 

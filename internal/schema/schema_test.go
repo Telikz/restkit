@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// TestSchemaFrom tests the generic schema generator
+
 func TestSchemaFrom(t *testing.T) {
 	t.Run("string type", func(t *testing.T) {
 		schema := SchemaFrom[string]()
@@ -58,7 +58,7 @@ func TestSchemaFrom(t *testing.T) {
 	})
 }
 
-// TestTypeToSchema tests the type to schema conversion
+
 func TestTypeToSchema(t *testing.T) {
 	t.Run("nil type", func(t *testing.T) {
 		schema := TypeToSchema(nil)
@@ -176,7 +176,7 @@ func TestTypeToSchema(t *testing.T) {
 	})
 }
 
-// TestStructToSchema tests the struct schema conversion
+
 func TestStructToSchema(t *testing.T) {
 	t.Run("basic struct", func(t *testing.T) {
 		type Simple struct {
@@ -411,7 +411,7 @@ func TestStructToSchema(t *testing.T) {
 	})
 }
 
-// TestSchemaFromComplexTypes tests complex type schemas
+
 func TestSchemaFromComplexTypes(t *testing.T) {
 	t.Run("slice of strings", func(t *testing.T) {
 		schema := SchemaFrom[[]string]()

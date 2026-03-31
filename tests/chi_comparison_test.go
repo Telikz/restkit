@@ -27,7 +27,7 @@ type UserResponse struct {
 	Email string `json:"email"`
 }
 
-// BenchmarkRestKitPing tests GET /ping using RestKit handler
+
 func BenchmarkRestKitPing(b *testing.B) {
 	router := setupRestKitRouter()
 	server := httptest.NewServer(router)
@@ -43,7 +43,7 @@ func BenchmarkRestKitPing(b *testing.B) {
 	}
 }
 
-// BenchmarkRawChiPing tests GET /ping using raw Chi handler
+
 func BenchmarkRawChiPing(b *testing.B) {
 	router := setupRawChiRouter()
 	server := httptest.NewServer(router)
@@ -59,7 +59,7 @@ func BenchmarkRawChiPing(b *testing.B) {
 	}
 }
 
-// BenchmarkStdlibPing tests GET /ping using stdlib ServeMux
+
 func BenchmarkStdlibPing(b *testing.B) {
 	mux := setupStdlibMux()
 	server := httptest.NewServer(mux)
@@ -75,7 +75,7 @@ func BenchmarkStdlibPing(b *testing.B) {
 	}
 }
 
-// BenchmarkRestKitGetUser tests GET /users/{id} using RestKit with path parameter
+
 func BenchmarkRestKitGetUser(b *testing.B) {
 	router := setupRestKitRouter()
 	server := httptest.NewServer(router)
@@ -91,7 +91,7 @@ func BenchmarkRestKitGetUser(b *testing.B) {
 	}
 }
 
-// BenchmarkRawChiGetUser tests GET /users/{id} using raw Chi with chi.URLParam
+
 func BenchmarkRawChiGetUser(b *testing.B) {
 	router := setupRawChiRouter()
 	server := httptest.NewServer(router)
@@ -107,7 +107,7 @@ func BenchmarkRawChiGetUser(b *testing.B) {
 	}
 }
 
-// BenchmarkStdlibGetUser tests GET /users/{id} using stdlib ServeMux with r.PathValue
+
 func BenchmarkStdlibGetUser(b *testing.B) {
 	mux := setupStdlibMux()
 	server := httptest.NewServer(mux)
@@ -123,7 +123,7 @@ func BenchmarkStdlibGetUser(b *testing.B) {
 	}
 }
 
-// BenchmarkRestKitCreateUser tests POST /users with JSON body binding using RestKit
+
 func BenchmarkRestKitCreateUser(b *testing.B) {
 	router := setupRestKitRouter()
 	server := httptest.NewServer(router)
@@ -149,7 +149,7 @@ func BenchmarkRestKitCreateUser(b *testing.B) {
 	}
 }
 
-// BenchmarkRawChiCreateUser tests POST /users with JSON decoding using raw Chi
+
 func BenchmarkRawChiCreateUser(b *testing.B) {
 	router := setupRawChiRouter()
 	server := httptest.NewServer(router)
@@ -175,7 +175,7 @@ func BenchmarkRawChiCreateUser(b *testing.B) {
 	}
 }
 
-// BenchmarkStdlibCreateUser tests POST /users with JSON decoding using stdlib
+
 func BenchmarkStdlibCreateUser(b *testing.B) {
 	mux := setupStdlibMux()
 	server := httptest.NewServer(mux)
@@ -210,7 +210,7 @@ func setupRestKitRouter() *chi.Mux {
 		Title:       "Example API",
 		Description: "An example API using RestKit with Chi",
 		Groups:      []*ep.Group{userGroup()},
-		Endpoints:   []ep.Endpoint{pingEndpoint()},
+		Endpoints:   []ep.Route{pingEndpoint()},
 	}
 
 	restchi.RegisterRoutes(r, api)
@@ -312,7 +312,7 @@ func userGroup() *ep.Group {
 		Prefix:      "/users",
 		Title:       "User Management",
 		Description: "Endpoints for managing users",
-		Endpoints: []ep.Endpoint{
+		Endpoints: []ep.Route{
 			createUserEndpoint(),
 			getUserEndpoint(),
 			listUsersEndpoint(),
@@ -329,11 +329,11 @@ func createUserEndpoint() *rest.Endpoint[CreateUserRequest, UserResponse] {
 		})
 }
 
-func getUserEndpoint() *rest.EndpointRes[UserResponse] {
+func getUserEndpoint() *rest.Endpoint[rest.NoRequest, UserResponse] {
 	return rest.NewEndpointRes[UserResponse]().
 		WithPath("/{id}").
 		WithMethod(http.MethodGet).
-		WithHandler(func(ctx context.Context) (UserResponse, error) {
+		WithHandler(func(ctx context.Context, _ rest.NoRequest) (UserResponse, error) {
 			return UserResponse{
 				ID:    1,
 				Name:  "John",
@@ -342,22 +342,22 @@ func getUserEndpoint() *rest.EndpointRes[UserResponse] {
 		})
 }
 
-func listUsersEndpoint() *rest.EndpointRes[[]UserResponse] {
+func listUsersEndpoint() *rest.Endpoint[rest.NoRequest, []UserResponse] {
 	return rest.NewEndpointRes[[]UserResponse]().
 		WithPath("").
 		WithMethod(http.MethodGet).
-		WithHandler(func(ctx context.Context) ([]UserResponse, error) {
+		WithHandler(func(ctx context.Context, _ rest.NoRequest) ([]UserResponse, error) {
 			return []UserResponse{
 				{ID: 1, Name: "John", Email: "john@example.com"},
 			}, nil
 		})
 }
 
-func pingEndpoint() *rest.EndpointRes[map[string]string] {
+func pingEndpoint() *rest.Endpoint[rest.NoRequest, map[string]string] {
 	return rest.NewEndpointRes[map[string]string]().
 		WithPath("/ping").
 		WithMethod(http.MethodGet).
-		WithHandler(func(ctx context.Context) (map[string]string, error) {
+		WithHandler(func(ctx context.Context, _ rest.NoRequest) (map[string]string, error) {
 			return map[string]string{"message": "pong"}, nil
 		})
 }

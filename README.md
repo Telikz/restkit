@@ -1,6 +1,6 @@
-# RestKit - Type-Safe REST API Framework for Go
+# RestKit - Type-Safe REST API Framework for Go With OpenAPI Support
 
-RestKit is a modern Go framework for building type-safe REST APIs with automatic OpenAPI documentation. It leverages Go 1.26+ generics to provide compile-time type safety while keeping the API simple and expressive.
+RestKit is a modern Go framework for building type-safe REST APIs with automatic OpenAPI documentation. It leverages generics to provide compile-time type safety while keeping the API simple and expressive.
 
 ## 🎯 Features
 
@@ -75,10 +75,10 @@ func main() {
 		WithMethod("POST").
 		WithHandler(createUserHandler)
 
-	api.Add(*createUserEndpoint)
+	api.Add(createUserEndpoint)
 
-	// Enable Swagger UI
-	api.WithSwaggerUI(true).WithSwaggerUIPath("/docs")
+	// Enable Swagger UI accessible at /swagger
+	api.WithSwaggerUI()
 
 	// Add middleware
 	api.WithMiddleware(rest.LoggingMiddleware())
@@ -93,12 +93,12 @@ func main() {
 	}
 
 	log.Println("Server running on http://localhost:8080")
-	log.Println("Swagger UI: http://localhost:8080/docs")
+	log.Println("Swagger UI: http://localhost:8080/swagger")
 	log.Fatal(server.ListenAndServe())
 }
 ```
 
-Visit `http://localhost:8080/docs` to see the interactive Swagger UI.
+Visit `http://localhost:8080/swagger` to see the interactive Swagger UI.
 
 ## 📖 Endpoint Types
 
@@ -122,7 +122,7 @@ endpoint := rest.NewEndpoint[RequestType, ResponseType]().
 
 ```go
 endpoint := rest.NewEndpointRes[ResponseType]().
-	WithPath("/resource/:id").
+	WithPath("/resource/{id}").
 	WithHandler(func(ctx context.Context) (ResponseType, error) {
 		// Your logic here
 		return res, nil
@@ -135,7 +135,7 @@ endpoint := rest.NewEndpointRes[ResponseType]().
 
 ```go
 endpoint := rest.NewEndpointReq[RequestType]().
-	WithPath("/resource/:id").
+	WithPath("/resource/{id}").
 	WithHandler(func(ctx context.Context, req RequestType) error {
 		// Your logic here
 		return nil
@@ -259,7 +259,8 @@ Middleware runs in the order added and is applied globally to all endpoints.
 RestKit automatically generates OpenAPI 3.0 specs from your endpoints:
 
 ```go
-api.WithSwaggerUI(true).WithSwaggerUIPath("/docs")
+api.WithSwaggerUI("/docs") // Enable Swagger UI at /docs
+// or keep it empty for default /swagger
 ```
 
 Access at:
@@ -352,11 +353,11 @@ RestKit is built on Go's standard net/http. Use adapters to integrate with other
 ### Chi Router Adapter
 
 ```go
-import "github.com/telikz/restkit/adapters/chi"
+import restchi "github.com/telikz/restkit/adapters/chi"
 
 // Register RestKit endpoints with Chi
 chiRouter := chi.NewRouter()
-chi.RegisterRoutes(chiRouter, api)
+restchi.RegisterRoutes(chiRouter, api)
 
 // Start server with Chi router
 http.ListenAndServe(":8080", chiRouter)
@@ -366,44 +367,31 @@ http.ListenAndServe(":8080", chiRouter)
 
 ```go
 // Mount external Chi router to RestKit API
-chi.Mount(api, "/external", externalRouter, []chi.RouteMeta{})
-
-// Combined routes in OpenAPI spec
+restchi.Mount(api, "/", chiRouter,
+	[]restkit.RouteMeta{
+		{
+			Method: "GET",
+			Path:   "/users",
+			Info: restkit.RouteInfo{
+				Summary:      "List users",
+				ResponseType: []User{},
+			},
+		},
+	)
 ```
 
 ## 💡 Philosophy
 
-RestKit brings Express.js-style simplicity to Go with compile-time type safety. The framework is designed around:
+RestKit brings simplicity to Go with compile-time type safety.
+Taking inspiration from frameworks like FastEndpoints in .NET, RestKit provides a familiar, fluent API for defining REST endpoints while leveraging Go's strengths.
 
+The framework is designed around:
 - **Type Safety** - Catch errors at compile time, not runtime
 - **Minimal Boilerplate** - Get productive quickly
 - **Standard Library** - Built on Go's net/http, no external runtime dependencies
 - **Developer Experience** - Familiar patterns from modern web frameworks
 - **Performance** - Fast HTTP handling without reflection in hot paths
 
-## 📂 Project Structure
-
-```
-.
-├── README.md                 # This file
-├── restkit.go               # Main public API
-├── internal/
-│   ├── api.go              # Core API implementation
-│   ├── endpoints/          # Endpoint types and builders
-│   ├── middleware/         # Middleware implementations
-│   ├── errors/             # Error types and codes
-│   ├── validation/         # Validation utilities
-│   ├── schema/             # Schema generation
-│   ├── docs/               # OpenAPI and Swagger UI generation
-│   └── context/            # Context utilities
-├── adapters/
-│   └── chi/                # Chi router adapter
-├── examples/
-│   ├── basic/              # Basic example with grouping
-│   ├── chi/                # Chi integration example
-│   └── chi_mount/          # Mounting external router example
-└── tests/                  # Test suite
-```
 
 ## 👀 Examples
 
@@ -430,11 +418,8 @@ To contribute to RestKit:
 # Run tests
 go test ./...
 
-# Run linter
-golangci-lint run
-
-# Run a specific example
-go run ./examples/basic
+# Run formatting and linting
+go fmt ./... && gofumpt -l -w . && golines -w -m 80 .
 ```
 
 ## 👍 Contributing

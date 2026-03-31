@@ -40,11 +40,14 @@ func (a *AddCmd) Execute() *cobra.Command {
 		RunE: a.handleGenEndpoint,
 	}
 
-	addCmd.Flags().StringVarP(&a.endpointType, "type", "t", "full", "Endpoint type")
+	addCmd.Flags().
+		StringVarP(&a.endpointType, "type", "t", "full", "Endpoint type")
 	addCmd.Flags().StringVarP(&a.method, "method", "m", "", "HTTP method")
 	addCmd.Flags().StringVarP(&a.path, "path", "p", "", "URL path")
-	addCmd.Flags().StringVarP(&a.pkg, "package", "k", "endpoints", "Package name")
-	addCmd.Flags().StringVarP(&a.output, "output", "o", "./endpoints", "Output directory")
+	addCmd.Flags().
+		StringVarP(&a.pkg, "package", "k", "endpoints", "Package name")
+	addCmd.Flags().
+		StringVarP(&a.output, "output", "o", "./endpoints", "Output directory")
 
 	return addCmd
 }
@@ -57,7 +60,9 @@ func (a *AddCmd) handleGenEndpoint(cmd *cobra.Command, args []string) error {
 
 	if !validEndpointType(a.endpointType) {
 		return fmt.Errorf(
-			"invalid endpoint type %q, must be one of: full, req, res", a.endpointType)
+			"invalid endpoint type %q, must be one of: full, req, res",
+			a.endpointType,
+		)
 	}
 
 	if err := generator.GenerateEndpoint(
@@ -72,5 +77,6 @@ func (a *AddCmd) handleGenEndpoint(cmd *cobra.Command, args []string) error {
 }
 
 func validEndpointType(endpointType string) bool {
-	return endpointType == "full" || endpointType == "req" || endpointType == "res"
+	return endpointType == "full" || endpointType == "req" ||
+		endpointType == "res"
 }

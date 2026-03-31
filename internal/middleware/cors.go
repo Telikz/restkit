@@ -14,9 +14,21 @@ import (
 //   - Credentials: false
 func NewCORS(opts ...CORSOption) func(next http.Handler) http.Handler {
 	config := &corsConfig{
-		allowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
-		allowedHeaders: []string{"Content-Type", "Authorization", "Accept", "X-Requested-With"},
-		maxAge:         86400,
+		allowedMethods: []string{
+			"GET",
+			"POST",
+			"PUT",
+			"DELETE",
+			"OPTIONS",
+			"PATCH",
+		},
+		allowedHeaders: []string{
+			"Content-Type",
+			"Authorization",
+			"Accept",
+			"X-Requested-With",
+		},
+		maxAge: 86400,
 	}
 
 	for _, opt := range opts {
@@ -46,10 +58,12 @@ func NewCORS(opts ...CORSOption) func(next http.Handler) http.Handler {
 			}
 
 			// Set methods
-			w.Header().Set("Access-Control-Allow-Methods", joinStrings(config.allowedMethods, ", "))
+			w.Header().
+				Set("Access-Control-Allow-Methods", joinStrings(config.allowedMethods, ", "))
 
 			// Set headers
-			w.Header().Set("Access-Control-Allow-Headers", joinStrings(config.allowedHeaders, ", "))
+			w.Header().
+				Set("Access-Control-Allow-Headers", joinStrings(config.allowedHeaders, ", "))
 
 			// Set credentials
 			if config.allowCredentials {
@@ -58,7 +72,8 @@ func NewCORS(opts ...CORSOption) func(next http.Handler) http.Handler {
 
 			// Set max age
 			if config.maxAge > 0 {
-				w.Header().Set("Access-Control-Max-Age", strconv.Itoa(config.maxAge))
+				w.Header().
+					Set("Access-Control-Max-Age", strconv.Itoa(config.maxAge))
 			}
 
 			if r.Method == http.MethodOptions {
@@ -119,7 +134,9 @@ func WithMaxAge(seconds int) CORSOption {
 
 // CORSMiddleware adds CORS headers to responses with sensible defaults
 // Deprecated: Use NewCORS(opts...) for more control
-func CORSMiddleware(allowedOrigins ...string) func(next http.Handler) http.Handler {
+func CORSMiddleware(
+	allowedOrigins ...string,
+) func(next http.Handler) http.Handler {
 	opts := []CORSOption{}
 	if len(allowedOrigins) > 0 {
 		opts = append(opts, WithOrigins(allowedOrigins...))

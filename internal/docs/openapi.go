@@ -96,7 +96,8 @@ func buildOperation(
 	for _, group := range groups {
 		if group.Title != "" {
 			for _, groupEndpoint := range group.GetEndpoints() {
-				if groupEndpoint.GetMethod() == endpoint.GetMethod() && groupEndpoint.GetPath() == endpoint.GetPath() {
+				if groupEndpoint.GetMethod() == endpoint.GetMethod() &&
+					groupEndpoint.GetPath() == endpoint.GetPath() {
 					op["tags"] = []string{group.Title}
 					break
 				}
@@ -278,7 +279,11 @@ func typeToSchema(t reflect.Type) map[string]any {
 		schema["type"] = "string"
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		schema["type"] = "integer"
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+	case reflect.Uint,
+		reflect.Uint8,
+		reflect.Uint16,
+		reflect.Uint32,
+		reflect.Uint64:
 		schema["type"] = "integer"
 	case reflect.Float32, reflect.Float64:
 		schema["type"] = "number"
@@ -347,7 +352,12 @@ func structToSchema(t reflect.Type) map[string]any {
 
 	return schema
 }
-func AddMountedRoutesToSpec(spec map[string]any, prefix string, routes []schema.MountedRoute) {
+
+func AddMountedRoutesToSpec(
+	spec map[string]any,
+	prefix string,
+	routes []schema.MountedRoute,
+) {
 	paths, ok := spec["paths"].(map[string]any)
 	if !ok {
 		paths = make(map[string]any)
@@ -357,7 +367,8 @@ func AddMountedRoutesToSpec(spec map[string]any, prefix string, routes []schema.
 	for _, route := range routes {
 		// Combine prefix with route path, avoiding double slashes
 		fullPath := prefix + route.Path
-		if strings.HasSuffix(prefix, "/") && strings.HasPrefix(route.Path, "/") {
+		if strings.HasSuffix(prefix, "/") &&
+			strings.HasPrefix(route.Path, "/") {
 			fullPath = prefix + route.Path[1:]
 		}
 		method := strings.ToLower(route.Method)
@@ -422,9 +433,18 @@ func buildMountedRouteOperation(route schema.MountedRoute) map[string]any {
 				"schema": map[string]any{
 					"type": "object",
 					"properties": map[string]any{
-						"status":  map[string]any{"type": "integer", "example": 400},
-						"code":    map[string]any{"type": "string", "example": "bad_request"},
-						"message": map[string]any{"type": "string", "example": "Failed to parse request"},
+						"status": map[string]any{
+							"type":    "integer",
+							"example": 400,
+						},
+						"code": map[string]any{
+							"type":    "string",
+							"example": "bad_request",
+						},
+						"message": map[string]any{
+							"type":    "string",
+							"example": "Failed to parse request",
+						},
 					},
 					"required": []string{"status", "code", "message"},
 				},
@@ -439,9 +459,18 @@ func buildMountedRouteOperation(route schema.MountedRoute) map[string]any {
 				"schema": map[string]any{
 					"type": "object",
 					"properties": map[string]any{
-						"status":  map[string]any{"type": "integer", "example": 500},
-						"code":    map[string]any{"type": "string", "example": "internal"},
-						"message": map[string]any{"type": "string", "example": "Internal server error"},
+						"status": map[string]any{
+							"type":    "integer",
+							"example": 500,
+						},
+						"code": map[string]any{
+							"type":    "string",
+							"example": "internal",
+						},
+						"message": map[string]any{
+							"type":    "string",
+							"example": "Internal server error",
+						},
 					},
 					"required": []string{"status", "code", "message"},
 				},

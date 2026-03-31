@@ -17,7 +17,7 @@ import (
 )
 
 type CreateUserRequest struct {
-	Name  string `json:"name" validate:"required"`
+	Name  string `json:"name"  validate:"required"`
 	Email string `json:"email" validate:"required,email"`
 }
 
@@ -269,16 +269,19 @@ func setupStdlibMux() *http.ServeMux {
 		json.NewEncoder(w).Encode(map[string]string{"message": "pong"})
 	})
 
-	mux.HandleFunc("GET /users/{id}", func(w http.ResponseWriter, r *http.Request) {
-		id := r.PathValue("id")
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(UserResponse{
-			ID:    1,
-			Name:  "John",
-			Email: "john@example.com",
-		})
-		_ = id
-	})
+	mux.HandleFunc(
+		"GET /users/{id}",
+		func(w http.ResponseWriter, r *http.Request) {
+			id := r.PathValue("id")
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(UserResponse{
+				ID:    1,
+				Name:  "John",
+				Email: "john@example.com",
+			})
+			_ = id
+		},
+	)
 
 	mux.HandleFunc("POST /users", func(w http.ResponseWriter, r *http.Request) {
 		var req CreateUserRequest
@@ -309,7 +312,11 @@ func userGroup() *ep.Group {
 		Prefix:      "/users",
 		Title:       "User Management",
 		Description: "Endpoints for managing users",
-		Endpoints:   []ep.Endpoint{createUserEndpoint(), getUserEndpoint(), listUsersEndpoint()},
+		Endpoints: []ep.Endpoint{
+			createUserEndpoint(),
+			getUserEndpoint(),
+			listUsersEndpoint(),
+		},
 	}
 }
 
@@ -327,7 +334,11 @@ func getUserEndpoint() *rest.EndpointRes[UserResponse] {
 		WithPath("/{id}").
 		WithMethod(http.MethodGet).
 		WithHandler(func(ctx context.Context) (UserResponse, error) {
-			return UserResponse{ID: 1, Name: "John", Email: "john@example.com"}, nil
+			return UserResponse{
+				ID:    1,
+				Name:  "John",
+				Email: "john@example.com",
+			}, nil
 		})
 }
 
@@ -336,7 +347,9 @@ func listUsersEndpoint() *rest.EndpointRes[[]UserResponse] {
 		WithPath("").
 		WithMethod(http.MethodGet).
 		WithHandler(func(ctx context.Context) ([]UserResponse, error) {
-			return []UserResponse{{ID: 1, Name: "John", Email: "john@example.com"}}, nil
+			return []UserResponse{
+				{ID: 1, Name: "John", Email: "john@example.com"},
+			}, nil
 		})
 }
 

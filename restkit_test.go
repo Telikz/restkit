@@ -13,7 +13,7 @@ import (
 
 // Test Types
 type TestRequest struct {
-	Name  string `json:"name" validate:"required"`
+	Name  string `json:"name"  validate:"required"`
 	Email string `json:"email" validate:"required,email"`
 }
 
@@ -176,7 +176,8 @@ func TestRouteCtxFromContext(t *testing.T) {
 	}
 
 	body := rec.Body.String()
-	if !strings.Contains(body, `"id":"123"`) || !strings.Contains(body, `"postId":"456"`) {
+	if !strings.Contains(body, `"id":"123"`) ||
+		!strings.Contains(body, `"postId":"456"`) {
 		t.Errorf("Expected response to contain both params, got: %s", body)
 	}
 }
@@ -190,7 +191,11 @@ func TestJSONBinder(t *testing.T) {
 
 	// Create a request with JSON body
 	body := `{"name":"John","email":"john@example.com"}`
-	req := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader(body))
+	req := httptest.NewRequest(
+		http.MethodPost,
+		"/test",
+		strings.NewReader(body),
+	)
 	req.Header.Set("Content-Type", "application/json")
 
 	result, err := binder(req)
@@ -246,7 +251,10 @@ func TestJSONErrorWriter(t *testing.T) {
 
 	contentType := rec.Header().Get("Content-Type")
 	if contentType != "application/json" {
-		t.Errorf("Expected Content-Type 'application/json', got '%s'", contentType)
+		t.Errorf(
+			"Expected Content-Type 'application/json', got '%s'",
+			contentType,
+		)
 	}
 }
 
@@ -423,7 +431,13 @@ func TestValidationTypes(t *testing.T) {
 	}
 
 	// Test ValidationFailed
-	failedValidation := rest.ValidationFailed(400, "error", "validation failed", "field1", "error message")
+	failedValidation := rest.ValidationFailed(
+		400,
+		"error",
+		"validation failed",
+		"field1",
+		"error message",
+	)
 	if !failedValidation.HasErrors() {
 		t.Error("Failed validation should have errors")
 	}
@@ -472,7 +486,13 @@ func TestEndpointWithValidation(t *testing.T) {
 		WithMethod(http.MethodGet).
 		WithValidation(func(ctx context.Context) rest.ValidationResult {
 			// Always fail validation for testing
-			return rest.ValidationFailed(400, "test", "validation failed", "field", "error")
+			return rest.ValidationFailed(
+				400,
+				"test",
+				"validation failed",
+				"field",
+				"error",
+			)
 		}).
 		WithHandler(func(ctx context.Context) (PingResponse, error) {
 			return PingResponse{Message: "pong"}, nil
@@ -551,9 +571,11 @@ func TestErrorCodes(t *testing.T) {
 func TestNewCORS(t *testing.T) {
 	cors := rest.NewCORS(rest.WithOrigins("https://example.com"))
 
-	handler := cors(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
+	handler := cors(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}),
+	)
 
 	req := httptest.NewRequest(http.MethodOptions, "/test", nil)
 	req.Header.Set("Origin", "https://example.com")
@@ -580,9 +602,11 @@ func TestNewCORSWithFullConfig(t *testing.T) {
 		rest.WithMaxAge(3600),
 	)
 
-	handler := cors(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
+	handler := cors(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}),
+	)
 
 	req := httptest.NewRequest(http.MethodOptions, "/test", nil)
 	req.Header.Set("Origin", "https://example.com")
@@ -613,9 +637,11 @@ func TestNewCORSWithFullConfig(t *testing.T) {
 func TestNewCORSDefaults(t *testing.T) {
 	cors := rest.NewCORS()
 
-	handler := cors(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
+	handler := cors(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}),
+	)
 
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
 	req.Header.Set("Origin", "https://test.com")
@@ -625,6 +651,9 @@ func TestNewCORSDefaults(t *testing.T) {
 	// With no origins set, should reflect request origin
 	origin := rec.Header().Get("Access-Control-Allow-Origin")
 	if origin != "https://test.com" {
-		t.Errorf("Expected reflected origin 'https://test.com', got '%s'", origin)
+		t.Errorf(
+			"Expected reflected origin 'https://test.com', got '%s'",
+			origin,
+		)
 	}
 }

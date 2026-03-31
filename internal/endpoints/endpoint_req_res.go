@@ -72,22 +72,30 @@ func (e *EndpointReqRes[Req, Res]) GetResponseSchema() map[string]any {
 	return e.ResponseSchema
 }
 
-func (e *EndpointReqRes[Req, Res]) WithTitle(title string) *EndpointReqRes[Req, Res] {
+func (e *EndpointReqRes[Req, Res]) WithTitle(
+	title string,
+) *EndpointReqRes[Req, Res] {
 	e.Title = title
 	return e
 }
 
-func (e *EndpointReqRes[Req, Res]) WithDescription(description string) *EndpointReqRes[Req, Res] {
+func (e *EndpointReqRes[Req, Res]) WithDescription(
+	description string,
+) *EndpointReqRes[Req, Res] {
 	e.Description = description
 	return e
 }
 
-func (e *EndpointReqRes[Req, Res]) WithMethod(method string) *EndpointReqRes[Req, Res] {
+func (e *EndpointReqRes[Req, Res]) WithMethod(
+	method string,
+) *EndpointReqRes[Req, Res] {
 	e.Method = method
 	return e
 }
 
-func (e *EndpointReqRes[Req, Res]) WithPath(path string) *EndpointReqRes[Req, Res] {
+func (e *EndpointReqRes[Req, Res]) WithPath(
+	path string,
+) *EndpointReqRes[Req, Res] {
 	e.Path = path
 	return e
 }
@@ -126,6 +134,7 @@ func (e *EndpointReqRes[Req, Res]) WithErrorHandler(
 	e.OnError = onError
 	return e
 }
+
 func (e *EndpointReqRes[Req, Res]) WithMiddleware(
 	mw ...func(next http.Handler) http.Handler,
 ) *EndpointReqRes[Req, Res] {
@@ -134,13 +143,15 @@ func (e *EndpointReqRes[Req, Res]) WithMiddleware(
 }
 
 func (e *EndpointReqRes[Req, Res]) WithRequestSchema(
-	schema map[string]any) *EndpointReqRes[Req, Res] {
+	schema map[string]any,
+) *EndpointReqRes[Req, Res] {
 	e.RequestSchema = schema
 	return e
 }
 
 func (e *EndpointReqRes[Req, Res]) WithResponseSchema(
-	schema map[string]any) *EndpointReqRes[Req, Res] {
+	schema map[string]any,
+) *EndpointReqRes[Req, Res] {
 	e.ResponseSchema = schema
 	return e
 }
@@ -190,7 +201,11 @@ func (e *EndpointReqRes[Req, Res]) GetHandler() http.Handler {
 					value := r.PathValue(paramName)
 					routeCtx.SetURLParam(paramName, value)
 				}
-				ctx = context.WithValue(r.Context(), routectx.RouteCtxKey, routeCtx)
+				ctx = context.WithValue(
+					r.Context(),
+					routectx.RouteCtxKey,
+					routeCtx,
+				)
 				r = r.WithContext(ctx)
 			}
 
@@ -228,7 +243,8 @@ func (e *EndpointReqRes[Req, Res]) GetHandler() http.Handler {
 }
 
 func (e *EndpointReqRes[Req, Res]) handleBindErr(
-	w http.ResponseWriter, r *http.Request, err error) {
+	w http.ResponseWriter, r *http.Request, err error,
+) {
 	if e.OnError != nil {
 		e.OnError(w, r, err)
 		return
@@ -246,7 +262,8 @@ func (e *EndpointReqRes[Req, Res]) handleBindErr(
 }
 
 func (e *EndpointReqRes[Req, Res]) handleValidation(
-	w http.ResponseWriter, _ *http.Request, result ValidationResult) {
+	w http.ResponseWriter, _ *http.Request, result ValidationResult,
+) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(result.Status)
 	json.NewEncoder(w).Encode(map[string]any{
@@ -258,7 +275,8 @@ func (e *EndpointReqRes[Req, Res]) handleValidation(
 }
 
 func (e *EndpointReqRes[Req, Res]) handleErr(
-	w http.ResponseWriter, _ *http.Request, err error) {
+	w http.ResponseWriter, _ *http.Request, err error,
+) {
 	if apiErr, ok := errors.IsAPIError(err); ok {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(apiErr.Status)

@@ -20,13 +20,13 @@ type User struct {
 
 // CreateUserRequest represents the request body for creating a new user
 type CreateUserRequest struct {
-	Name  string `json:"name" validate:"required,min=2,max=32"`
+	Name  string `json:"name"  validate:"required,min=2,max=32"`
 	Email string `json:"email" validate:"required,email"`
 }
 
 // UpdateUserRequest for partial updates
 type UpdateUserRequest struct {
-	Name  string `json:"name" validate:"omitempty,min=2,max=32"`
+	Name  string `json:"name"  validate:"omitempty,min=2,max=32"`
 	Email string `json:"email" validate:"omitempty,email"`
 }
 
@@ -83,7 +83,12 @@ func DeleteUser() *rest.EndpointRes[MessageResponse] {
 var nextID = 3
 
 var users = map[int]User{
-	1: {ID: 1, Name: "Alice", Email: "alice@example.com", CreatedAt: time.Now()},
+	1: {
+		ID:        1,
+		Name:      "Alice",
+		Email:     "alice@example.com",
+		CreatedAt: time.Now(),
+	},
 	2: {ID: 2, Name: "Bob", Email: "bob@example.com", CreatedAt: time.Now()},
 }
 
@@ -109,7 +114,10 @@ func listUsersHandler(ctx context.Context) ([]User, error) {
 	return userList, nil
 }
 
-func createUserHandler(ctx context.Context, req CreateUserRequest) (*User, error) {
+func createUserHandler(
+	ctx context.Context,
+	req CreateUserRequest,
+) (*User, error) {
 	user := User{
 		ID:        nextID,
 		Name:      req.Name,

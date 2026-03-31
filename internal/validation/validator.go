@@ -58,7 +58,11 @@ func getErrorMessage(e validator.FieldError) string {
 	case "len":
 		return fmt.Sprintf("%s must be %s characters long", field, param)
 	case "gte":
-		return fmt.Sprintf("%s must be greater than or equal to %s", field, param)
+		return fmt.Sprintf(
+			"%s must be greater than or equal to %s",
+			field,
+			param,
+		)
 	case "lte":
 		return fmt.Sprintf("%s must be less than or equal to %s", field, param)
 	case "gt":

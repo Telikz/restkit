@@ -25,7 +25,8 @@ func Extract(
 	err := chi.Walk(
 		router,
 		func(method string, route string, handler http.Handler,
-			middlewares ...func(http.Handler) http.Handler) error {
+			middlewares ...func(http.Handler) http.Handler,
+		) error {
 			key := routeKey(method, route)
 			info, found := metaMap[key]
 

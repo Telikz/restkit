@@ -33,7 +33,7 @@ func main() {
 }
 
 type CreateUserRequest struct {
-	Name  string `json:"name" validate:"required"`
+	Name  string `json:"name"  validate:"required"`
 	Email string `json:"email" validate:"required,email"`
 }
 
@@ -48,7 +48,11 @@ func userGroup() *ep.Group {
 		Prefix:      "/users",
 		Title:       "User Management",
 		Description: "Endpoints for managing users",
-		Endpoints:   []ep.Endpoint{createUserEndpoint(), getUserEndpoint(), listUsersEndpoint()},
+		Endpoints: []ep.Endpoint{
+			createUserEndpoint(),
+			getUserEndpoint(),
+			listUsersEndpoint(),
+		},
 	}
 }
 
@@ -71,7 +75,11 @@ func getUserEndpoint() *rest.EndpointRes[UserResponse] {
 		Title:       "Get User",
 		Description: "Retrieve details for a specific user by ID",
 		Handler: func(ctx context.Context) (UserResponse, error) {
-			return UserResponse{ID: 1, Name: "John", Email: "john@example.com"}, nil
+			return UserResponse{
+				ID:    1,
+				Name:  "John",
+				Email: "john@example.com",
+			}, nil
 		},
 	}
 }
@@ -83,7 +91,9 @@ func listUsersEndpoint() *rest.EndpointRes[[]UserResponse] {
 		Title:       "List Users",
 		Description: "Retrieve a list of all users",
 		Handler: func(ctx context.Context) ([]UserResponse, error) {
-			return []UserResponse{{ID: 1, Name: "John", Email: "john@example.com"}}, nil
+			return []UserResponse{
+				{ID: 1, Name: "John", Email: "john@example.com"},
+			}, nil
 		},
 	}
 }

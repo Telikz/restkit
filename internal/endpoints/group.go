@@ -40,7 +40,9 @@ func (g *Group) WithDescription(description string) *Group {
 }
 
 // WithMiddleware adds middleware to all endpoints in the group
-func (g *Group) WithMiddleware(middleware ...func(http.Handler) http.Handler) *Group {
+func (g *Group) WithMiddleware(
+	middleware ...func(http.Handler) http.Handler,
+) *Group {
 	g.Middleware = append(g.Middleware, middleware...)
 	return g
 }

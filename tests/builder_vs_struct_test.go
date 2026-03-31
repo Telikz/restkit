@@ -19,7 +19,8 @@ func BenchmarkBuilderAPI(b *testing.B) {
 			WithMethod(http.MethodGet).
 			WithHandler(func(ctx context.Context) (struct {
 				Message string `json:"message"`
-			}, error) {
+			}, error,
+			) {
 				return struct {
 					Message string `json:"message"`
 				}{Message: "pong"}, nil
@@ -38,7 +39,8 @@ func BenchmarkStructDirect(b *testing.B) {
 			Method: http.MethodGet,
 			Handler: func(ctx context.Context) (struct {
 				Message string `json:"message"`
-			}, error) {
+			}, error,
+			) {
 				return struct {
 					Message string `json:"message"`
 				}{Message: "pong"}, nil
@@ -60,7 +62,8 @@ func BenchmarkBuilderAPIWithDefaults(b *testing.B) {
 			WithDescription("Health check endpoint").
 			WithHandler(func(ctx context.Context) (struct {
 				Message string `json:"message"`
-			}, error) {
+			}, error,
+			) {
 				return struct {
 					Message string `json:"message"`
 				}{Message: "pong"}, nil
@@ -81,7 +84,8 @@ func BenchmarkStructDirectWithDefaults(b *testing.B) {
 			Method:      http.MethodGet,
 			Handler: func(ctx context.Context) (struct {
 				Message string `json:"message"`
-			}, error) {
+			}, error,
+			) {
 				return struct {
 					Message string `json:"message"`
 				}{Message: "pong"}, nil

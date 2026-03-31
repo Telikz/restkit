@@ -50,7 +50,11 @@ func BenchmarkDirectHandlerCall(b *testing.B) {
 	jsonBody, _ := json.Marshal(reqBody)
 
 	for b.Loop() {
-		req := httptest.NewRequest(http.MethodPost, "/users", bytes.NewReader(jsonBody))
+		req := httptest.NewRequest(
+			http.MethodPost,
+			"/users",
+			bytes.NewReader(jsonBody),
+		)
 		req.Header.Set("Content-Type", "application/json")
 		rec := httptest.NewRecorder()
 

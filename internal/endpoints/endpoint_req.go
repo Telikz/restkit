@@ -63,7 +63,9 @@ func (e *EndpointReq[Req]) WithTitle(title string) *EndpointReq[Req] {
 	return e
 }
 
-func (e *EndpointReq[Req]) WithDescription(description string) *EndpointReq[Req] {
+func (e *EndpointReq[Req]) WithDescription(
+	description string,
+) *EndpointReq[Req] {
 	e.Description = description
 	return e
 }
@@ -78,32 +80,44 @@ func (e *EndpointReq[Req]) WithPath(path string) *EndpointReq[Req] {
 	return e
 }
 
-func (e *EndpointReq[Req]) WithHandler(handler func(ctx context.Context, req Req) error) *EndpointReq[Req] {
+func (e *EndpointReq[Req]) WithHandler(
+	handler func(ctx context.Context, req Req) error,
+) *EndpointReq[Req] {
 	e.Handler = handler
 	return e
 }
 
-func (e *EndpointReq[Req]) WithValidation(validate func(ctx context.Context, req Req) ValidationResult) *EndpointReq[Req] {
+func (e *EndpointReq[Req]) WithValidation(
+	validate func(ctx context.Context, req Req) ValidationResult,
+) *EndpointReq[Req] {
 	e.Validate = validate
 	return e
 }
 
-func (e *EndpointReq[Req]) WithBind(bind func(r *http.Request) (Req, error)) *EndpointReq[Req] {
+func (e *EndpointReq[Req]) WithBind(
+	bind func(r *http.Request) (Req, error),
+) *EndpointReq[Req] {
 	e.Bind = bind
 	return e
 }
 
-func (e *EndpointReq[Req]) WithOnError(onError func(w http.ResponseWriter, r *http.Request, err error)) *EndpointReq[Req] {
+func (e *EndpointReq[Req]) WithOnError(
+	onError func(w http.ResponseWriter, r *http.Request, err error),
+) *EndpointReq[Req] {
 	e.OnError = onError
 	return e
 }
 
-func (e *EndpointReq[Req]) WithWrite(write func(w http.ResponseWriter, req Req) error) *EndpointReq[Req] {
+func (e *EndpointReq[Req]) WithWrite(
+	write func(w http.ResponseWriter, req Req) error,
+) *EndpointReq[Req] {
 	e.Write = write
 	return e
 }
 
-func (e *EndpointReq[Req]) WithRequestSchema(schema map[string]any) *EndpointReq[Req] {
+func (e *EndpointReq[Req]) WithRequestSchema(
+	schema map[string]any,
+) *EndpointReq[Req] {
 	e.RequestSchema = schema
 	return e
 }

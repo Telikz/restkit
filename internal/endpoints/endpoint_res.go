@@ -61,7 +61,9 @@ func (e *EndpointRes[Res]) WithTitle(title string) *EndpointRes[Res] {
 	return e
 }
 
-func (e *EndpointRes[Res]) WithDescription(description string) *EndpointRes[Res] {
+func (e *EndpointRes[Res]) WithDescription(
+	description string,
+) *EndpointRes[Res] {
 	e.Description = description
 	return e
 }
@@ -76,27 +78,37 @@ func (e *EndpointRes[Res]) WithPath(path string) *EndpointRes[Res] {
 	return e
 }
 
-func (e *EndpointRes[Res]) WithHandler(handler func(ctx context.Context) (Res, error)) *EndpointRes[Res] {
+func (e *EndpointRes[Res]) WithHandler(
+	handler func(ctx context.Context) (Res, error),
+) *EndpointRes[Res] {
 	e.Handler = handler
 	return e
 }
 
-func (e *EndpointRes[Res]) WithWrite(write func(w http.ResponseWriter, res Res) error) *EndpointRes[Res] {
+func (e *EndpointRes[Res]) WithWrite(
+	write func(w http.ResponseWriter, res Res) error,
+) *EndpointRes[Res] {
 	e.Write = write
 	return e
 }
 
-func (e *EndpointRes[Res]) WithValidation(validate func(ctx context.Context) ValidationResult) *EndpointRes[Res] {
+func (e *EndpointRes[Res]) WithValidation(
+	validate func(ctx context.Context) ValidationResult,
+) *EndpointRes[Res] {
 	e.Validate = validate
 	return e
 }
 
-func (e *EndpointRes[Res]) WithMiddleware(middleware ...func(next http.Handler) http.Handler) *EndpointRes[Res] {
+func (e *EndpointRes[Res]) WithMiddleware(
+	middleware ...func(next http.Handler) http.Handler,
+) *EndpointRes[Res] {
 	e.Middleware = append(e.Middleware, middleware...)
 	return e
 }
 
-func (e *EndpointRes[Res]) WithResponseSchema(schema map[string]any) *EndpointRes[Res] {
+func (e *EndpointRes[Res]) WithResponseSchema(
+	schema map[string]any,
+) *EndpointRes[Res] {
 	e.ResponseSchema = schema
 	return e
 }

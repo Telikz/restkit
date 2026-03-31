@@ -28,7 +28,7 @@ func InitProject(moduleName string) error {
 
 	dirs := []string{"endpoints"}
 	for _, dir := range dirs {
-		if err := os.MkdirAll(dir, 0755); err != nil {
+		if err := os.MkdirAll(dir, 0o755); err != nil {
 			return fmt.Errorf("failed to create directory %s: %w", dir, err)
 		}
 	}
@@ -40,7 +40,7 @@ func InitProject(moduleName string) error {
 		return fmt.Errorf("failed to create main.go: %w", err)
 	}
 
-	if err := os.WriteFile("endpoints/ping.go", []byte(pingEndpointTemplate), 0644); err != nil {
+	if err := os.WriteFile("endpoints/ping.go", []byte(pingEndpointTemplate), 0o644); err != nil {
 		return fmt.Errorf("failed to create ping endpoint: %w", err)
 	}
 

@@ -1,4 +1,4 @@
-# RestKit - Type-Safe REST API Framework for Go With OpenAPI Support
+# RestKit - Type-Safe REST API Framework With OpenAPI Support
 
 RestKit is a modern Go framework for building type-safe REST APIs with automatic OpenAPI documentation. It leverages generics to provide compile-time type safety while keeping the API simple and expressive.
 

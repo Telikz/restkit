@@ -3,9 +3,9 @@ package restchi
 import (
 	"errors"
 
+	"github.com/go-chi/chi/v5"
 	api "github.com/reststore/restkit/internal"
 	"github.com/reststore/restkit/internal/schema"
-	"github.com/go-chi/chi/v5"
 )
 
 // Mount mounts a Chi router to a RestKit API with automatic route extraction.

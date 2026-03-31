@@ -5,11 +5,11 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
+	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 	rest "github.com/reststore/restkit"
 	restchi "github.com/reststore/restkit/adapters/chi"
 	ep "github.com/reststore/restkit/internal/endpoints"
-	"github.com/go-chi/chi/v5"
-	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 )
 
 func main() {

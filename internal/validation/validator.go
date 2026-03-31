@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/reststore/restkit/internal/errors"
 	"github.com/go-playground/validator/v10"
+	"github.com/reststore/restkit/internal/errors"
 )
 
 // validate is the instance of the validator used for struct validation

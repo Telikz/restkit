@@ -4,10 +4,10 @@ package restchi
 import (
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	api "github.com/reststore/restkit/internal"
 	"github.com/reststore/restkit/internal/docs"
 	"github.com/reststore/restkit/internal/endpoints"
-	"github.com/go-chi/chi/v5"
 )
 
 // RegisterRoutes registers all routes from a RestKit API with Chi router.

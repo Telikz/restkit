@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/reststore/restkit"
 	restchi "github.com/reststore/restkit/adapters/chi"
-	"github.com/go-chi/chi/v5"
 )
 
 type User struct {

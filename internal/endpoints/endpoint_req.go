@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"net/http"
 
-	routectx "github.com/telikz/restkit/internal/context"
-	"github.com/telikz/restkit/internal/errors"
-	"github.com/telikz/restkit/internal/middleware"
-	"github.com/telikz/restkit/internal/schema"
-	"github.com/telikz/restkit/internal/validation"
+	routectx "github.com/RestStore/RestKit/internal/context"
+	"github.com/RestStore/RestKit/internal/errors"
+	"github.com/RestStore/RestKit/internal/middleware"
+	"github.com/RestStore/RestKit/internal/schema"
+	"github.com/RestStore/RestKit/internal/validation"
 )
 
 type EndpointReq[Req any] struct {

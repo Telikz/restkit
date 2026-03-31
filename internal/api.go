@@ -3,9 +3,9 @@ package api
 import (
 	"net/http"
 
-	"github.com/telikz/restkit/internal/docs"
-	ep "github.com/telikz/restkit/internal/endpoints"
-	"github.com/telikz/restkit/internal/schema"
+	"github.com/RestStore/RestKit/internal/docs"
+	ep "github.com/RestStore/RestKit/internal/endpoints"
+	"github.com/RestStore/RestKit/internal/schema"
 )
 
 // Api is the main struct for defining your API

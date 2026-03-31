@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/telikz/restkit/internal/errors"
+	"github.com/RestStore/RestKit/internal/errors"
 )
 
 // validate is the instance of the validator used for struct validation

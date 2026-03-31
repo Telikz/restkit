@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/telikz/restkit/internal/errors"
+	"github.com/RestStore/RestKit/internal/errors"
 )
 
 // JSONBinder creates a bind function for JSON request bodies

@@ -1,4 +1,4 @@
-module github.com/telikz/restkit
+module github.com/RestStore/RestKit
 
 go 1.26.1
 

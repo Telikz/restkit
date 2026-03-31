@@ -7,8 +7,8 @@ import (
 	"regexp"
 	"strings"
 
-	ep "github.com/telikz/restkit/internal/endpoints"
-	"github.com/telikz/restkit/internal/schema"
+	ep "github.com/RestStore/RestKit/internal/endpoints"
+	"github.com/RestStore/RestKit/internal/schema"
 )
 
 // GenerateOpenAPI generates an OpenAPI 3.0 specification from endpoints

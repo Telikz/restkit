@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/telikz/restkit/cmd/restkit/generator"
+	"github.com/RestStore/RestKit/cmd/restkit/generator"
 )
 
 type AddCmd struct {

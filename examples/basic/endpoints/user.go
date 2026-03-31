@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	rest "github.com/telikz/restkit"
+	rest "github.com/RestStore/RestKit"
 )
 
 // User represents a user in the system

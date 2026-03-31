@@ -7,9 +7,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	chiMiddleware "github.com/go-chi/chi/v5/middleware"
-	rest "github.com/telikz/restkit"
-	restchi "github.com/telikz/restkit/adapters/chi"
-	ep "github.com/telikz/restkit/internal/endpoints"
+	rest "github.com/RestStore/RestKit"
+	restchi "github.com/RestStore/RestKit/adapters/chi"
+	ep "github.com/RestStore/RestKit/internal/endpoints"
 )
 
 func main() {

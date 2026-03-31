@@ -4,8 +4,8 @@ import (
 	"errors"
 
 	"github.com/go-chi/chi/v5"
-	api "github.com/telikz/restkit/internal"
-	"github.com/telikz/restkit/internal/schema"
+	api "github.com/RestStore/RestKit/internal"
+	"github.com/RestStore/RestKit/internal/schema"
 )
 
 // Mount mounts a Chi router to a RestKit API with automatic route extraction.

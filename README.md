@@ -1,11 +1,11 @@
 # RestKit - Type-Safe REST API Framework With OpenAPI Support
 
-[![Go Version](https://img.shields.io/github/go-mod/go-version/telikz/restkit?style=flat-square&label=go)](https://golang.org/)
-[![Tests](https://github.com/telikz/restkit/actions/workflows/go.yml/badge.svg)](https://github.com/telikz/restkit/actions)
-[![Go Report Card](https://goreportcard.com/badge/github.com/telikz/restkit)](https://goreportcard.com/report/github.com/telikz/restkit)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/telikz/restkit/blob/main/LICENCE)
-[![Maintained](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/telikz/restkit/graphs/commit-activity)
-[![GitHub stars](https://img.shields.io/github/stars/telikz/restkit?style=flat-square)](https://github.com/telikz/restkit/stargazers)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/RestStore/RestKit?style=flat-square&label=go)](https://golang.org/)
+[![Tests](https://github.com/RestStore/RestKit/actions/workflows/go.yml/badge.svg)](https://github.com/RestStore/RestKit/actions)
+[![Go Report Card](https://goreportcard.com/badge/github.com/RestStore/RestKit)](https://goreportcard.com/report/github.com/RestStore/RestKit)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/RestStore/RestKit/blob/main/LICENCE)
+[![Maintained](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/RestStore/RestKit/graphs/commit-activity)
+[![GitHub stars](https://img.shields.io/github/stars/RestStore/RestKit?style=flat-square)](https://github.com/RestStore/RestKit/stargazers)
 
 RestKit is a modern Go framework for building type-safe REST APIs with automatic OpenAPI documentation. It leverages generics to provide compile-time type safety while keeping the API simple and expressive.
 
@@ -27,7 +27,7 @@ RestKit is a modern Go framework for building type-safe REST APIs with automatic
 RestKit requires **Go 1.26 or higher**. Install it with:
 
 ```bash
-go get -u github.com/telikz/restkit
+go get -u github.com/RestStore/RestKit
 ```
 
 ## ⚡️ Quickstart
@@ -43,7 +43,7 @@ import (
 	"net/http"
 	"time"
 
-	rest "github.com/telikz/restkit"
+	rest "github.com/RestStore/RestKit"
 )
 
 // Define your request and response types
@@ -360,7 +360,7 @@ RestKit is built on Go's standard net/http. Use adapters to integrate with other
 ### Chi Router Adapter
 
 ```go
-import restchi "github.com/telikz/restkit/adapters/chi"
+import restchi "github.com/RestStore/RestKit/adapters/chi"
 
 // Register RestKit endpoints with Chi
 chiRouter := chi.NewRouter()

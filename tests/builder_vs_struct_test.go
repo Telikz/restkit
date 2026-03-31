@@ -6,8 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	rest "github.com/telikz/restkit"
-	"github.com/telikz/restkit/internal/endpoints"
+	rest "github.com/RestStore/RestKit"
+	"github.com/RestStore/RestKit/internal/endpoints"
 )
 
 func BenchmarkBuilderAPI(b *testing.B) {

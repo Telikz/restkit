@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	rest "github.com/telikz/restkit"
+	rest "github.com/RestStore/RestKit"
 )
 
 type PingResponse struct {

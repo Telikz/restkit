@@ -8,9 +8,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	rest "github.com/telikz/restkit"
-	routectx "github.com/telikz/restkit/internal/context"
-	"github.com/telikz/restkit/internal/endpoints"
+	rest "github.com/RestStore/RestKit"
+	routectx "github.com/RestStore/RestKit/internal/context"
+	"github.com/RestStore/RestKit/internal/endpoints"
 )
 
 func BenchmarkExtractPathParams(b *testing.B) {

@@ -5,9 +5,9 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	api "github.com/telikz/restkit/internal"
-	"github.com/telikz/restkit/internal/docs"
-	"github.com/telikz/restkit/internal/endpoints"
+	api "github.com/RestStore/RestKit/internal"
+	"github.com/RestStore/RestKit/internal/docs"
+	"github.com/RestStore/RestKit/internal/endpoints"
 )
 
 // RegisterRoutes registers all routes from a RestKit API with Chi router.

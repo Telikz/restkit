@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/telikz/restkit/internal/schema"
+	"github.com/RestStore/RestKit/internal/schema"
 )
 
 // Extract extracts routes from a Chi router using provided metadata.

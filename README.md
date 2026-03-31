@@ -394,7 +394,8 @@ The framework is designed around:
 
 ## 🚀 Benchmarks
 
-RestKit keeps performance close to raw handlers while giving you type safety and automatic OpenAPI docs. Here's how it stacks up:
+RestKit keeps performance close to raw handlers while giving you type safety and automatic OpenAPI docs.
+Here's how it stacks up:
 
 ### Real-World Performance
 
@@ -406,7 +407,7 @@ Testing against raw Chi and stdlib, RestKit stays competitive:
 | GET with params | 140 µs | 138 µs | 138 µs |
 | POST with JSON | 195 µs | 165 µs | 171 µs |
 
-For simple endpoints, we're within 1-2% of raw handlers. POST requests show a bit more overhead because RestKit is automatically validating and binding your request types—things you'd normally write by hand.
+For simple endpoints, we're within 1-2% of raw handlers. POST requests show a bit more overhead because RestKit is automatically validating and binding your request types, things you'd normally write by hand.
 
 ### Handler-Level Performance
 
@@ -418,7 +419,7 @@ Handler with path params       6.8 µs
 Route context creation         474 ns
 ```
 
-Most of your time goes into HTTP overhead, network I/O, and your actual business logic—not the framework.
+Most of your time goes into HTTP overhead, network I/O, and your actual business logic, not the framework.
 
 ### Benchmark Yourself
 
@@ -435,7 +436,7 @@ Specific comparisons:
 go test -bench=RestKit -benchmem ./tests
 
 # Compare RestKit, Chi, and stdlib side-by-side
-go test -bench=RestKit|Chi|Stdlib -benchmem ./tests
+go test -bench='RestKit|Chi|Stdlib' -benchmem ./tests
 ```
 
 ## 👀 Examples

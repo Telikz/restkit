@@ -10,6 +10,7 @@ import (
 	rest "github.com/reststore/restkit"
 	restchi "github.com/reststore/restkit/adapters/chi"
 	ep "github.com/reststore/restkit/internal/endpoints"
+	_ "github.com/reststore/restkit/validation/playground"
 )
 
 func main() {

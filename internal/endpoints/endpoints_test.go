@@ -347,6 +347,19 @@ func TestEndpointReqResGetHandler(t *testing.T) {
 		endpoint := NewEndpoint[TestReq, TestRes]().
 			WithMethod("POST").
 			WithPath("/users").
+			WithValidation(func(ctx context.Context, req TestReq) ValidationResult {
+				if req.Name == "" {
+					return ValidationResult{
+						Status:  422,
+						Code:    errs.ErrCodeValidation,
+						Message: errs.ErrMsgValidation,
+						Errors: []errs.ValidationError{
+							{Field: "name", Message: "name is required"},
+						},
+					}
+				}
+				return ValidationResult{}
+			}).
 			WithHandler(func(ctx context.Context, req TestReq) (TestRes, error) {
 				return TestRes{}, nil
 			})
@@ -533,6 +546,19 @@ func TestEndpointReqGetHandler(t *testing.T) {
 		endpoint := NewEndpointReq[TestReq]().
 			WithMethod("DELETE").
 			WithPath("/users/{id}").
+			WithValidation(func(ctx context.Context, req TestReq) ValidationResult {
+				if req.ID <= 0 {
+					return ValidationResult{
+						Status:  422,
+						Code:    errs.ErrCodeValidation,
+						Message: errs.ErrMsgValidation,
+						Errors: []errs.ValidationError{
+							{Field: "id", Message: "id must be greater than 0"},
+						},
+					}
+				}
+				return ValidationResult{}
+			}).
 			WithHandler(func(ctx context.Context, req TestReq) (NoResponse, error) {
 				return NoResponse{}, nil
 			})

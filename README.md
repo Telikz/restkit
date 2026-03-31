@@ -214,20 +214,23 @@ endpoint.WithWrite(func(w http.ResponseWriter, res ResponseType) error {
 
 ## ✔️ Validation
 
-Add struct tag-based validation:
+Validation is opt-in. By default, no validation is performed.
+
+To enable struct tag validation using go-playground/validator:
 
 ```go
-type CreateUserReq struct {
-	Name  string `json:"name" validate:"required,min=2,max=50"`
-	Email string `json:"email" validate:"required,email"`
-	Age   int    `json:"age" validate:"gte=18,lte=120"`
-}
+import "github.com/reststore/restkit/validation/playground"
 
-// Validation automatically applied on bind
-// Validation errors return proper error responses
+type CreateUserReq struct {
+    Name  string `json:"name" validate:"required,min=2,max=50"`
+    Email string `json:"email" validate:"required,email"`
+    Age   int    `json:"age" validate:"gte=18,lte=120"`
+}
 ```
 
-Validation uses the `go-playground/validator` library. See its docs for all available tags.
+Importing the playground package automatically enables validation for all endpoints.
+
+See [go-playground/validator docs](https://github.com/go-playground/validator) for all available tags.
 
 ## 🔌 Middleware
 

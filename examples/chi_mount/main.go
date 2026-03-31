@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/reststore/restkit"
 	restchi "github.com/reststore/restkit/adapters/chi"
+	_ "github.com/reststore/restkit/validation/playground"
 )
 
 type User struct {
@@ -23,7 +24,7 @@ type Post struct {
 }
 
 type CreatePostRequest struct {
-	Title   string `json:"title" validate:"required,min=3"`
+	Title   string `json:"title"   validate:"required,min=3"`
 	Content string `json:"content" validate:"required,min=10"`
 }
 

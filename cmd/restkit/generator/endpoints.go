@@ -81,10 +81,8 @@ import (
 )
 
 type {{.PascalName}}Request struct {
-	// Add your request fields here with validation tags from go-playground/validator
-	// Example:
-	// Name  string ` + "`" + `json:"name" validate:"required"` + "`" + `
-	// Email string ` + "`" + `json:"email" validate:"required,email"` + "`" + `
+	// Add your request fields here
+	// For struct tag validation, import: github.com/reststore/restkit/validation/playground
 }
 
 type {{.PascalName}}Response struct {
@@ -117,10 +115,8 @@ import (
 )
 
 type {{.PascalName}}Request struct {
-	// Add your request fields here with validation tags from go-playground/validator
-	// Example:
-	// Name  string ` + "`" + `json:"name" validate:"required"` + "`" + `
-	// Email string ` + "`" + `json:"email" validate:"required,email"` + "`" + `
+	// Add your request fields here
+	// For struct tag validation, import: github.com/reststore/restkit/validation/playground
 }
 
 // {{.PascalName}} creates a new request-only endpoint (returns 204 No Content)

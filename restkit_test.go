@@ -425,25 +425,25 @@ func TestValidationTypes(t *testing.T) {
 func TestValidateStruct(t *testing.T) {
 	ctx := context.Background()
 
-	// Valid struct
+	// Valid struct - default validator is no-op
 	validReq := TestRequest{Name: "John", Email: "john@example.com"}
 	result := rest.ValidateStruct(ctx, validReq)
 	if result.HasErrors() {
 		t.Errorf("Valid struct should not have errors, got: %v", result.Errors)
 	}
 
-	// Invalid struct - missing required fields
+	// Invalid struct - default validator is no-op, no validation occurs
 	invalidReq := TestRequest{}
 	result = rest.ValidateStruct(ctx, invalidReq)
-	if !result.HasErrors() {
-		t.Error("Invalid struct should have errors")
+	if result.HasErrors() {
+		t.Error("Default validator is no-op, should not have errors")
 	}
 
-	// Invalid struct - invalid email
+	// Invalid email - default validator is no-op, no validation occurs
 	invalidEmailReq := TestRequest{Name: "John", Email: "invalid-email"}
 	result = rest.ValidateStruct(ctx, invalidEmailReq)
-	if !result.HasErrors() {
-		t.Error("Invalid email should produce validation error")
+	if result.HasErrors() {
+		t.Error("Default validator is no-op, should not have errors")
 	}
 }
 

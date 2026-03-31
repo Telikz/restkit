@@ -56,7 +56,9 @@ var ValidationFailed = err.ValidationFailed
 // ValidationFailedMulti creates a failed validation result with multiple errors
 var ValidationFailedMulti = err.ValidationFailedMulti
 
-// ValidateStruct validates a struct using go-playground/validator tags
+// ValidateStruct is a no-op by default. Import playground to enable:
+//
+//	import _ "github.com/reststore/restkit/validation/playground"
 var ValidateStruct = vd.ValidateStruct
 
 // RouteContext contains information about the current route and request

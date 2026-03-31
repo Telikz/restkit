@@ -5,7 +5,6 @@ import (
 	"testing"
 )
 
-
 func TestNewRouteContext(t *testing.T) {
 	rc := NewRouteContext()
 	if rc == nil {
@@ -16,7 +15,6 @@ func TestNewRouteContext(t *testing.T) {
 		t.Error("params map should be initialized")
 	}
 }
-
 
 func TestRouteContextPool(t *testing.T) {
 	// Get a context from pool
@@ -32,7 +30,6 @@ func TestRouteContextPool(t *testing.T) {
 		t.Errorf("pooled context should have cleared params, got '%s'", val)
 	}
 }
-
 
 func TestRouteContextURLParam(t *testing.T) {
 	t.Run("get existing param", func(t *testing.T) {
@@ -73,7 +70,6 @@ func TestRouteContextURLParam(t *testing.T) {
 	})
 }
 
-
 func TestRouteContextSetURLParam(t *testing.T) {
 	t.Run("set new param", func(t *testing.T) {
 		rc := NewRouteContext()
@@ -103,7 +99,6 @@ func TestRouteContextSetURLParam(t *testing.T) {
 		}
 	})
 }
-
 
 func TestURLParamFromContext(t *testing.T) {
 	t.Run("extract from context with RouteContext", func(t *testing.T) {
@@ -136,7 +131,6 @@ func TestURLParamFromContext(t *testing.T) {
 		}
 	})
 }
-
 
 func TestRouteCtxFromContext(t *testing.T) {
 	t.Run("extract valid RouteContext", func(t *testing.T) {
@@ -173,7 +167,6 @@ func TestRouteCtxFromContext(t *testing.T) {
 		}
 	})
 }
-
 
 func TestExtractPathParams(t *testing.T) {
 	tests := []struct {
@@ -256,9 +249,8 @@ func TestExtractPathParams(t *testing.T) {
 	}
 }
 
-
 func TestExtractPathParamsInvalidPattern(t *testing.T) {
-	
+
 	// Most invalid patterns are handled by escaping, but let's test edge cases
 
 	// This pattern should work even with special characters
@@ -271,13 +263,11 @@ func TestExtractPathParamsInvalidPattern(t *testing.T) {
 	}
 }
 
-
 func TestContextKey(t *testing.T) {
 	if RouteCtxKey == nil {
 		t.Error("RouteCtxKey should not be nil")
 	}
 
-	
 	if RouteCtxKey.String() != "api context value RouteContext" {
 		t.Errorf("unexpected context key string: %s", RouteCtxKey.String())
 	}

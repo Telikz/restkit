@@ -11,7 +11,6 @@ import (
 	"github.com/reststore/restkit/internal/schema"
 )
 
-
 func TestGenerateOpenAPI(t *testing.T) {
 	t.Run("basic spec generation", func(t *testing.T) {
 		endpoints := []ep.Route{}
@@ -144,7 +143,6 @@ func TestGenerateOpenAPI(t *testing.T) {
 		}
 	})
 }
-
 
 func TestBuildOperation(t *testing.T) {
 	t.Run("basic operation", func(t *testing.T) {
@@ -322,7 +320,6 @@ func TestBuildOperation(t *testing.T) {
 	})
 }
 
-
 func TestGenerateSchema(t *testing.T) {
 	t.Run("nil value", func(t *testing.T) {
 		schema := generateSchema(nil)
@@ -355,7 +352,6 @@ func TestGenerateSchema(t *testing.T) {
 		}
 	})
 }
-
 
 func TestStructToSchema(t *testing.T) {
 	t.Run("with openapi tag", func(t *testing.T) {
@@ -455,7 +451,6 @@ func TestStructToSchema(t *testing.T) {
 	})
 }
 
-
 func TestAddMountedRoutesToSpec(t *testing.T) {
 	t.Run("add routes with prefix", func(t *testing.T) {
 		spec := map[string]any{
@@ -516,7 +511,6 @@ func TestAddMountedRoutesToSpec(t *testing.T) {
 		}
 	})
 }
-
 
 func TestBuildMountedRouteOperation(t *testing.T) {
 	t.Run("basic operation", func(t *testing.T) {
@@ -673,7 +667,6 @@ func TestBuildMountedRouteOperation(t *testing.T) {
 	})
 }
 
-
 func TestExtractPathParameters(t *testing.T) {
 	tests := []struct {
 		path     string
@@ -703,7 +696,6 @@ func TestExtractPathParameters(t *testing.T) {
 		})
 	}
 }
-
 
 func TestServeOpenAPI(t *testing.T) {
 	spec := map[string]any{
@@ -736,7 +728,6 @@ func TestServeOpenAPI(t *testing.T) {
 		t.Error("response should contain 'openapi' key")
 	}
 }
-
 
 func TestServeSwaggerUI(t *testing.T) {
 	rec := httptest.NewRecorder()

@@ -11,7 +11,6 @@ import (
 	rest "github.com/reststore/restkit"
 )
 
-
 type TestRequest struct {
 	Name  string `json:"name"  validate:"required"`
 	Email string `json:"email" validate:"required,email"`
@@ -27,14 +26,12 @@ type PingResponse struct {
 	Message string `json:"message"`
 }
 
-
 func TestNewApi(t *testing.T) {
 	api := rest.NewApi()
 	if api == nil {
 		t.Fatal("NewApi() returned nil")
 	}
 }
-
 
 func TestNewGroup(t *testing.T) {
 	group := rest.NewGroup("/api/v1")
@@ -45,7 +42,6 @@ func TestNewGroup(t *testing.T) {
 		t.Errorf("Expected prefix '/api/v1', got '%s'", group.Prefix)
 	}
 }
-
 
 func TestNewEndpoint(t *testing.T) {
 	endpoint := rest.NewEndpoint[TestRequest, TestResponse]()
@@ -60,7 +56,6 @@ func TestNewEndpoint(t *testing.T) {
 	}
 }
 
-
 func TestNewEndpointRes(t *testing.T) {
 	endpoint := rest.NewEndpointRes[PingResponse]()
 	if endpoint == nil {
@@ -74,7 +69,6 @@ func TestNewEndpointRes(t *testing.T) {
 	}
 }
 
-
 func TestNewEndpointReq(t *testing.T) {
 	endpoint := rest.NewEndpointReq[TestRequest]()
 	if endpoint == nil {
@@ -87,7 +81,6 @@ func TestNewEndpointReq(t *testing.T) {
 		t.Errorf("Expected empty method initially, got %s", endpoint.GetMethod())
 	}
 }
-
 
 func TestExtractPathParams(t *testing.T) {
 	tests := []struct {
@@ -123,7 +116,6 @@ func TestExtractPathParams(t *testing.T) {
 	}
 }
 
-
 func TestURLParam(t *testing.T) {
 	// Create an endpoint that extracts URL params
 	endpoint := rest.NewEndpointRes[map[string]string]().
@@ -151,7 +143,6 @@ func TestURLParam(t *testing.T) {
 		t.Errorf("Expected response to contain id=123, got: %s", body)
 	}
 }
-
 
 func TestRouteCtxFromContext(t *testing.T) {
 	endpoint := rest.NewEndpointRes[map[string]string]().
@@ -185,7 +176,6 @@ func TestRouteCtxFromContext(t *testing.T) {
 	}
 }
 
-
 func TestJSONBinder(t *testing.T) {
 	binder := rest.JSONBinder[TestRequest]()
 	if binder == nil {
@@ -214,7 +204,6 @@ func TestJSONBinder(t *testing.T) {
 	}
 }
 
-
 func TestJSONWriter(t *testing.T) {
 	writer := rest.JSONWriter[TestResponse]()
 	if writer == nil {
@@ -239,7 +228,6 @@ func TestJSONWriter(t *testing.T) {
 	}
 }
 
-
 func TestJSONErrorWriter(t *testing.T) {
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
@@ -260,7 +248,6 @@ func TestJSONErrorWriter(t *testing.T) {
 		)
 	}
 }
-
 
 func TestSchemaFrom(t *testing.T) {
 	schema := rest.SchemaFrom[TestResponse]()
@@ -287,21 +274,18 @@ func TestSchemaFrom(t *testing.T) {
 	}
 }
 
-
 func TestPathParamBinder(t *testing.T) {
-	
+
 	intBinder := rest.PathParamBinder(rest.StringToInt)
 	if intBinder == nil {
 		t.Fatal("PathParamBinder(StringToInt) returned nil")
 	}
 
-	
 	stringBinder := rest.PathParamBinder(rest.StringToString)
 	if stringBinder == nil {
 		t.Fatal("PathParamBinder(StringToString) returned nil")
 	}
 }
-
 
 func TestStringToInt(t *testing.T) {
 	val, err := rest.StringToInt("123")
@@ -312,13 +296,11 @@ func TestStringToInt(t *testing.T) {
 		t.Errorf("Expected 123, got %d", val)
 	}
 
-	
 	_, err = rest.StringToInt("abc")
 	if err == nil {
 		t.Error("StringToInt should return error for non-numeric string")
 	}
 }
-
 
 func TestStringToString(t *testing.T) {
 	val, err := rest.StringToString("hello")
@@ -330,7 +312,6 @@ func TestStringToString(t *testing.T) {
 	}
 }
 
-
 func TestLoggingMiddleware(t *testing.T) {
 	middleware := rest.LoggingMiddleware()
 	if middleware == nil {
@@ -338,14 +319,12 @@ func TestLoggingMiddleware(t *testing.T) {
 	}
 }
 
-
 func TestRecoveryMiddleware(t *testing.T) {
 	middleware := rest.RecoveryMiddleware()
 	if middleware == nil {
 		t.Fatal("RecoveryMiddleware() returned nil")
 	}
 }
-
 
 func TestApiWithGroups(t *testing.T) {
 	// Create a group
@@ -372,7 +351,6 @@ func TestApiWithGroups(t *testing.T) {
 
 	mux := api.Mux()
 
-	
 	req := httptest.NewRequest(http.MethodGet, "/users", nil)
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
@@ -381,7 +359,6 @@ func TestApiWithGroups(t *testing.T) {
 		t.Errorf("Expected status 200, got %d", rec.Code)
 	}
 }
-
 
 func TestApiWithMiddleware(t *testing.T) {
 	called := false
@@ -417,15 +394,13 @@ func TestApiWithMiddleware(t *testing.T) {
 	}
 }
 
-
 func TestValidationTypes(t *testing.T) {
-	
+
 	validation := rest.NewValidation()
 	if validation.HasErrors() {
 		t.Error("New validation should not have errors")
 	}
 
-	
 	failedValidation := rest.ValidationFailed(
 		400,
 		"error",
@@ -437,7 +412,6 @@ func TestValidationTypes(t *testing.T) {
 		t.Error("Failed validation should have errors")
 	}
 
-	
 	multiValidation := rest.ValidationFailedMulti(
 		422, "validation", "multiple errors",
 		rest.ValidationError{Field: "field1", Message: "error1"},
@@ -447,7 +421,6 @@ func TestValidationTypes(t *testing.T) {
 		t.Errorf("Expected 2 errors, got %d", len(multiValidation.Errors))
 	}
 }
-
 
 func TestValidateStruct(t *testing.T) {
 	ctx := context.Background()
@@ -473,7 +446,6 @@ func TestValidateStruct(t *testing.T) {
 		t.Error("Invalid email should produce validation error")
 	}
 }
-
 
 func TestEndpointWithValidation(t *testing.T) {
 	endpoint := rest.NewEndpointRes[PingResponse]().
@@ -504,7 +476,6 @@ func TestEndpointWithValidation(t *testing.T) {
 		t.Errorf("Expected status 400 (BadRequest), got %d", rec.Code)
 	}
 }
-
 
 func TestEndpointWithMiddleware(t *testing.T) {
 	called := false
@@ -538,7 +509,6 @@ func TestEndpointWithMiddleware(t *testing.T) {
 	}
 }
 
-
 func TestErrorCodes(t *testing.T) {
 	tests := []struct {
 		code  string
@@ -561,7 +531,6 @@ func TestErrorCodes(t *testing.T) {
 		}
 	}
 }
-
 
 func TestNewCORS(t *testing.T) {
 	cors := rest.NewCORS(rest.WithOrigins("https://example.com"))
@@ -586,7 +555,6 @@ func TestNewCORS(t *testing.T) {
 		t.Errorf("Expected origin 'https://example.com', got '%s'", origin)
 	}
 }
-
 
 func TestNewCORSWithFullConfig(t *testing.T) {
 	cors := rest.NewCORS(
@@ -627,7 +595,6 @@ func TestNewCORSWithFullConfig(t *testing.T) {
 		t.Errorf("Expected max-age '3600', got '%s'", maxAge)
 	}
 }
-
 
 func TestNewCORSDefaults(t *testing.T) {
 	cors := rest.NewCORS()

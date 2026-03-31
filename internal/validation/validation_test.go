@@ -6,7 +6,6 @@ import (
 	"testing"
 )
 
-
 func TestValidateStruct(t *testing.T) {
 	t.Run("valid struct", func(t *testing.T) {
 		type ValidUser struct {
@@ -382,7 +381,6 @@ func TestValidateStruct(t *testing.T) {
 		_ = result
 	})
 }
-
 
 func TestGetErrorMessage(t *testing.T) {
 	// Note: We can't directly test getErrorMessage since it's not exported

@@ -8,7 +8,6 @@ import (
 	"testing"
 )
 
-
 func TestJSONBinder(t *testing.T) {
 	type TestRequest struct {
 		Name  string `json:"name"`
@@ -80,7 +79,6 @@ func TestJSONBinder(t *testing.T) {
 	})
 }
 
-
 func TestPathParamBinder(t *testing.T) {
 	t.Run("extract string param", func(t *testing.T) {
 		binder := PathParamBinder(StringToString)
@@ -151,7 +149,6 @@ func TestPathParamBinder(t *testing.T) {
 	})
 }
 
-
 func TestStringToInt(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -185,7 +182,6 @@ func TestStringToInt(t *testing.T) {
 	}
 }
 
-
 func TestStringToString(t *testing.T) {
 	tests := []string{"hello", "world", "123", "", "with spaces"}
 
@@ -201,7 +197,6 @@ func TestStringToString(t *testing.T) {
 		}
 	}
 }
-
 
 func TestJSONWriter(t *testing.T) {
 	type TestResponse struct {
@@ -250,7 +245,6 @@ func TestJSONWriter(t *testing.T) {
 	})
 }
 
-
 func TestJSONErrorWriter(t *testing.T) {
 	t.Run("writes error response", func(t *testing.T) {
 		rec := httptest.NewRecorder()
@@ -279,7 +273,6 @@ func TestJSONErrorWriter(t *testing.T) {
 	})
 }
 
-
 func TestJoinStrings(t *testing.T) {
 	tests := []struct {
 		strs     []string
@@ -300,7 +293,6 @@ func TestJoinStrings(t *testing.T) {
 		}
 	}
 }
-
 
 func TestRecoveryMiddleware(t *testing.T) {
 	t.Run("recovers from panic", func(t *testing.T) {
@@ -357,7 +349,6 @@ func TestRecoveryMiddleware(t *testing.T) {
 	})
 }
 
-
 func TestLoggingMiddleware(t *testing.T) {
 	middleware := LoggingMiddleware()
 
@@ -377,7 +368,6 @@ func TestLoggingMiddleware(t *testing.T) {
 		t.Errorf("expected status 200, got %d", rec.Code)
 	}
 }
-
 
 func TestNewCORS(t *testing.T) {
 	t.Run("default CORS headers", func(t *testing.T) {

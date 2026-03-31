@@ -11,7 +11,6 @@ import (
 	"github.com/reststore/restkit/internal/schema"
 )
 
-
 func TestNew(t *testing.T) {
 	api := New()
 	if api == nil {
@@ -20,7 +19,6 @@ func TestNew(t *testing.T) {
 	// Note: New() returns a zero-valued struct where slices are nil
 	// This is fine - nil slices work correctly with append
 }
-
 
 func TestApiBuilder(t *testing.T) {
 	t.Run("WithVersion", func(t *testing.T) {
@@ -55,7 +53,6 @@ func TestApiBuilder(t *testing.T) {
 	})
 }
 
-
 func TestAddEndpoint(t *testing.T) {
 	api := New()
 
@@ -76,7 +73,6 @@ func TestAddEndpoint(t *testing.T) {
 		t.Errorf("expected path '/test', got '%s'", api.Endpoints[0].GetPath())
 	}
 }
-
 
 func TestAddGroup(t *testing.T) {
 	api := New()
@@ -106,7 +102,6 @@ func TestAddGroup(t *testing.T) {
 	}
 }
 
-
 func TestWithSwaggerUI(t *testing.T) {
 	t.Run("default path", func(t *testing.T) {
 		api := New().WithSwaggerUI()
@@ -133,14 +128,12 @@ func TestWithSwaggerUI(t *testing.T) {
 	})
 }
 
-
 func TestWithSwaggerUIPath(t *testing.T) {
 	api := New().WithSwaggerUIPath("/api-docs")
 	if api.SwaggerUIPath != "/api-docs" {
 		t.Errorf("expected path '/api-docs', got '%s'", api.SwaggerUIPath)
 	}
 }
-
 
 func TestWithMiddleware(t *testing.T) {
 	api := New()
@@ -163,7 +156,6 @@ func TestWithMiddleware(t *testing.T) {
 		t.Errorf("expected 2 middleware, got %d", len(api.Middleware))
 	}
 }
-
 
 func TestMountRouter(t *testing.T) {
 	api := New()
@@ -190,7 +182,6 @@ func TestMountRouter(t *testing.T) {
 		t.Errorf("expected prefix '/external-api', got '%s'", api.MountedRouters[0].Prefix)
 	}
 }
-
 
 func TestMux(t *testing.T) {
 	t.Run("basic endpoint registration", func(t *testing.T) {
@@ -313,7 +304,6 @@ func TestMux(t *testing.T) {
 	})
 }
 
-
 func TestGenerateOpenAPI(t *testing.T) {
 	api := New().
 		WithTitle("Test API").
@@ -358,7 +348,6 @@ func TestGenerateOpenAPI(t *testing.T) {
 	}
 }
 
-
 func TestServeOpenAPI(t *testing.T) {
 	api := New().
 		WithTitle("Test API").
@@ -383,7 +372,6 @@ func TestServeOpenAPI(t *testing.T) {
 		t.Error("response body should not be empty")
 	}
 }
-
 
 func TestGenerateOpenAPIWithMountedRoutes(t *testing.T) {
 	api := New().
@@ -418,7 +406,6 @@ func TestGenerateOpenAPIWithMountedRoutes(t *testing.T) {
 		t.Error("mounted route /api/external should be in spec")
 	}
 }
-
 
 func TestServeSwaggerUI(t *testing.T) {
 	api := New().WithSwaggerUI("/docs")

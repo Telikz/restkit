@@ -10,7 +10,6 @@ import (
 	errs "github.com/reststore/restkit/internal/errors"
 )
 
-
 func TestNewGroup(t *testing.T) {
 	group := NewGroup("/api/v1")
 	if group == nil {
@@ -23,7 +22,6 @@ func TestNewGroup(t *testing.T) {
 		t.Error("Endpoints should be initialized")
 	}
 }
-
 
 func TestGroupBuilder(t *testing.T) {
 	t.Run("WithTitle", func(t *testing.T) {
@@ -79,7 +77,6 @@ func TestGroupBuilder(t *testing.T) {
 		}
 	})
 }
-
 
 func TestGroupGetEndpoints(t *testing.T) {
 	t.Run("endpoints with prefix", func(t *testing.T) {
@@ -155,7 +152,6 @@ func TestGroupGetEndpoints(t *testing.T) {
 	})
 }
 
-
 func TestNewEndpoint(t *testing.T) {
 	type TestReq struct {
 		Name string `json:"name"`
@@ -187,7 +183,6 @@ func TestNewEndpoint(t *testing.T) {
 	}
 }
 
-
 func TestNewEndpointRes(t *testing.T) {
 	type TestRes struct {
 		Message string `json:"message"`
@@ -211,7 +206,6 @@ func TestNewEndpointRes(t *testing.T) {
 	// This is expected behavior
 }
 
-
 func TestNewEndpointReq(t *testing.T) {
 	type TestReq struct {
 		Name string `json:"name"`
@@ -231,7 +225,6 @@ func TestNewEndpointReq(t *testing.T) {
 		t.Error("Bind should be nil initially (lazy-initialized)")
 	}
 }
-
 
 func TestEndpointReqResBuilder(t *testing.T) {
 	type TestReq struct {
@@ -297,7 +290,6 @@ func TestEndpointReqResBuilder(t *testing.T) {
 		}
 	})
 }
-
 
 func TestEndpointReqResGetHandler(t *testing.T) {
 	type TestReq struct {
@@ -373,7 +365,6 @@ func TestEndpointReqResGetHandler(t *testing.T) {
 	})
 }
 
-
 func TestEndpointReqResClone(t *testing.T) {
 	type TestReq struct{}
 	type TestRes struct{}
@@ -409,7 +400,6 @@ func TestEndpointReqResClone(t *testing.T) {
 	}
 }
 
-
 func TestEndpointResBuilder(t *testing.T) {
 	type TestRes struct {
 		Message string `json:"message"`
@@ -437,7 +427,6 @@ func TestEndpointResBuilder(t *testing.T) {
 		}
 	})
 }
-
 
 func TestEndpointResGetHandler(t *testing.T) {
 	type TestRes struct {
@@ -487,7 +476,6 @@ func TestEndpointResGetHandler(t *testing.T) {
 	})
 }
 
-
 func TestEndpointReqBuilder(t *testing.T) {
 	type TestReq struct {
 		ID int `json:"id"`
@@ -515,7 +503,6 @@ func TestEndpointReqBuilder(t *testing.T) {
 		}
 	})
 }
-
 
 func TestEndpointReqGetHandler(t *testing.T) {
 	type TestReq struct {
@@ -563,7 +550,6 @@ func TestEndpointReqGetHandler(t *testing.T) {
 	})
 }
 
-
 func TestEndpointReqClone(t *testing.T) {
 	type TestReq struct{}
 
@@ -576,8 +562,6 @@ func TestEndpointReqClone(t *testing.T) {
 		t.Error("cloned method should match original")
 	}
 }
-
-
 
 func TestErrorHandler(t *testing.T) {
 	apiErr := errs.NewAPIError(404, "not_found", "Resource not found")
@@ -602,5 +586,3 @@ func TestErrorHandler(t *testing.T) {
 		t.Errorf("expected body to contain error code, got '%s'", body)
 	}
 }
-
-

@@ -6,7 +6,6 @@ import (
 	"time"
 )
 
-
 func TestSchemaFrom(t *testing.T) {
 	t.Run("string type", func(t *testing.T) {
 		schema := SchemaFrom[string]()
@@ -57,7 +56,6 @@ func TestSchemaFrom(t *testing.T) {
 		}
 	})
 }
-
 
 func TestTypeToSchema(t *testing.T) {
 	t.Run("nil type", func(t *testing.T) {
@@ -175,7 +173,6 @@ func TestTypeToSchema(t *testing.T) {
 		}
 	})
 }
-
 
 func TestStructToSchema(t *testing.T) {
 	t.Run("basic struct", func(t *testing.T) {
@@ -410,7 +407,6 @@ func TestStructToSchema(t *testing.T) {
 		}
 	})
 }
-
 
 func TestSchemaFromComplexTypes(t *testing.T) {
 	t.Run("slice of strings", func(t *testing.T) {

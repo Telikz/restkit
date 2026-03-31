@@ -12,7 +12,6 @@ import (
 	"github.com/reststore/restkit/internal/schema"
 )
 
-
 func TestRegisterRoutes(t *testing.T) {
 	t.Run("register group endpoints", func(t *testing.T) {
 		r := chi.NewRouter()
@@ -137,7 +136,6 @@ func TestRegisterRoutes(t *testing.T) {
 		}
 	})
 }
-
 
 func TestExtract(t *testing.T) {
 	t.Run("extract with metadata", func(t *testing.T) {
@@ -313,7 +311,6 @@ func TestExtract(t *testing.T) {
 	})
 }
 
-
 func TestExtractAll(t *testing.T) {
 	t.Run("extract all routes", func(t *testing.T) {
 		r := chi.NewRouter()
@@ -379,7 +376,6 @@ func TestExtractAll(t *testing.T) {
 	})
 }
 
-
 func TestRouteKey(t *testing.T) {
 	tests := []struct {
 		method   string
@@ -399,7 +395,6 @@ func TestRouteKey(t *testing.T) {
 		}
 	}
 }
-
 
 func TestExtractParams(t *testing.T) {
 	t.Run("use provided params", func(t *testing.T) {
@@ -444,7 +439,6 @@ func TestExtractParams(t *testing.T) {
 	})
 }
 
-
 func TestExtractPathParams(t *testing.T) {
 	tests := []struct {
 		pattern  string
@@ -483,7 +477,6 @@ func TestExtractPathParams(t *testing.T) {
 		})
 	}
 }
-
 
 func TestMount(t *testing.T) {
 	t.Run("mount with metadata", func(t *testing.T) {

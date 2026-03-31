@@ -27,7 +27,6 @@ type UserResponse struct {
 	Email string `json:"email"`
 }
 
-
 func BenchmarkRestKitPing(b *testing.B) {
 	router := setupRestKitRouter()
 	server := httptest.NewServer(router)
@@ -42,7 +41,6 @@ func BenchmarkRestKitPing(b *testing.B) {
 		resp.Body.Close()
 	}
 }
-
 
 func BenchmarkRawChiPing(b *testing.B) {
 	router := setupRawChiRouter()
@@ -59,7 +57,6 @@ func BenchmarkRawChiPing(b *testing.B) {
 	}
 }
 
-
 func BenchmarkStdlibPing(b *testing.B) {
 	mux := setupStdlibMux()
 	server := httptest.NewServer(mux)
@@ -74,7 +71,6 @@ func BenchmarkStdlibPing(b *testing.B) {
 		resp.Body.Close()
 	}
 }
-
 
 func BenchmarkRestKitGetUser(b *testing.B) {
 	router := setupRestKitRouter()
@@ -91,7 +87,6 @@ func BenchmarkRestKitGetUser(b *testing.B) {
 	}
 }
 
-
 func BenchmarkRawChiGetUser(b *testing.B) {
 	router := setupRawChiRouter()
 	server := httptest.NewServer(router)
@@ -107,7 +102,6 @@ func BenchmarkRawChiGetUser(b *testing.B) {
 	}
 }
 
-
 func BenchmarkStdlibGetUser(b *testing.B) {
 	mux := setupStdlibMux()
 	server := httptest.NewServer(mux)
@@ -122,7 +116,6 @@ func BenchmarkStdlibGetUser(b *testing.B) {
 		resp.Body.Close()
 	}
 }
-
 
 func BenchmarkRestKitCreateUser(b *testing.B) {
 	router := setupRestKitRouter()
@@ -149,7 +142,6 @@ func BenchmarkRestKitCreateUser(b *testing.B) {
 	}
 }
 
-
 func BenchmarkRawChiCreateUser(b *testing.B) {
 	router := setupRawChiRouter()
 	server := httptest.NewServer(router)
@@ -174,7 +166,6 @@ func BenchmarkRawChiCreateUser(b *testing.B) {
 		resp.Body.Close()
 	}
 }
-
 
 func BenchmarkStdlibCreateUser(b *testing.B) {
 	mux := setupStdlibMux()

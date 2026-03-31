@@ -5,7 +5,6 @@ import (
 	"testing"
 )
 
-
 func TestNewAPIError(t *testing.T) {
 	apiErr := NewAPIError(404, "not_found", "Resource not found")
 
@@ -25,7 +24,6 @@ func TestNewAPIError(t *testing.T) {
 		t.Error("details should be empty when not provided")
 	}
 }
-
 
 func TestNewAPIErrorWithDetails(t *testing.T) {
 	apiErr := NewAPIErrorWithDetails(
@@ -48,7 +46,6 @@ func TestNewAPIErrorWithDetails(t *testing.T) {
 	}
 }
 
-
 func TestAPIErrorError(t *testing.T) {
 	apiErr := NewAPIError(400, "bad_request", "Invalid input")
 
@@ -57,7 +54,6 @@ func TestAPIErrorError(t *testing.T) {
 		t.Errorf("expected Error() to return 'Invalid input', got '%s'", apiErr.Error())
 	}
 }
-
 
 func TestIsAPIError(t *testing.T) {
 	t.Run("with APIError", func(t *testing.T) {
@@ -107,7 +103,6 @@ func TestIsAPIError(t *testing.T) {
 	})
 }
 
-
 func TestNewValidation(t *testing.T) {
 	result := NewValidation()
 
@@ -119,7 +114,6 @@ func TestNewValidation(t *testing.T) {
 		t.Errorf("expected 0 errors, got %d", len(result.Errors))
 	}
 }
-
 
 func TestValidationFailed(t *testing.T) {
 	result := ValidationFailed(
@@ -155,7 +149,6 @@ func TestValidationFailed(t *testing.T) {
 	}
 }
 
-
 func TestValidationFailedMulti(t *testing.T) {
 	errors := []ValidationError{
 		{Field: "name", Message: "Name is required"},
@@ -173,7 +166,6 @@ func TestValidationFailedMulti(t *testing.T) {
 		t.Errorf("expected 2 errors, got %d", len(result.Errors))
 	}
 }
-
 
 func TestValidationResultAddError(t *testing.T) {
 	result := NewValidation()
@@ -195,7 +187,6 @@ func TestValidationResultAddError(t *testing.T) {
 	}
 }
 
-
 func TestValidationResultWithStatus(t *testing.T) {
 	result := NewValidation()
 	result.WithStatus(400)
@@ -204,7 +195,6 @@ func TestValidationResultWithStatus(t *testing.T) {
 		t.Errorf("expected status 400, got %d", result.Status)
 	}
 }
-
 
 func TestValidationResultWithCode(t *testing.T) {
 	result := NewValidation()
@@ -215,7 +205,6 @@ func TestValidationResultWithCode(t *testing.T) {
 	}
 }
 
-
 func TestValidationResultWithMessage(t *testing.T) {
 	result := NewValidation()
 	result.WithMessage("Invalid request")
@@ -224,7 +213,6 @@ func TestValidationResultWithMessage(t *testing.T) {
 		t.Errorf("expected message 'Invalid request', got '%s'", result.Message)
 	}
 }
-
 
 func TestValidationResultHasErrors(t *testing.T) {
 	t.Run("no errors", func(t *testing.T) {
@@ -255,7 +243,6 @@ func TestValidationResultHasErrors(t *testing.T) {
 	})
 }
 
-
 func TestErrorCodes(t *testing.T) {
 	// Just verify constants exist and have expected values
 	codes := []string{
@@ -285,7 +272,6 @@ func TestErrorCodes(t *testing.T) {
 		t.Errorf("expected ErrCodeValidation to be 'validation', got '%s'", ErrCodeValidation)
 	}
 }
-
 
 func TestErrorMessages(t *testing.T) {
 	messages := []string{

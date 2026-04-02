@@ -3,8 +3,8 @@ module github.com/reststore/restkit/examples/basic
 go 1.26.1
 
 require (
-	github.com/reststore/restkit v0.0.0
-	github.com/reststore/restkit/validation/playground v0.0.0
+	github.com/reststore/restkit v0.4.4
+	github.com/reststore/restkit/validation/playground v0.4.4
 )
 
 require (

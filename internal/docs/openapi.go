@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"strings"
@@ -12,15 +14,21 @@ import (
 	"github.com/reststore/restkit/internal/schema"
 )
 
+type OpenAPISpec struct {
+	Version     string      `json:"version"`
+	Title       string      `json:"title"`
+	Description string      `json:"description"`
+	Endpoints   []ep.Route  `json:"endpoints"`
+	Groups      []*ep.Group `json:"groups"`
+	Servers     []string    `json:"servers"`
+}
+
 // GenerateOpenAPI generates an OpenAPI 3.0 specification from endpoints
-func GenerateOpenAPI(
-	title, description, version string,
-	endpoints []ep.Route, groups []*ep.Group,
-) map[string]any {
+func GenerateOpenAPI(s *OpenAPISpec) map[string]any {
 	paths := make(map[string]any)
 	tags := make([]map[string]any, 0)
 
-	for _, group := range groups {
+	for _, group := range s.Groups {
 		if group.Title != "" {
 			tags = append(tags, map[string]any{
 				"name":        group.Title,
@@ -30,7 +38,7 @@ func GenerateOpenAPI(
 	}
 
 	// Add endpoints from groups
-	for _, group := range groups {
+	for _, group := range s.Groups {
 		for _, endpoint := range group.GetEndpoints() {
 			path := endpoint.GetPath()
 			method := strings.ToLower(endpoint.GetMethod())
@@ -40,20 +48,20 @@ func GenerateOpenAPI(
 			}
 
 			pathOps := paths[path].(map[string]any)
-			pathOps[method] = buildOperation(endpoint, groups)
+			pathOps[method] = buildOperation(endpoint, s.Groups)
 		}
 	}
 
 	// Add individual endpoints (avoid duplicates)
 	registered := make(map[string]bool)
-	for _, group := range groups {
+	for _, group := range s.Groups {
 		for _, e := range group.GetEndpoints() {
 			key := fmt.Sprintf("%s %s", e.GetMethod(), e.GetPath())
 			registered[key] = true
 		}
 	}
 
-	for _, endpoint := range endpoints {
+	for _, endpoint := range s.Endpoints {
 		key := fmt.Sprintf("%s %s", endpoint.GetMethod(), endpoint.GetPath())
 		if !registered[key] {
 			path := endpoint.GetPath()
@@ -64,16 +72,24 @@ func GenerateOpenAPI(
 			}
 
 			pathOps := paths[path].(map[string]any)
-			pathOps[method] = buildOperation(endpoint, groups)
+			pathOps[method] = buildOperation(endpoint, s.Groups)
 		}
+	}
+
+	servers := make([]map[string]any, 0, len(s.Servers))
+	for _, server := range s.Servers {
+		servers = append(servers, map[string]any{
+			"url": server,
+		})
 	}
 
 	spec := map[string]any{
 		"openapi": "3.0.0",
+		"servers": servers,
 		"info": map[string]any{
-			"title":       title,
-			"description": description,
-			"version":     version,
+			"title":       s.Title,
+			"description": s.Description,
+			"version":     s.Version,
 		},
 		"paths": paths,
 	}
@@ -493,6 +509,33 @@ func ServeOpenAPI(w http.ResponseWriter, spec map[string]any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(spec)
+}
+
+func CreateOpenAPIFile(path string, spec map[string]any) (err error) {
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
+
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		closeErr := file.Close()
+		if err == nil && closeErr != nil {
+			err = closeErr
+		}
+	}()
+
+	enc := json.NewEncoder(file)
+	enc.SetIndent("", "  ")
+
+	if err := enc.Encode(spec); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func isEmptyRequestSchema(schema map[string]any) bool {

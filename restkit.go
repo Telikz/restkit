@@ -6,6 +6,7 @@ import (
 
 	"github.com/reststore/restkit/internal/api"
 	rc "github.com/reststore/restkit/internal/context"
+	"github.com/reststore/restkit/internal/docs"
 	ep "github.com/reststore/restkit/internal/endpoints"
 	err "github.com/reststore/restkit/internal/errors"
 	mw "github.com/reststore/restkit/internal/middleware"
@@ -60,6 +61,9 @@ var ValidationFailedMulti = err.ValidationFailedMulti
 //
 //	import _ "github.com/reststore/restkit/validation/playground"
 var ValidateStruct = vd.ValidateStruct
+
+// GenerateOpenAPIFile generates openApi spec file at specified location
+var GenerateOpenAPIFile = docs.CreateOpenAPIFile
 
 // RouteContext contains information about the current route and request
 type RouteContext = rc.RouteContext

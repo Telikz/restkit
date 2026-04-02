@@ -13,6 +13,7 @@ type Api struct {
 	Version     string
 	Title       string
 	Description string
+	Servers     []string
 
 	Endpoints      []ep.Route
 	Groups         []*ep.Group
@@ -39,6 +40,11 @@ func (api *Api) WithTitle(title string) *Api {
 
 func (api *Api) WithDescription(description string) *Api {
 	api.Description = description
+	return api
+}
+
+func (api *Api) WithServers(servers ...string) *Api {
+	api.Servers = servers
 	return api
 }
 
@@ -143,13 +149,20 @@ func (api *Api) Serve(addr string) error {
 
 // GenerateOpenAPI generates an OpenAPI spec including both RestKit endpoints and mounted routes
 func (api *Api) GenerateOpenAPI() map[string]any {
-	spec := docs.GenerateOpenAPI(
-		api.Title,
-		api.Description,
-		api.Version,
-		api.Endpoints,
-		api.Groups,
-	)
+	s := &docs.OpenAPISpec{
+		Version:     api.Version,
+		Title:       api.Title,
+		Description: api.Description,
+		Endpoints:   api.Endpoints,
+		Groups:      api.Groups,
+		Servers:     api.Servers,
+	}
+
+	if len(s.Servers) == 0 {
+		s.Servers = append(s.Servers, "http://localhost:8080")
+	}
+
+	spec := docs.GenerateOpenAPI(s)
 
 	// Add mounted router routes to the OpenAPI spec
 	for _, mounted := range api.MountedRouters {

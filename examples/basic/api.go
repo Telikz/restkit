@@ -51,6 +51,11 @@ func main() {
 
 	a.WithSwaggerUI("/docs")
 
+	err := rest.GenerateOpenAPIFile("docs/openapi.json", a.GenerateOpenAPI())
+	if err != nil {
+		log.Println("could not generate openApi document")
+	}
+
 	// Configure and HTTP server with timeouts
 	server := http.Server{
 		Addr:         ":8080",

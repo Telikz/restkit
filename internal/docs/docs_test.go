@@ -16,7 +16,15 @@ func TestGenerateOpenAPI(t *testing.T) {
 		endpoints := []ep.Route{}
 		groups := []*ep.Group{}
 
-		spec := GenerateOpenAPI("Test API", "Test Description", "1.0.0", endpoints, groups)
+		s := &OpenAPISpec{
+			Title:       "Test API",
+			Description: "Test Description",
+			Version:     "1.0.0",
+			Endpoints:   endpoints,
+			Groups:      groups,
+		}
+
+		spec := GenerateOpenAPI(s)
 
 		if spec["openapi"] != "3.0.0" {
 			t.Errorf("expected openapi version '3.0.0', got '%v'", spec["openapi"])
@@ -53,7 +61,16 @@ func TestGenerateOpenAPI(t *testing.T) {
 			WithEndpoints(endpoint)
 
 		groups := []*ep.Group{group}
-		spec := GenerateOpenAPI("API", "", "1.0", []ep.Route{}, groups)
+
+		s := &OpenAPISpec{
+			Title:       "API",
+			Description: "",
+			Version:     "1.0",
+			Endpoints:   []ep.Route{},
+			Groups:      groups,
+		}
+
+		spec := GenerateOpenAPI(s)
 
 		// Check tags
 		tags, ok := spec["tags"].([]map[string]any)
@@ -84,7 +101,14 @@ func TestGenerateOpenAPI(t *testing.T) {
 			WithTitle("Health")
 
 		endpoints := []ep.Route{endpoint}
-		spec := GenerateOpenAPI("API", "", "1.0", endpoints, []*ep.Group{})
+		s := &OpenAPISpec{
+			Title:       "API",
+			Description: "",
+			Version:     "1.0",
+			Endpoints:   endpoints,
+			Groups:      []*ep.Group{},
+		}
+		spec := GenerateOpenAPI(s)
 
 		paths, ok := spec["paths"].(map[string]any)
 		if !ok {
@@ -113,7 +137,14 @@ func TestGenerateOpenAPI(t *testing.T) {
 		endpoints := []ep.Route{individualEndpoint}
 		groups := []*ep.Group{group}
 
-		spec := GenerateOpenAPI("API", "", "1.0", endpoints, groups)
+		s := &OpenAPISpec{
+			Title:       "API",
+			Description: "",
+			Version:     "1.0",
+			Endpoints:   endpoints,
+			Groups:      groups,
+		}
+		spec := GenerateOpenAPI(s)
 
 		paths, ok := spec["paths"].(map[string]any)
 		if !ok {

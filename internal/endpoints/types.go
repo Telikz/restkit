@@ -2,9 +2,8 @@ package endpoints
 
 import (
 	"context"
-	"regexp"
-
 	"net/http"
+	"regexp"
 
 	"github.com/reststore/restkit/internal/errors"
 )

@@ -22,7 +22,6 @@ func TestJSONBinder(t *testing.T) {
 		req.Header.Set("Content-Type", "application/json")
 
 		result, err := binder(req)
-
 		if err != nil {
 			t.Errorf("expected no error, got %v", err)
 		}
@@ -86,7 +85,6 @@ func TestPathParamBinder(t *testing.T) {
 		req := httptest.NewRequest("GET", "/users/123", nil)
 
 		result, err := binder(req)
-
 		if err != nil {
 			t.Errorf("expected no error, got %v", err)
 		}
@@ -102,7 +100,6 @@ func TestPathParamBinder(t *testing.T) {
 		req := httptest.NewRequest("GET", "/users/456", nil)
 
 		result, err := binder(req)
-
 		if err != nil {
 			t.Errorf("expected no error, got %v", err)
 		}
@@ -187,7 +184,6 @@ func TestStringToString(t *testing.T) {
 
 	for _, input := range tests {
 		result, err := StringToString(input)
-
 		if err != nil {
 			t.Errorf("StringToString(%q) unexpected error: %v", input, err)
 		}
@@ -211,7 +207,6 @@ func TestJSONWriter(t *testing.T) {
 		response := TestResponse{ID: 1, Name: "Test"}
 
 		err := writer(rec, response)
-
 		if err != nil {
 			t.Errorf("expected no error, got %v", err)
 		}
@@ -238,7 +233,6 @@ func TestJSONWriter(t *testing.T) {
 		var response *TestResponse
 
 		err := writer(rec, response)
-
 		if err != nil {
 			t.Errorf("expected no error for nil, got %v", err)
 		}

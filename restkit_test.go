@@ -275,7 +275,6 @@ func TestSchemaFrom(t *testing.T) {
 }
 
 func TestPathParamBinder(t *testing.T) {
-
 	intBinder := rest.PathParamBinder(rest.StringToInt)
 	if intBinder == nil {
 		t.Fatal("PathParamBinder(StringToInt) returned nil")
@@ -395,7 +394,6 @@ func TestApiWithMiddleware(t *testing.T) {
 }
 
 func TestValidationTypes(t *testing.T) {
-
 	validation := rest.NewValidation()
 	if validation.HasErrors() {
 		t.Error("New validation should not have errors")

@@ -250,7 +250,6 @@ func TestExtractPathParams(t *testing.T) {
 }
 
 func TestExtractPathParamsInvalidPattern(t *testing.T) {
-
 	// Most invalid patterns are handled by escaping, but let's test edge cases
 
 	// This pattern should work even with special characters

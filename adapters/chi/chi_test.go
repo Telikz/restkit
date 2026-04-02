@@ -156,7 +156,6 @@ func TestExtract(t *testing.T) {
 		}
 
 		routes, err := Extract(r, metas)
-
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -203,7 +202,6 @@ func TestExtract(t *testing.T) {
 		}
 
 		routes, err := Extract(r, metas)
-
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -251,7 +249,6 @@ func TestExtract(t *testing.T) {
 		}
 
 		routes, err := Extract(r, metas)
-
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -279,7 +276,6 @@ func TestExtract(t *testing.T) {
 		}
 
 		routes, err := Extract(r, metas)
-
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -300,7 +296,6 @@ func TestExtract(t *testing.T) {
 		var metas []schema.RouteMeta
 
 		routes, err := Extract(r, metas)
-
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -319,7 +314,6 @@ func TestExtractAll(t *testing.T) {
 		r.Get("/users/{id}", func(w http.ResponseWriter, r *http.Request) {})
 
 		routes, err := ExtractAll(r)
-
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -334,7 +328,6 @@ func TestExtractAll(t *testing.T) {
 		r.Get("/users/{id}/posts/{postId}", func(w http.ResponseWriter, r *http.Request) {})
 
 		routes, err := ExtractAll(r)
-
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -365,7 +358,6 @@ func TestExtractAll(t *testing.T) {
 		r := chi.NewRouter()
 
 		routes, err := ExtractAll(r)
-
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -495,7 +487,6 @@ func TestMount(t *testing.T) {
 
 		apiInstance := api.New()
 		err := Mount(apiInstance, "/api", r, metas)
-
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -520,7 +511,6 @@ func TestMount(t *testing.T) {
 
 		apiInstance := api.New()
 		err := Mount(apiInstance, "/", r, nil)
-
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -540,7 +530,6 @@ func TestMount(t *testing.T) {
 
 		apiInstance := api.New()
 		err := Mount(apiInstance, "/prefix", r, []schema.RouteMeta{})
-
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -563,7 +552,6 @@ func TestMount(t *testing.T) {
 		r.Get("/test", func(w http.ResponseWriter, r *http.Request) {})
 
 		err := Mount(apiInstance, "/test", r, nil)
-
 		if err != nil {
 			t.Errorf("expected no error for valid router, got: %v", err)
 		}

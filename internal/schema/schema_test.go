@@ -120,7 +120,10 @@ func TestTypeToSchema(t *testing.T) {
 		}
 
 		if additionalProps["type"] != "integer" {
-			t.Errorf("expected additionalProperties type 'integer', got '%v'", additionalProps["type"])
+			t.Errorf(
+				"expected additionalProperties type 'integer', got '%v'",
+				additionalProps["type"],
+			)
 		}
 	})
 
@@ -293,7 +296,10 @@ func TestStructToSchema(t *testing.T) {
 		}
 
 		if nameSchema["description"] != "The user's full name" {
-			t.Errorf("expected description 'The user's full name', got '%v'", nameSchema["description"])
+			t.Errorf(
+				"expected description 'The user's full name', got '%v'",
+				nameSchema["description"],
+			)
 		}
 	})
 
@@ -439,7 +445,10 @@ func TestSchemaFromComplexTypes(t *testing.T) {
 		}
 
 		if additionalProps["type"] != "integer" {
-			t.Errorf("expected additionalProperties type 'integer', got '%v'", additionalProps["type"])
+			t.Errorf(
+				"expected additionalProperties type 'integer', got '%v'",
+				additionalProps["type"],
+			)
 		}
 	})
 

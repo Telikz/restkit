@@ -11,8 +11,9 @@ require (
 
 require (
 	github.com/go-chi/chi/v5 v5.2.5
-	github.com/reststore/restkit/adapters/chi v0.4.4
-	github.com/reststore/restkit/validation/playground v0.4.4
+	github.com/mattn/go-sqlite3 v1.14.40
+	github.com/reststore/restkit/adapters/chi v0.0.0
+	github.com/reststore/restkit/validation/playground v0.0.0
 )
 
 require (
@@ -46,3 +47,7 @@ require (
 	golang.org/x/sys v0.42.0 // indirect
 	golang.org/x/text v0.35.0 // indirect
 )
+
+replace github.com/reststore/restkit/adapters/chi => ./adapters/chi
+
+replace github.com/reststore/restkit/validation/playground => ./validation/playground

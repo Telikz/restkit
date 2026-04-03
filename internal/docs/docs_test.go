@@ -170,7 +170,10 @@ func TestGenerateOpenAPI(t *testing.T) {
 			t.Errorf("expected 1 operation for grouped endpoint, got %d", len(pathDataGrouped))
 		}
 		if len(pathDataIndividual) != 1 {
-			t.Errorf("expected 1 operation for individual endpoint, got %d", len(pathDataIndividual))
+			t.Errorf(
+				"expected 1 operation for individual endpoint, got %d",
+				len(pathDataIndividual),
+			)
 		}
 	})
 }

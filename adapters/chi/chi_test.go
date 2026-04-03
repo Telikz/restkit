@@ -460,7 +460,11 @@ func TestExtractPathParams(t *testing.T) {
 					t.Errorf("param %d: expected name '%s', got '%s'", i, expected, result[i].Name)
 				}
 				if result[i].Type != "string" {
-					t.Errorf("param %d: expected default type 'string', got '%s'", i, result[i].Type)
+					t.Errorf(
+						"param %d: expected default type 'string', got '%s'",
+						i,
+						result[i].Type,
+					)
 				}
 				if !result[i].Required {
 					t.Errorf("param %d: expected required=true", i)
@@ -520,7 +524,10 @@ func TestMount(t *testing.T) {
 		}
 
 		if len(apiInstance.MountedRouters[0].Routes) != 2 {
-			t.Errorf("expected 2 routes (all routes extracted), got %d", len(apiInstance.MountedRouters[0].Routes))
+			t.Errorf(
+				"expected 2 routes (all routes extracted), got %d",
+				len(apiInstance.MountedRouters[0].Routes),
+			)
 		}
 	})
 
@@ -536,7 +543,10 @@ func TestMount(t *testing.T) {
 
 		// With empty metadata, it should extract all routes
 		if len(apiInstance.MountedRouters[0].Routes) != 1 {
-			t.Errorf("expected 1 route extracted, got %d", len(apiInstance.MountedRouters[0].Routes))
+			t.Errorf(
+				"expected 1 route extracted, got %d",
+				len(apiInstance.MountedRouters[0].Routes),
+			)
 		}
 	})
 

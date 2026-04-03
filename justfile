@@ -15,3 +15,6 @@ release version:
     git tag -a "validation/playground/v$VERSION" -m "Release validation/playground v$VERSION" && \
     git push origin "v$VERSION" "adapters/chi/v$VERSION" "validation/playground/v$VERSION" && \
     echo "Released v$VERSION"
+
+fmt:
+    go fmt ./... && gofumpt -l -w . && golines -w -m 100 .

@@ -110,6 +110,27 @@ func buildOperation(
 		"description": endpoint.GetDescription(),
 	}
 
+	// Add parameters (path and query)
+	params := endpoint.GetParameters()
+	if len(params) > 0 {
+		var paramList []map[string]any
+		for _, p := range params {
+			param := map[string]any{
+				"name":        p.Name,
+				"in":          string(p.Location),
+				"description": p.Description,
+				"schema": map[string]any{
+					"type": p.Type,
+				},
+			}
+			if p.Required {
+				param["required"] = true
+			}
+			paramList = append(paramList, param)
+		}
+		op["parameters"] = paramList
+	}
+
 	for _, group := range groups {
 		if group.Title != "" {
 			for _, groupEndpoint := range group.GetEndpoints() {

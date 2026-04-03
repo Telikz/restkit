@@ -8,6 +8,30 @@ import (
 
 var RouteCtxKey = &contextKey{"RouteContext"}
 
+// QueriesKey is the context key for database queries
+type queriesKey struct{}
+
+var QueriesCtxKey = &queriesKey{}
+
+// WithQueries injects database queries into the context.
+func WithQueries(ctx context.Context, queries any) context.Context {
+	return context.WithValue(ctx, QueriesCtxKey, queries)
+}
+
+// QueriesFromContext retrieves database queries from the context.
+func QueriesFromContext(ctx context.Context) any {
+	return ctx.Value(QueriesCtxKey)
+}
+
+// MustQueriesFromContext retrieves database queries from the context.
+func MustQueriesFromContext(ctx context.Context) any {
+	queries := QueriesFromContext(ctx)
+	if queries == nil {
+		panic("database queries not found in context, add DBMiddleware to your middleware stack")
+	}
+	return queries
+}
+
 var pathParamRegex = regexp.MustCompile(`\{([^}]+)}`)
 
 // routeContextPool provides a pool for RouteContext to reduce allocations
@@ -19,7 +43,8 @@ var rcPool = &routeContextPool{
 	pool: sync.Pool{
 		New: func() any {
 			return &RouteContext{
-				params: make(map[string]string),
+				params:      make(map[string]string),
+				queryParams: make(map[string]string),
 			}
 		},
 	},
@@ -30,6 +55,9 @@ func (p *routeContextPool) Get() *RouteContext {
 	rc := p.pool.Get().(*RouteContext)
 	for k := range rc.params {
 		delete(rc.params, k)
+	}
+	for k := range rc.queryParams {
+		delete(rc.queryParams, k)
 	}
 	return rc
 }
@@ -50,7 +78,8 @@ func (k *contextKey) String() string {
 }
 
 type RouteContext struct {
-	params map[string]string
+	params      map[string]string
+	queryParams map[string]string
 }
 
 // NewRouteContext creates a new RouteContext using the pool for efficiency
@@ -58,7 +87,7 @@ func NewRouteContext() *RouteContext {
 	return rcPool.Get()
 }
 
-// URLParam retrieves a URL parameter by name
+// URLParam retrieves a URL path parameter by name
 func (rc *RouteContext) URLParam(key string) string {
 	if rc == nil || rc.params == nil {
 		return ""
@@ -66,7 +95,7 @@ func (rc *RouteContext) URLParam(key string) string {
 	return rc.params[key]
 }
 
-// SetURLParam sets a URL parameter
+// SetURLParam sets a URL path parameter
 func (rc *RouteContext) SetURLParam(key, value string) {
 	if rc.params == nil {
 		rc.params = make(map[string]string)
@@ -74,10 +103,34 @@ func (rc *RouteContext) SetURLParam(key, value string) {
 	rc.params[key] = value
 }
 
-// URLParam extracts a URL parameter from the request context
+// URLQueryParam retrieves a URL query parameter by name
+func (rc *RouteContext) URLQueryParam(key string) string {
+	if rc == nil || rc.queryParams == nil {
+		return ""
+	}
+	return rc.queryParams[key]
+}
+
+// SetURLQueryParam sets a URL query parameter
+func (rc *RouteContext) SetURLQueryParam(key, value string) {
+	if rc.queryParams == nil {
+		rc.queryParams = make(map[string]string)
+	}
+	rc.queryParams[key] = value
+}
+
+// URLParam extracts a URL path parameter from the request context
 func URLParam(ctx context.Context, key string) string {
 	if rc := RouteCtxFromContext(ctx); rc != nil {
 		return rc.URLParam(key)
+	}
+	return ""
+}
+
+// URLQueryParam extracts a URL query parameter from the request context
+func URLQueryParam(ctx context.Context, key string) string {
+	if rc := RouteCtxFromContext(ctx); rc != nil {
+		return rc.URLQueryParam(key)
 	}
 	return ""
 }

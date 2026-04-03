@@ -36,6 +36,18 @@ type MountedRoute = sc.MountedRoute
 // ParamInfo represents a path parameter definition for OpenAPI documentation
 type ParamInfo = sc.ParamInfo
 
+// Parameter represents an OpenAPI parameter (path or query)
+type Parameter = ep.Parameter
+
+// ParamLocation defines where a parameter is located
+type ParamLocation = ep.ParamLocation
+
+// ParamLocationPath indicates a path parameter
+const ParamLocationPath = ep.ParamLocationPath
+
+// ParamLocationQuery indicates a query parameter
+const ParamLocationQuery = ep.ParamLocationQuery
+
 // RouteInfo contains metadata for a route used by adapters
 type RouteInfo = sc.RouteInfo
 
@@ -67,6 +79,16 @@ var GenerateOpenAPIFile = docs.CreateOpenAPIFile
 
 // RouteContext contains information about the current route and request
 type RouteContext = rc.RouteContext
+
+// WithQueries injects database queries into the context.
+var WithQueries = rc.WithQueries
+
+// QueriesFromContext retrieves database queries from the context.
+var QueriesFromContext = rc.QueriesFromContext
+
+// MustQueriesFromContext retrieves database queries from the context.
+// Panics if not found.
+var MustQueriesFromContext = rc.MustQueriesFromContext
 
 // NewApi creates a new Api instance
 func NewApi() *Api {
@@ -102,6 +124,11 @@ func NewEndpointReq[Req any]() *Endpoint[Req, NoResponse] {
 // URLParam retrieves a URL parameter from the request context
 func URLParam(ctx context.Context, key string) string {
 	return rc.URLParam(ctx, key)
+}
+
+// URLQueryParam retrieves a URL query parameter from the request context
+func URLQueryParam(ctx context.Context, key string) string {
+	return rc.URLQueryParam(ctx, key)
 }
 
 // RouteCtxFromContext extracts the route context from a request context
@@ -189,18 +216,92 @@ func WithMaxAge(seconds int) CORSOption {
 }
 
 // RecoveryMiddleware recovers from panics and returns 500 error
-func RecoveryMiddleware() func(next http.Handler) http.Handler {
-	return mw.RecoveryMiddleware()
-}
+var RecoveryMiddleware = mw.RecoveryMiddleware
+
+// DBMiddleware injects database queries into every request context.
+var DBMiddleware = mw.DBMiddleware
+
+// TransactionMiddleware wraps requests in a database transaction.
+var TransactionMiddleware = mw.TransactionMiddleware
 
 // StringToInt converts a string to int
-func StringToInt(s string) (int, error) {
-	return mw.StringToInt(s)
-}
+var StringToInt = mw.StringToInt
 
 // StringToString is a no-op converter for string path params
-func StringToString(s string) (string, error) {
-	return mw.StringToString(s)
+var StringToString = mw.StringToString
+
+// ParseID converts a string ID to int64.
+var ParseID = ep.ParseID
+
+// ParseIntID converts a string ID to int.
+var ParseIntID = ep.ParseIntID
+
+// MessageResponse is a simple response with a message.
+type MessageResponse = ep.MessageResponse
+
+// PaginationParams contains common pagination parameters.
+type PaginationParams = ep.PaginationParams
+
+// ListParams contains pagination and sorting parameters for list endpoints.
+type ListParams = ep.ListParams
+
+// SearchParams contains pagination and search query parameters.
+type SearchParams = ep.SearchParams
+
+func ListEndpoint[Q any, T any](
+	path string,
+	listFn func(ctx context.Context, queries Q, limit, offset int32) ([]T, error),
+) *Endpoint[NoRequest, []T] {
+	return ep.ListEndpoint(path, listFn)
+}
+
+func ListPaginatedEndpoint[Q any, T any](
+	path string,
+	listFn func(ctx context.Context, queries Q, params ListParams) ([]T, error),
+) *Endpoint[NoRequest, []T] {
+	return ep.ListPaginatedEndpoint(path, listFn)
+}
+
+func GetEndpoint[Q any, T any](
+	path string,
+	getFn func(ctx context.Context, queries Q, id int64) (T, error),
+) *Endpoint[NoRequest, T] {
+	return ep.GetEndpoint(path, getFn)
+}
+
+func CreateEndpoint[Q any, Req any, Res any](
+	path string,
+	createFn func(ctx context.Context, queries Q, req Req) (Res, error),
+) *Endpoint[Req, Res] {
+	return ep.CreateEndpoint(path, createFn)
+}
+
+func UpdateEndpoint[Q any, Req any](
+	path string,
+	updateFn func(ctx context.Context, queries Q, id int64, req Req) error,
+) *Endpoint[Req, NoResponse] {
+	return ep.UpdateEndpoint(path, updateFn)
+}
+
+func DeleteEndpoint[Q any](
+	path string,
+	deleteFn func(ctx context.Context, queries Q, id int64) error,
+) *Endpoint[NoRequest, MessageResponse] {
+	return ep.DeleteEndpoint(path, deleteFn)
+}
+
+func SearchEndpoint[Q any, T any](
+	path string,
+	searchFn func(ctx context.Context, queries Q) ([]T, error),
+) *Endpoint[NoRequest, []T] {
+	return ep.SearchEndpoint(path, searchFn)
+}
+
+func SearchPaginatedEndpoint[Q any, T any](
+	path string,
+	searchFn func(ctx context.Context, queries Q, params SearchParams) ([]T, error),
+) *Endpoint[NoRequest, []T] {
+	return ep.SearchPaginatedEndpoint(path, searchFn)
 }
 
 // Error codes returned by the API for programmatic error handling

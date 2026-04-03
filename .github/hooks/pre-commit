@@ -12,7 +12,7 @@ echo "Running pre-commit checks..."
 
 # Run go fmt
 echo "Checking Go formatting..."
-if ! go fmt ./... && ! gofumpt -l -w . && golines -w -m 80 .; then
+if ! go fmt ./... && ! gofumpt -l -w . && golines -w -m 100 .; then
     echo "go fmt failed. Please fix formatting issues."
     exit 1
 fi

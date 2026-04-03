@@ -32,6 +32,7 @@ type Endpoint[Req any, Res any] struct {
 
 	RequestSchema  map[string]any
 	ResponseSchema map[string]any
+	Parameters     []Parameter
 }
 
 // GetMethod returns the HTTP method for the endpoint.
@@ -69,6 +70,30 @@ func (e *Endpoint[Req, Res]) GetResponseSchema() map[string]any {
 	return e.ResponseSchema
 }
 
+// GetParameters returns the OpenAPI parameters for this endpoint.
+func (e *Endpoint[Req, Res]) GetParameters() []Parameter {
+	if len(e.Parameters) > 0 {
+		return e.Parameters
+	}
+	// Build path parameters from path pattern
+	var params []Parameter
+	for _, name := range e.pathParams {
+		params = append(params, Parameter{
+			Name:     name,
+			Type:     "string",
+			Required: true,
+			Location: ParamLocationPath,
+		})
+	}
+	return params
+}
+
+// WithParameters sets query/path parameters for OpenAPI documentation.
+func (e *Endpoint[Req, Res]) WithParameters(params ...Parameter) *Endpoint[Req, Res] {
+	e.Parameters = params
+	return e
+}
+
 // WithTitle sets the title of the endpoint.
 func (e *Endpoint[Req, Res]) WithTitle(title string) *Endpoint[Req, Res] {
 	e.Title = title
@@ -94,13 +119,17 @@ func (e *Endpoint[Req, Res]) WithPath(path string) *Endpoint[Req, Res] {
 }
 
 // WithHandler sets the handler function for the endpoint.
-func (e *Endpoint[Req, Res]) WithHandler(handler func(ctx context.Context, req Req) (Res, error)) *Endpoint[Req, Res] {
+func (e *Endpoint[Req, Res]) WithHandler(
+	handler func(ctx context.Context, req Req) (Res, error),
+) *Endpoint[Req, Res] {
 	e.Handler = handler
 	return e
 }
 
 // WithValidation sets a custom validation function for the endpoint.
-func (e *Endpoint[Req, Res]) WithValidation(validate func(ctx context.Context, req Req) ValidationResult) *Endpoint[Req, Res] {
+func (e *Endpoint[Req, Res]) WithValidation(
+	validate func(ctx context.Context, req Req) ValidationResult,
+) *Endpoint[Req, Res] {
 	e.Validate = validate
 	return e
 }
@@ -112,19 +141,25 @@ func (e *Endpoint[Req, Res]) WithBind(bind func(r *http.Request) (Req, error)) *
 }
 
 // WithWrite sets a custom write function for the endpoint.
-func (e *Endpoint[Req, Res]) WithWrite(write func(w http.ResponseWriter, res Res) error) *Endpoint[Req, Res] {
+func (e *Endpoint[Req, Res]) WithWrite(
+	write func(w http.ResponseWriter, res Res) error,
+) *Endpoint[Req, Res] {
 	e.Write = write
 	return e
 }
 
 // WithErrorHandler sets a custom error handler for the endpoint.
-func (e *Endpoint[Req, Res]) WithErrorHandler(onError func(w http.ResponseWriter, r *http.Request, err error)) *Endpoint[Req, Res] {
+func (e *Endpoint[Req, Res]) WithErrorHandler(
+	onError func(w http.ResponseWriter, r *http.Request, err error),
+) *Endpoint[Req, Res] {
 	e.OnError = onError
 	return e
 }
 
 // WithMiddleware adds middleware to the endpoint.
-func (e *Endpoint[Req, Res]) WithMiddleware(mw ...func(next http.Handler) http.Handler) *Endpoint[Req, Res] {
+func (e *Endpoint[Req, Res]) WithMiddleware(
+	mw ...func(next http.Handler) http.Handler,
+) *Endpoint[Req, Res] {
 	e.Middleware = append(e.Middleware, mw...)
 	return e
 }
@@ -216,12 +251,28 @@ func (e *Endpoint[Req, Res]) GetHandler() http.Handler {
 	var h http.Handler = http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			var ctx context.Context = r.Context()
+
+			routeCtx := routectx.NewRouteContext()
+
+			// Extract path parameters
 			if len(e.pathParams) > 0 {
-				routeCtx := routectx.NewRouteContext()
 				for _, paramName := range e.pathParams {
 					value := r.PathValue(paramName)
 					routeCtx.SetURLParam(paramName, value)
 				}
+			}
+
+			// Extract query parameters
+			if r.URL != nil && len(r.URL.Query()) > 0 {
+				for key, values := range r.URL.Query() {
+					if len(values) > 0 {
+						routeCtx.SetURLQueryParam(key, values[0])
+					}
+				}
+			}
+
+			// Only add to context if we have any params
+			if len(e.pathParams) > 0 || (r.URL != nil && len(r.URL.Query()) > 0) {
 				ctx = context.WithValue(
 					r.Context(),
 					routectx.RouteCtxKey,

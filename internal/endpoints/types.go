@@ -8,8 +8,24 @@ import (
 	"github.com/reststore/restkit/internal/errors"
 )
 
+// ParamLocation defines where a parameter is located
+type ParamLocation string
+
+const (
+	ParamLocationPath  ParamLocation = "path"
+	ParamLocationQuery ParamLocation = "query"
+)
+
+// Parameter defines an OpenAPI parameter (path or query)
+type Parameter struct {
+	Name        string
+	Type        string
+	Description string
+	Required    bool
+	Location    ParamLocation
+}
+
 // Route defines the interface for all endpoint types.
-// This interface is used internally by RestKit to manage endpoints.
 type Route interface {
 	GetMethod() string
 	GetPath() string
@@ -19,6 +35,7 @@ type Route interface {
 	GetRequestSchema() map[string]any
 	GetResponseSchema() map[string]any
 	GetHandler() http.Handler
+	GetParameters() []Parameter
 	setPath(path string)
 	addMiddleware(mw []func(http.Handler) http.Handler)
 }

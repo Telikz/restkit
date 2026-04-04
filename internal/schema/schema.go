@@ -69,7 +69,6 @@ func structToSchema(t reflect.Type) map[string]any {
 	required := make([]string, 0)
 
 	for field := range t.Fields() {
-
 		if !field.IsExported() {
 			continue
 		}
@@ -78,7 +77,6 @@ func structToSchema(t reflect.Type) map[string]any {
 		if jsonTag == "" {
 			jsonTag = strings.ToLower(field.Name)
 		} else {
-			// Handle tags like "json:field_name,omitempty"
 			jsonTag = strings.Split(jsonTag, ",")[0]
 		}
 
@@ -88,14 +86,12 @@ func structToSchema(t reflect.Type) map[string]any {
 
 		fieldSchema := TypeToSchema(field.Type)
 
-		// Add description from openapi tag if present
 		if desc := field.Tag.Get("openapi"); desc != "" {
 			fieldSchema["description"] = desc
 		}
 
 		properties[jsonTag] = fieldSchema
 
-		// Check if field is required
 		if !strings.Contains(field.Tag.Get("json"), "omitempty") {
 			required = append(required, jsonTag)
 		}
@@ -107,4 +103,99 @@ func structToSchema(t reflect.Type) map[string]any {
 	}
 
 	return schema
+}
+
+// ShouldBindFromQuery reports whether a type should use query parameter binding
+func ShouldBindFromQuery(t reflect.Type) bool {
+	if t.Kind() == reflect.Pointer {
+		t = t.Elem()
+	}
+	if t.Kind() != reflect.Struct {
+		return false
+	}
+
+	for field := range t.Fields() {
+		if field.Tag.Get("query") != "" || field.Tag.Get("path") != "" {
+			return true
+		}
+	}
+	return false
+}
+
+// ExtractQueryParams extracts query parameter metadata from a struct type
+func ExtractQueryParams(t reflect.Type) []QueryParamInfo {
+	if t.Kind() == reflect.Pointer {
+		t = t.Elem()
+	}
+
+	var params []QueryParamInfo
+	for field := range t.Fields() {
+		if queryTag := field.Tag.Get("query"); queryTag != "" {
+			param := QueryParamInfo{
+				Name:     queryTag,
+				Type:     goTypeToJSONType(field.Type),
+				Required: field.Tag.Get("required") == "true",
+			}
+			if defaultTag := field.Tag.Get("default"); defaultTag != "" {
+				param.Default = defaultTag
+			}
+			params = append(params, param)
+		}
+	}
+	return params
+}
+
+// ExtractPathParams extracts path parameter metadata from a struct type
+func ExtractPathParams(t reflect.Type) []PathParamInfo {
+	if t.Kind() == reflect.Pointer {
+		t = t.Elem()
+	}
+
+	var params []PathParamInfo
+	for field := range t.Fields() {
+		field := field
+		if pathTag := field.Tag.Get("path"); pathTag != "" {
+			params = append(params, PathParamInfo{
+				Name: pathTag,
+				Type: goTypeToJSONType(field.Type),
+			})
+		}
+	}
+	return params
+}
+
+func goTypeToJSONType(t reflect.Type) string {
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+
+	switch t.Kind() {
+	case reflect.String:
+		return "string"
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return "integer"
+	case reflect.Float32, reflect.Float64:
+		return "number"
+	case reflect.Bool:
+		return "boolean"
+	default:
+		return "string"
+	}
+}
+
+// QueryParamInfo contains metadata for a query parameter
+type QueryParamInfo struct {
+	Name        string
+	Type        string
+	Required    bool
+	Default     string
+	Description string
+}
+
+// PathParamInfo contains metadata for a path parameter
+type PathParamInfo struct {
+	Name        string
+	Type        string
+	Description string
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"time"
 
 	rk "github.com/reststore/restkit"
 	"github.com/reststore/restkit/examples/sqlc/db"
@@ -24,106 +25,137 @@ func userEndpoints() *rk.Group {
 		)
 }
 
+// Response DTO - never return raw db models directly
+type UserResponse struct {
+	ID        int64  `json:"id"`
+	Name      string `json:"name"`
+	Email     string `json:"email"`
+	CreatedAt string `json:"created_at"`
+}
+
+// CreateUserRequest body validated via struct tags
 type CreateUserRequest struct {
 	Name  string `json:"name"  validate:"required,min=2,max=32"`
 	Email string `json:"email" validate:"required,email"`
 }
 
+// UpdateUserRequest combines path param (ID) with body fields
 type UpdateUserRequest struct {
-	Name  string `json:"name"  validate:"omitempty,min=2,max=32"`
-	Email string `json:"email" validate:"omitempty,email"`
+	ID    int64  `path:"id"`
+	Name  string `          json:"name"  validate:"omitempty,min=2,max=32"`
+	Email string `          json:"email" validate:"omitempty,email"`
 }
 
-func getUserEndpoint() *rk.Endpoint[rk.NoRequest, db.User] {
-	return rk.GetEndpoint("/{id}", func(ctx context.Context, q *db.Queries, id int64) (db.User, error) {
-		return q.GetUser(ctx, id)
+// SearchUsersRequest uses pointer fields for optional filters
+type SearchUsersRequest struct {
+	ID        *string `query:"id"`
+	Name      *string `query:"name"`
+	Email     *string `query:"email"`
+	CreatedAt *string `query:"created_at"`
+}
+
+// ListUsersRequest for pagination
+type ListUsersRequest struct {
+	Limit  int32 `query:"limit"  default:"20"`
+	Offset int32 `query:"offset" default:"0"`
+}
+
+func getUserEndpoint() *rk.Endpoint[rk.GetRequest, UserResponse] {
+	return rk.GetEndpoint("/{id}", func(ctx context.Context, q *db.Queries, req rk.GetRequest) (UserResponse, error) {
+		user, err := q.GetUser(ctx, req.ID)
+		if err != nil {
+			return UserResponse{}, err
+		}
+		return toUserResponse(user), nil
 	}).
 		WithTitle("Get User").
-		WithDescription("Get User Details")
+		WithDescription("Get user by ID")
 }
 
-func listUsersEndpoint() *rk.Endpoint[rk.NoRequest, []db.User] {
-	return rk.ListEndpoint("/", func(ctx context.Context, q *db.Queries, limit, offset int32) ([]db.User, error) {
-		return q.ListUsers(ctx, db.ListUsersParams{
-			Limit:  int64(limit),
-			Offset: int64(offset),
+func listUsersEndpoint() *rk.Endpoint[ListUsersRequest, []UserResponse] {
+	return rk.ListEndpoint("/", func(ctx context.Context, q *db.Queries, req ListUsersRequest) ([]UserResponse, error) {
+		users, err := q.ListUsers(ctx, db.ListUsersParams{
+			Limit:  int64(req.Limit),
+			Offset: int64(req.Offset),
 		})
+		if err != nil {
+			return nil, err
+		}
+		return mapUsersToResponse(users), nil
 	}).
 		WithTitle("List Users").
 		WithDescription("List users with pagination")
 }
 
-func createUserEndpoint() *rk.Endpoint[CreateUserRequest, db.User] {
-	return rk.CreateEndpoint("/", func(ctx context.Context, q *db.Queries, req CreateUserRequest) (db.User, error) {
-		return q.CreateUser(ctx, db.CreateUserParams{
+func createUserEndpoint() *rk.Endpoint[CreateUserRequest, UserResponse] {
+	return rk.CreateEndpoint("/", func(ctx context.Context, q *db.Queries, req CreateUserRequest) (UserResponse, error) {
+		user, err := q.CreateUser(ctx, db.CreateUserParams{
 			Name:  req.Name,
 			Email: req.Email,
 		})
+		if err != nil {
+			return UserResponse{}, err
+		}
+		return toUserResponse(user), nil
 	}).
 		WithTitle("Create User").
 		WithDescription("Create a new user")
 }
 
 func updateUserEndpoint() *rk.Endpoint[UpdateUserRequest, rk.NoResponse] {
-	return rk.UpdateEndpoint("/{id}", func(ctx context.Context, q *db.Queries, id int64, req UpdateUserRequest) error {
+	return rk.UpdateEndpoint("/{id}", func(ctx context.Context, q *db.Queries, req UpdateUserRequest) error {
 		return q.UpdateUser(ctx, db.UpdateUserParams{
+			ID:    req.ID,
 			Name:  req.Name,
 			Email: req.Email,
-			ID:    id,
 		})
 	}).
 		WithTitle("Update User").
 		WithDescription("Update user details")
 }
 
-func deleteUserEndpoint() *rk.Endpoint[rk.NoRequest, rk.MessageResponse] {
-	return rk.DeleteEndpoint("/{id}", func(ctx context.Context, q *db.Queries, id int64) error {
-		return q.DeleteUser(ctx, id)
-	}).WithTitle("Delete User").WithDescription("Delete a user")
+func deleteUserEndpoint() *rk.Endpoint[rk.DeleteRequest, rk.MessageResponse] {
+	return rk.DeleteEndpoint("/{id}", func(ctx context.Context, q *db.Queries, req rk.DeleteRequest) error {
+		return q.DeleteUser(ctx, req.ID)
+	}).
+		WithTitle("Delete User").
+		WithDescription("Delete a user")
 }
 
-func searchUsersEndpoint() *rk.Endpoint[rk.NoRequest, []db.User] {
-	return rk.SearchEndpoint("/search", func(ctx context.Context, q *db.Queries) ([]db.User, error) {
-		return q.SearchUsers(ctx, db.SearchUsersParams{
-			ID:        nilOrString(rk.URLQueryParam(ctx, "id")),
-			Name:      nilOrString(rk.URLQueryParam(ctx, "name")),
-			Email:     nilOrString(rk.URLQueryParam(ctx, "email")),
-			CreatedAt: nilOrString(rk.URLQueryParam(ctx, "created_at")),
+func searchUsersEndpoint() *rk.Endpoint[SearchUsersRequest, []UserResponse] {
+	return rk.SearchEndpoint("/search", func(ctx context.Context, q *db.Queries, req SearchUsersRequest) ([]UserResponse, error) {
+		users, err := q.SearchUsers(ctx, db.SearchUsersParams{
+			ID:        req.ID,
+			Name:      req.Name,
+			Email:     req.Email,
+			CreatedAt: req.CreatedAt,
 		})
+		if err != nil {
+			return nil, err
+		}
+		return mapUsersToResponse(users), nil
 	}).
 		WithTitle("Search Users").
-		WithDescription("Search users by query parameters").
-		WithParameters(
-			rk.Parameter{
-				Name:        "id",
-				Type:        "string",
-				Description: "Filter by user ID",
-				Location:    rk.ParamLocationQuery,
-			},
-			rk.Parameter{
-				Name:        "name",
-				Type:        "string",
-				Description: "Filter by name (partial match)",
-				Location:    rk.ParamLocationQuery,
-			},
-			rk.Parameter{
-				Name:        "email",
-				Type:        "string",
-				Description: "Filter by email (partial match)",
-				Location:    rk.ParamLocationQuery,
-			},
-			rk.Parameter{
-				Name:        "created_at",
-				Type:        "string",
-				Description: "Filter by creation date",
-				Location:    rk.ParamLocationQuery,
-			},
-		)
+		WithDescription("Search users by query parameters")
 }
 
-func nilOrString(s string) interface{} {
-	if s == "" {
-		return nil
+func toUserResponse(u db.User) UserResponse {
+	createdAt := ""
+	if u.CreatedAt.Valid {
+		createdAt = u.CreatedAt.Time.Format(time.RFC3339)
 	}
-	return s
+	return UserResponse{
+		ID:        u.ID,
+		Name:      u.Name,
+		Email:     u.Email,
+		CreatedAt: createdAt,
+	}
+}
+
+func mapUsersToResponse(users []db.User) []UserResponse {
+	result := make([]UserResponse, len(users))
+	for i, u := range users {
+		result[i] = toUserResponse(u)
+	}
+	return result
 }

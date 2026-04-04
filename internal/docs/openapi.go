@@ -110,25 +110,23 @@ func buildOperation(
 		"description": endpoint.GetDescription(),
 	}
 
-	// Add parameters (path and query)
-	params := endpoint.GetParameters()
-	if len(params) > 0 {
-		var paramList []map[string]any
-		for _, p := range params {
-			param := map[string]any{
-				"name":        p.Name,
-				"in":          string(p.Location),
-				"description": p.Description,
-				"schema": map[string]any{
-					"type": p.Type,
-				},
-			}
-			if p.Required {
-				param["required"] = true
-			}
-			paramList = append(paramList, param)
+	// Build parameters list
+	var paramList []map[string]any
+
+	// Add existing parameters from endpoint
+	for _, p := range endpoint.GetParameters() {
+		param := map[string]any{
+			"name":        p.Name,
+			"in":          string(p.Location),
+			"description": p.Description,
+			"schema": map[string]any{
+				"type": p.Type,
+			},
 		}
-		op["parameters"] = paramList
+		if p.Required {
+			param["required"] = true
+		}
+		paramList = append(paramList, param)
 	}
 
 	for _, group := range groups {
@@ -147,7 +145,12 @@ func buildOperation(
 	}
 
 	reqSchema := endpoint.GetRequestSchema()
-	if reqSchema != nil && !isEmptyRequestSchema(reqSchema) {
+	method := endpoint.GetMethod()
+
+	// Only add request body for methods that typically have one
+	// GET/DELETE/HEAD should use query/path params, not request body
+	if reqSchema != nil && !isEmptyRequestSchema(reqSchema) &&
+		method != http.MethodGet && method != http.MethodDelete && method != http.MethodHead {
 		op["requestBody"] = map[string]any{
 			"required": true,
 			"content": map[string]any{
@@ -156,6 +159,32 @@ func buildOperation(
 				},
 			},
 		}
+	}
+
+	// Add path parameters from URL pattern that aren't already in paramList
+	urlPathParams := extractPathParameters(endpoint.GetPath())
+	existingParams := make(map[string]bool)
+	for _, p := range paramList {
+		if name, ok := p["name"].(string); ok {
+			existingParams[name] = true
+		}
+	}
+	if len(urlPathParams) > 0 {
+		for _, param := range urlPathParams {
+			if !existingParams[param] {
+				paramList = append(paramList, map[string]any{
+					"name":        param,
+					"in":          "path",
+					"required":    true,
+					"schema":      map[string]any{"type": "string"},
+					"description": param + " parameter",
+				})
+			}
+		}
+	}
+
+	if len(paramList) > 0 {
+		op["parameters"] = paramList
 	}
 
 	responses := make(map[string]any)
@@ -269,21 +298,6 @@ func buildOperation(
 	}
 
 	op["responses"] = responses
-
-	pathParams := extractPathParameters(endpoint.GetPath())
-	if len(pathParams) > 0 {
-		parameters := make([]map[string]any, 0)
-		for _, param := range pathParams {
-			parameters = append(parameters, map[string]any{
-				"name":        param,
-				"in":          "path",
-				"required":    true,
-				"schema":      map[string]any{"type": "string"},
-				"description": param + " parameter",
-			})
-		}
-		op["parameters"] = parameters
-	}
 
 	return op
 }

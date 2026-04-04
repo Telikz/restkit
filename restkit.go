@@ -30,6 +30,12 @@ type NoRequest = ep.NoRequest
 // NoResponse is a sentinel type for endpoints without a response body.
 type NoResponse = ep.NoResponse
 
+// GetRequest is the standard request type for Get endpoints with ID path param.
+type GetRequest = ep.GetRequest
+
+// DeleteRequest is the standard request type for Delete endpoints with ID path param.
+type DeleteRequest = ep.DeleteRequest
+
 // MountedRoute represents a route from an external router mounted into RestKit
 type MountedRoute = sc.MountedRoute
 
@@ -147,6 +153,18 @@ func JSONBinder[Req any]() func(r *http.Request) (Req, error) {
 	return mw.JSONBinder[Req]()
 }
 
+// QueryBinder creates a bind function that extracts query parameters
+// and path parameters into a struct with `query` and `path` tags.
+func QueryBinder[Req any]() func(r *http.Request) (Req, error) {
+	return mw.QueryBinder[Req]()
+}
+
+// MixedBinder creates a bind function for Update operations that binds
+// path parameters from URL and JSON body to a struct.
+func MixedBinder[Req any]() func(r *http.Request) (Req, error) {
+	return mw.MixedBinder[Req]()
+}
+
 // SchemaFrom generates a JSON Schema from a Go type using reflection
 // Useful for manually setting or overriding endpoint schemas
 func SchemaFrom[T any]() map[string]any {
@@ -248,24 +266,17 @@ type ListParams = ep.ListParams
 // SearchParams contains pagination and search query parameters.
 type SearchParams = ep.SearchParams
 
-func ListEndpoint[Q any, T any](
+func ListEndpoint[Q any, Req any, Res any](
 	path string,
-	listFn func(ctx context.Context, queries Q, limit, offset int32) ([]T, error),
-) *Endpoint[NoRequest, []T] {
+	listFn func(ctx context.Context, queries Q, req Req) ([]Res, error),
+) *Endpoint[Req, []Res] {
 	return ep.ListEndpoint(path, listFn)
 }
 
-func ListPaginatedEndpoint[Q any, T any](
+func GetEndpoint[Q any, Req any, Res any](
 	path string,
-	listFn func(ctx context.Context, queries Q, params ListParams) ([]T, error),
-) *Endpoint[NoRequest, []T] {
-	return ep.ListPaginatedEndpoint(path, listFn)
-}
-
-func GetEndpoint[Q any, T any](
-	path string,
-	getFn func(ctx context.Context, queries Q, id int64) (T, error),
-) *Endpoint[NoRequest, T] {
+	getFn func(ctx context.Context, queries Q, req Req) (Res, error),
+) *Endpoint[Req, Res] {
 	return ep.GetEndpoint(path, getFn)
 }
 
@@ -278,30 +289,23 @@ func CreateEndpoint[Q any, Req any, Res any](
 
 func UpdateEndpoint[Q any, Req any](
 	path string,
-	updateFn func(ctx context.Context, queries Q, id int64, req Req) error,
+	updateFn func(ctx context.Context, queries Q, req Req) error,
 ) *Endpoint[Req, NoResponse] {
 	return ep.UpdateEndpoint(path, updateFn)
 }
 
-func DeleteEndpoint[Q any](
+func DeleteEndpoint[Q any, Req any](
 	path string,
-	deleteFn func(ctx context.Context, queries Q, id int64) error,
-) *Endpoint[NoRequest, MessageResponse] {
+	deleteFn func(ctx context.Context, queries Q, req Req) error,
+) *Endpoint[Req, MessageResponse] {
 	return ep.DeleteEndpoint(path, deleteFn)
 }
 
-func SearchEndpoint[Q any, T any](
+func SearchEndpoint[Q any, Req any, Res any](
 	path string,
-	searchFn func(ctx context.Context, queries Q) ([]T, error),
-) *Endpoint[NoRequest, []T] {
+	searchFn func(ctx context.Context, queries Q, req Req) ([]Res, error),
+) *Endpoint[Req, []Res] {
 	return ep.SearchEndpoint(path, searchFn)
-}
-
-func SearchPaginatedEndpoint[Q any, T any](
-	path string,
-	searchFn func(ctx context.Context, queries Q, params SearchParams) ([]T, error),
-) *Endpoint[NoRequest, []T] {
-	return ep.SearchPaginatedEndpoint(path, searchFn)
 }
 
 // Error codes returned by the API for programmatic error handling

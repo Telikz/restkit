@@ -32,7 +32,7 @@ go get -u github.com/reststore/restkit
 
 ## ⚡️ Quickstart
 
-Here's a complete example with a type-safe user creation endpoint:
+Here's a complete example with type-safe user endpoints:
 
 ```go
 package main
@@ -43,10 +43,10 @@ import (
 	"net/http"
 	"time"
 
-	rest "github.com/reststore/restkit"
+	rk "github.com/reststore/restkit"
 )
 
-// Define your request and response types
+// Request/Response types with struct tags
 type CreateUserReq struct {
 	Name  string `json:"name" validate:"required,min=2"`
 	Email string `json:"email" validate:"required,email"`
@@ -68,14 +68,12 @@ func createUserHandler(ctx context.Context, req CreateUserReq) (UserRes, error) 
 }
 
 func main() {
-	// Create API with metadata
-	api := rest.NewApi().
+	api := rk.NewApi().
 		WithVersion("1.0.0").
 		WithTitle("User API").
 		WithDescription("Manage users")
 
-	// Define endpoint with fluent builder
-	createUserEndpoint := rest.NewEndpoint[CreateUserReq, UserRes]().
+	createUserEndpoint := rk.NewEndpoint[CreateUserReq, UserRes]().
 		WithTitle("Create User").
 		WithDescription("Create a new user").
 		WithPath("/users").
@@ -83,15 +81,9 @@ func main() {
 		WithHandler(createUserHandler)
 
 	api.Add(createUserEndpoint)
-
-	// Enable Swagger UI accessible at /swagger
 	api.WithSwaggerUI()
+	api.WithMiddleware(rk.LoggingMiddleware())
 
-	// Add middleware
-	api.WithMiddleware(rest.LoggingMiddleware())
-	api.WithMiddleware(rest.CORSMiddleware())
-
-	// Start server
 	server := &http.Server{
 		Addr:         ":8080",
 		Handler:      api.Mux(),
@@ -150,6 +142,100 @@ endpoint := rest.NewEndpointReq[RequestType]().
 ```
 
 **Defaults:** DELETE method, JSON bind, auto-generated request schema
+
+## 🛠️ CRUD Helpers
+
+RestKit provides helpers for common CRUD operations that use struct tags for binding:
+
+### Struct Tags
+
+- `path:"id"` - Extract path parameters from the URL
+- `query:"name"` - Extract query parameters from the URL
+- `query:"name" default:"20"` - Query param with default value
+- `json:"field"` - JSON body field (for POST/PATCH)
+
+### Get Endpoint
+
+```go
+type GetUserRequest struct {
+    ID int64 `path:"id"`  // Extracted from /users/{id}
+}
+
+func getUserEndpoint() *rk.Endpoint[GetUserRequest, UserResponse] {
+    return rk.GetEndpoint("/users/{id}", func(ctx context.Context, q *db.Queries, req GetUserRequest) (UserResponse, error) {
+        user, err := q.GetUser(ctx, req.ID)  // req.ID from path
+        // ... map to response
+    })
+}
+```
+
+### List Endpoint
+
+```go
+type ListUsersRequest struct {
+    Limit  int32 `query:"limit" default:"20"`
+    Offset int32 `query:"offset" default:"0"`
+}
+
+func listUsersEndpoint() *rk.Endpoint[ListUsersRequest, []UserResponse] {
+    return rk.ListEndpoint("/users", func(ctx context.Context, q *db.Queries, req ListUsersRequest) ([]UserResponse, error) {
+        users, err := q.ListUsers(ctx, db.ListUsersParams{
+            Limit:  int64(req.Limit),
+            Offset: int64(req.Offset),
+        })
+        // ... map to responses
+    })
+}
+```
+
+### Search Endpoint
+
+```go
+type SearchUsersRequest struct {
+    ID   *string `query:"id"`   // Optional filter (pointer = nullable)
+    Name *string `query:"name"`
+}
+
+func searchUsersEndpoint() *rk.Endpoint[SearchUsersRequest, []UserResponse] {
+    return rk.SearchEndpoint("/users/search", func(ctx context.Context, q *db.Queries, req SearchUsersRequest) ([]UserResponse, error) {
+        users, err := q.SearchUsers(ctx, db.SearchUsersParams{
+            ID:   req.ID,  // *string works with sqlc
+            Name: req.Name,
+        })
+        // ...
+    })
+}
+```
+
+### Create/Update/Delete
+
+```go
+// Create - JSON body only
+func createUserEndpoint() *rk.Endpoint[CreateUserRequest, UserResponse] {
+    return rk.CreateEndpoint("/users", func(ctx context.Context, q *db.Queries, req CreateUserRequest) (UserResponse, error) {
+        // req has JSON fields
+    })
+}
+
+// Update - Mix of path param and body
+func updateUserEndpoint() *rk.Endpoint[UpdateUserRequest, rk.NoResponse] {
+    return rk.UpdateEndpoint("/users/{id}", func(ctx context.Context, q *db.Queries, req UpdateUserRequest) error {
+        // req.ID from path, req.Name from JSON body
+        return q.UpdateUser(ctx, db.UpdateUserParams{
+            ID:   req.ID,
+            Name: req.Name,
+        })
+    })
+}
+
+// Delete - Path param only
+func deleteUserEndpoint() *rk.Endpoint[rk.DeleteRequest, rk.MessageResponse] {
+    return rk.DeleteEndpoint("/users/{id}", func(ctx context.Context, q *db.Queries, req rk.DeleteRequest) error {
+        return q.DeleteUser(ctx, req.ID)
+    })
+    // Returns: { "message": "deleted successfully" }
+}
+```
 
 ## 👥 Endpoint Grouping
 
@@ -285,16 +371,35 @@ The spec is generated from:
 
 ## 🛣️ Path Parameters
 
-Access URL parameters in your handler:
+### Using Struct Tags (Recommended)
+
+Define a request struct with `path` tags:
+
+```go
+type GetUserRequest struct {
+    ID int64 `path:"id"`
+}
+
+func getUserEndpoint() *rk.Endpoint[GetUserRequest, UserResponse] {
+    return rk.GetEndpoint("/users/{id}", func(ctx context.Context, q *db.Queries, req GetUserRequest) (UserResponse, error) {
+        // req.ID is automatically extracted from the URL path
+        user, err := q.GetUser(ctx, req.ID)
+        // ...
+    })
+}
+```
+
+### Manual Access
+
+For custom scenarios, access URL parameters directly from context:
 
 ```go
 func getUser(ctx context.Context) (UserRes, error) {
-	userID := rest.URLParam(ctx, "id")
+	userID := rk.URLParam(ctx, "id")
 	// Fetch and return user
 }
 
-// Define endpoint
-getEndpoint := rest.NewEndpointRes[UserRes]().
+getEndpoint := rk.NewEndpointRes[UserRes]().
 	WithPath("/users/{id}").
 	WithHandler(getUser)
 ```
@@ -329,6 +434,28 @@ Error codes include:
 - `ErrCodeInternal` - Server errors
 - `ErrCodeMissingParam` - Missing path parameters
 - `ErrCodeConfiguration` - Endpoint misconfiguration
+
+## 🎯 Nullable Types
+
+For optional query parameters that need to be nullable for sqlc:
+
+```go
+type SearchUsersRequest struct {
+    ID   *string `query:"id"`   // Optional: nil when not provided
+    Name *string `query:"name"`
+}
+```
+
+Or convert values with pointer helpers:
+
+```go
+users, err := q.SearchUsers(ctx, db.SearchUsersParams{
+    ID:   rk.StringPtr(req.ID),   // string -> *string (nil if empty)
+    Name: rk.StringPtr(req.Name),
+})
+```
+
+Available helpers: `StringPtr`, `IntPtr`, `Int64Ptr`, `Int32Ptr`, `BoolPtr`, `Float64Ptr`, `TimePtr`
 
 ## 🔍 Schema Generation
 

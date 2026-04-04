@@ -29,10 +29,14 @@ func RegisterRoutes(r chi.Router, api *api.Api) {
 	for _, endpoint := range api.Endpoints {
 		key := fmt.Sprintf("%s %s", endpoint.GetMethod(), endpoint.GetPath())
 		if !registered[key] {
+			handler := endpoint.GetHandler()
+			for i := len(api.Middleware) - 1; i >= 0; i-- {
+				handler = api.Middleware[i](handler)
+			}
 			r.MethodFunc(
 				endpoint.GetMethod(),
 				endpoint.GetPath(),
-				endpoint.GetHandler().ServeHTTP,
+				handler.ServeHTTP,
 			)
 		}
 	}

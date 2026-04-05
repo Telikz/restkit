@@ -14,7 +14,9 @@ var validate = validator.New()
 
 type ErrorFormatter func(e validator.FieldError) string
 
-func NewValidator(formatter ...ErrorFormatter) func(ctx context.Context, s any) errs.ValidationResult {
+func NewValidator(
+	formatter ...ErrorFormatter,
+) func(ctx context.Context, s any) errs.ValidationResult {
 	return func(ctx context.Context, s any) errs.ValidationResult {
 		result := errs.ValidationResult{}
 

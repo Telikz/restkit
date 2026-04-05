@@ -10,10 +10,10 @@ import (
 )
 
 type Config struct {
-	Name    string   `json:"name" yaml:"name"`
+	Name    string   `json:"name"    yaml:"name"`
 	Version string   `json:"version" yaml:"version"`
 	Enabled bool     `json:"enabled" yaml:"enabled"`
-	Tags    []string `json:"tags" yaml:"tags"`
+	Tags    []string `json:"tags"    yaml:"tags"`
 }
 
 func main() {

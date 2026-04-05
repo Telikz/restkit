@@ -210,6 +210,8 @@ func (e *Endpoint[Req, Res]) GetHandler() http.Handler {
 				var zero Req
 				return zero, nil
 			}
+		} else if middleware.HasPathTag[Req]() || middleware.HasQueryTag[Req]() {
+			e.Bind = middleware.QueryBinder[Req]()
 		} else {
 			e.Bind = middleware.JSONBinder[Req]()
 		}
@@ -225,7 +227,7 @@ func (e *Endpoint[Req, Res]) GetHandler() http.Handler {
 				return v.Validate(ctx)
 			}
 
-			return validation.ValidateStruct(ctx, req)
+			return validation.Validate(ctx, req)
 		}
 	}
 
@@ -299,6 +301,16 @@ func (e *Endpoint[Req, Res]) GetHandler() http.Handler {
 			if err != nil {
 				e.handleErr(w, r, err)
 				return
+			}
+
+			if v := ctx.Value(routectx.SerializerCtxKey); v != nil {
+				if serializer, ok := v.(func(http.ResponseWriter, any) error); ok {
+					if err := serializer(w, res); err != nil {
+						e.handleErr(w, r, err)
+						return
+					}
+					return
+				}
 			}
 
 			if err := e.Write(w, res); err != nil {

@@ -1,10 +1,13 @@
 package api
 
 import (
+	"context"
 	"net/http"
 
+	routectx "github.com/reststore/restkit/internal/context"
 	"github.com/reststore/restkit/internal/docs"
 	ep "github.com/reststore/restkit/internal/endpoints"
+	errs "github.com/reststore/restkit/internal/errors"
 	"github.com/reststore/restkit/internal/schema"
 )
 
@@ -22,6 +25,10 @@ type Api struct {
 
 	SwaggerUIEnabled bool
 	SwaggerUIPath    string
+
+	Validator    func(ctx context.Context, s any) errs.ValidationResult
+	Serializer   func(w http.ResponseWriter, res any) error
+	Deserializer func(r *http.Request, req any) error
 }
 
 func New() *Api {
@@ -89,6 +96,27 @@ func (api *Api) WithMiddleware(
 	return api
 }
 
+func (api *Api) WithValidator(
+	validator func(ctx context.Context, s any) errs.ValidationResult,
+) *Api {
+	api.Validator = validator
+	return api
+}
+
+func (api *Api) WithSerializer(
+	serializer func(w http.ResponseWriter, res any) error,
+) *Api {
+	api.Serializer = serializer
+	return api
+}
+
+func (api *Api) WithDeserializer(
+	deserializer func(r *http.Request, req any) error,
+) *Api {
+	api.Deserializer = deserializer
+	return api
+}
+
 // MountRouter mounts an external router (e.g., Chi, Gin) into the RestKit API
 // with route definitions for OpenAPI documentation. The prefix is prepended to all routes.
 func (api *Api) MountRouter(
@@ -110,9 +138,36 @@ func (api *Api) MountRouter(
 func (api *Api) Mux() http.Handler {
 	mux := http.NewServeMux()
 
+	// Create API configuration injector middleware
+	configMiddleware := func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+
+			// Inject validator if set
+			if api.Validator != nil {
+				ctx = context.WithValue(ctx, routectx.ValidatorCtxKey, api.Validator)
+			}
+
+			// Inject serializer if set
+			if api.Serializer != nil {
+				ctx = context.WithValue(ctx, routectx.SerializerCtxKey, api.Serializer)
+			}
+
+			// Inject deserializer if set
+			if api.Deserializer != nil {
+				ctx = context.WithValue(ctx, routectx.DeserializerCtxKey, api.Deserializer)
+			}
+
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+
 	// Register RestKit endpoints
 	for _, endpoint := range api.Endpoints {
 		handler := endpoint.GetHandler()
+
+		// Wrap with config middleware first (so it's available in handler)
+		handler = configMiddleware(handler)
 
 		for i := len(api.Middleware) - 1; i >= 0; i-- {
 			handler = api.Middleware[i](handler)
@@ -124,12 +179,13 @@ func (api *Api) Mux() http.Handler {
 		)
 	}
 
-	// Register mounted routers
+	// Register mounted routers (wrap with config middleware)
 	for _, mounted := range api.MountedRouters {
+		router := configMiddleware(mounted.Router)
 		if mounted.Prefix == "" || mounted.Prefix == "/" {
-			mux.Handle("/", mounted.Router)
+			mux.Handle("/", router)
 		} else {
-			mux.Handle(mounted.Prefix+"/", http.StripPrefix(mounted.Prefix, mounted.Router))
+			mux.Handle(mounted.Prefix+"/", http.StripPrefix(mounted.Prefix, router))
 		}
 	}
 

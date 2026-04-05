@@ -5,26 +5,27 @@ import (
 	"net/http"
 	"time"
 
-	rest "github.com/reststore/restkit"
+	rk "github.com/reststore/restkit"
 	"github.com/reststore/restkit/examples/basic/endpoints"
-	_ "github.com/reststore/restkit/validation/playground" // Opt-in validation
+	"github.com/reststore/restkit/validators/playground"
 )
 
 func main() {
-	a := rest.NewApi()
+	a := rk.NewApi()
 	a.WithVersion("1.1")
 	a.WithTitle("User API")
 	a.WithDescription("RESTful API for managing users")
+	a.WithValidator(playground.NewValidator())
 
 	// Add global middleware (applies to all endpoints)
-	a.WithMiddleware(rest.NewCORS())
-	a.WithMiddleware(rest.LoggingMiddleware())
+	a.WithMiddleware(rk.NewCORS())
+	a.WithMiddleware(rk.LoggingMiddleware())
 
 	// Add individual endpoints
 	a.AddEndpoint(endpoints.Ping())
 
 	// Example of grouping endpoints under a common prefix
-	a.AddGroup(rest.NewGroup("/api/v1").
+	a.AddGroup(rk.NewGroup("/api/v1").
 		WithTitle("User Management v1").
 		WithDescription("All user-related endpoints").
 		WithEndpoints(
@@ -37,7 +38,7 @@ func main() {
 	)
 
 	// Example of a second group with a different prefix
-	a.AddGroup(rest.NewGroup("/api/v2").
+	a.AddGroup(rk.NewGroup("/api/v2").
 		WithTitle("User Management v2").
 		WithDescription("All user-related endpoints").
 		WithEndpoints(
@@ -51,7 +52,7 @@ func main() {
 
 	a.WithSwaggerUI("/docs")
 
-	err := rest.GenerateOpenAPIFile("docs/openapi.json", a.GenerateOpenAPI())
+	err := rk.GenerateOpenAPIFile("docs/openapi.json", a.GenerateOpenAPI())
 	if err != nil {
 		log.Println("could not generate openApi document")
 	}

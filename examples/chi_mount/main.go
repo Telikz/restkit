@@ -32,44 +32,6 @@ type CreateUserRequest struct {
 	Email string `json:"email"`
 }
 
-func (r CreateUserRequest) Validate(ctx context.Context) restkit.ValidationResult {
-	validation := restkit.NewValidation()
-
-	if r.Name == "" {
-		validation.AddError("name", "Name is required")
-	}
-	if len(r.Name) < 2 {
-		validation.AddError("name", "Name must be at least 2 characters")
-	}
-	if r.Email == "" {
-		validation.AddError("email", "Email is required")
-	}
-	if !isValidEmail(r.Email) {
-		validation.AddError("email", "Invalid email format")
-	}
-
-	if validation.HasErrors() {
-		validation.Status = 422
-		validation.Code = "validation_failed"
-		validation.Message = "Validation failed"
-	}
-
-	return validation
-}
-
-func isValidEmail(email string) bool {
-	return len(email) > 3 && contains(email, "@")
-}
-
-func contains(s, substr string) bool {
-	for i := 0; i < len(s)-len(substr)+1; i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-	return false
-}
-
 func main() {
 	router := chi.NewRouter()
 
@@ -79,10 +41,10 @@ func main() {
 	router.Post("/users/{id}/posts", createUserPost)
 	router.Post("/users", createUser)
 
-	api := restkit.NewApi().
-		WithTitle("Chi Integration Example").
-		WithDescription("Demonstrates automatic validation for existing Chi APIs").
-		WithSwaggerUI()
+	api := restkit.NewApi()
+	api.WithSwaggerUI()
+	api.WithTitle("Chi Integration Example")
+	api.WithDescription("Demonstrates automatic validation for existing Chi APIs")
 
 	meta := []restkit.RouteMeta{
 		{
@@ -169,4 +131,42 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 		ID:   2,
 		Name: req.Name,
 	})
+}
+
+func (r CreateUserRequest) Validate(ctx context.Context) restkit.ValidationResult {
+	validation := restkit.NewValidation()
+
+	if r.Name == "" {
+		validation.AddError("name", "Name is required")
+	}
+	if len(r.Name) < 2 {
+		validation.AddError("name", "Name must be at least 2 characters")
+	}
+	if r.Email == "" {
+		validation.AddError("email", "Email is required")
+	}
+	if !isValidEmail(r.Email) {
+		validation.AddError("email", "Invalid email format")
+	}
+
+	if validation.HasErrors() {
+		validation.Status = 422
+		validation.Code = "validation_failed"
+		validation.Message = "Validation failed"
+	}
+
+	return validation
+}
+
+func isValidEmail(email string) bool {
+	return len(email) > 3 && contains(email, "@")
+}
+
+func contains(s, substr string) bool {
+	for i := 0; i < len(s)-len(substr)+1; i++ {
+		if s[i:i+len(substr)] == substr {
+			return true
+		}
+	}
+	return false
 }

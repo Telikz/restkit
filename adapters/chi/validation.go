@@ -60,7 +60,7 @@ func validationMiddleware(next http.Handler, reqType any) http.Handler {
 				return
 			}
 		} else {
-			result := validation.ValidateStruct(r.Context(), reqElem)
+			result := validation.Validate(r.Context(), reqElem)
 			if result.HasErrors() {
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(result.Status)

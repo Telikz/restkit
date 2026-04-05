@@ -8,14 +8,61 @@ import (
 	"strconv"
 	"time"
 
+	routectx "github.com/reststore/restkit/internal/context"
 	"github.com/reststore/restkit/internal/errors"
 )
+
+// DefaultSerializer is the global default serializer function.
+// Can be overridden per-API or per-request via context.
+var DefaultSerializer func(w http.ResponseWriter, res any) error
+
+// DefaultDeserializer is the global default deserializer function.
+// Can be overridden per-API or per-request via context.
+var DefaultDeserializer func(r *http.Request, req any) error
+
+// serializeWithFallback attempts to use context serializer, then global, then default JSON
+func serializeWithFallback(w http.ResponseWriter, res any, r *http.Request) error {
+	if r != nil {
+		if v := r.Context().Value(routectx.SerializerCtxKey); v != nil {
+			if serializer, ok := v.(func(http.ResponseWriter, any) error); ok {
+				return serializer(w, res)
+			}
+		}
+	}
+
+	if DefaultSerializer != nil {
+		return DefaultSerializer(w, res)
+	}
+
+	// Default JSON serialization
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	return json.NewEncoder(w).Encode(res)
+}
+
+// deserializeWithFallback attempts to use context deserializer, then global, then default JSON
+func deserializeWithFallback(r *http.Request, req any) error {
+	// Check context first (per-API deserializer)
+	if v := r.Context().Value(routectx.DeserializerCtxKey); v != nil {
+		if deserializer, ok := v.(func(*http.Request, any) error); ok {
+			return deserializer(r, req)
+		}
+	}
+
+	// Fall back to global deserializer
+	if DefaultDeserializer != nil {
+		return DefaultDeserializer(r, req)
+	}
+
+	// Default JSON deserialization
+	return json.NewDecoder(r.Body).Decode(req)
+}
 
 // JSONBinder creates a bind function for JSON request bodies
 func JSONBinder[Req any]() func(r *http.Request) (Req, error) {
 	return func(r *http.Request) (Req, error) {
 		var req Req
-		err := json.NewDecoder(r.Body).Decode(&req)
+		err := deserializeWithFallback(r, &req)
 		return req, err
 	}
 }
@@ -63,9 +110,14 @@ func StringToString(s string) (string, error) {
 // JSONWriter creates a write function for JSON responses
 func JSONWriter[Res any]() func(w http.ResponseWriter, res Res) error {
 	return func(w http.ResponseWriter, res Res) error {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		return json.NewEncoder(w).Encode(res)
+		return serializeWithFallback(w, res, nil)
+	}
+}
+
+// JSONWriterWithRequest creates a write function for JSON responses with request context access
+func JSONWriterWithRequest[Res any]() func(w http.ResponseWriter, res Res, r *http.Request) error {
+	return func(w http.ResponseWriter, res Res, r *http.Request) error {
+		return serializeWithFallback(w, res, r)
 	}
 }
 

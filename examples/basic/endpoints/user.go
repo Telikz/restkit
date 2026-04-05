@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	rest "github.com/reststore/restkit"
+	rk "github.com/reststore/restkit"
 )
 
 // User represents a user in the system
@@ -35,30 +35,30 @@ type MessageResponse struct {
 	Message string `json:"message"`
 }
 
-func GetUser() *rest.Endpoint[rest.NoRequest, User] {
-	return rest.NewEndpointRes[User]().
+func GetUser() *rk.Endpoint[rk.NoRequest, User] {
+	return rk.NewEndpoint[rk.NoRequest, User]().
 		WithMethod(http.MethodGet).
 		WithPath("/users/{id}").
 		WithTitle("Get User").
 		WithDescription("Get a user by ID").
-		WithHandler(func(ctx context.Context, _ rest.NoRequest) (User, error) {
+		WithHandler(func(ctx context.Context, _ rk.NoRequest) (User, error) {
 			return getUserHandler(ctx)
 		})
 }
 
-func ListUsers() *rest.Endpoint[rest.NoRequest, []User] {
-	return rest.NewEndpointRes[[]User]().
+func ListUsers() *rk.Endpoint[rk.NoRequest, []User] {
+	return rk.NewEndpoint[rk.NoRequest, []User]().
 		WithMethod(http.MethodGet).
 		WithPath("/users").
 		WithTitle("List Users").
 		WithDescription("Get a list of all users").
-		WithHandler(func(ctx context.Context, _ rest.NoRequest) ([]User, error) {
+		WithHandler(func(ctx context.Context, _ rk.NoRequest) ([]User, error) {
 			return listUsersHandler(ctx)
 		})
 }
 
-func CreateUser() *rest.Endpoint[CreateUserRequest, *User] {
-	return rest.NewEndpoint[CreateUserRequest, *User]().
+func CreateUser() *rk.Endpoint[CreateUserRequest, *User] {
+	return rk.NewEndpoint[CreateUserRequest, *User]().
 		WithMethod(http.MethodPost).
 		WithPath("/users").
 		WithTitle("Create User").
@@ -66,23 +66,23 @@ func CreateUser() *rest.Endpoint[CreateUserRequest, *User] {
 		WithHandler(createUserHandler)
 }
 
-func UpdateUser() *rest.Endpoint[UpdateUserRequest, rest.NoResponse] {
-	return rest.NewEndpointReq[UpdateUserRequest]().
+func UpdateUser() *rk.Endpoint[UpdateUserRequest, rk.NoResponse] {
+	return rk.NewEndpoint[UpdateUserRequest, rk.NoResponse]().
 		WithMethod(http.MethodPatch).
 		WithPath("/users/{id}").
 		WithTitle("Update User").
 		WithDescription("Update a user by ID").
-		WithHandler(func(ctx context.Context, req UpdateUserRequest) (rest.NoResponse, error) {
-			return rest.NoResponse{}, updateUserHandler(ctx, req)
+		WithHandler(func(ctx context.Context, req UpdateUserRequest) (rk.NoResponse, error) {
+			return rk.NoResponse{}, updateUserHandler(ctx, req)
 		})
 }
 
-func DeleteUser() *rest.Endpoint[rest.NoRequest, MessageResponse] {
-	return rest.NewEndpointRes[MessageResponse]().
+func DeleteUser() *rk.Endpoint[rk.NoRequest, MessageResponse] {
+	return rk.NewEndpoint[rk.NoRequest, MessageResponse]().
 		WithMethod(http.MethodDelete).
 		WithPath("/users/{id}").
 		WithTitle("Delete User").
-		WithHandler(func(ctx context.Context, _ rest.NoRequest) (MessageResponse, error) {
+		WithHandler(func(ctx context.Context, _ rk.NoRequest) (MessageResponse, error) {
 			return deleteUserHandler(ctx)
 		}).
 		WithDescription("Delete a user by ID")
@@ -101,7 +101,7 @@ var users = map[int]User{
 }
 
 func getUserHandler(ctx context.Context) (User, error) {
-	idStr := rest.URLParam(ctx, "id")
+	idStr := rk.URLParam(ctx, "id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		return User{}, errors.New("invalid id")
@@ -138,7 +138,7 @@ func createUserHandler(
 }
 
 func updateUserHandler(ctx context.Context, req UpdateUserRequest) error {
-	idStr := rest.URLParam(ctx, "id")
+	idStr := rk.URLParam(ctx, "id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		return errors.New("invalid id")
@@ -161,7 +161,7 @@ func updateUserHandler(ctx context.Context, req UpdateUserRequest) error {
 }
 
 func deleteUserHandler(ctx context.Context) (MessageResponse, error) {
-	idStr := rest.URLParam(ctx, "id")
+	idStr := rk.URLParam(ctx, "id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		return MessageResponse{}, errors.New("invalid id")

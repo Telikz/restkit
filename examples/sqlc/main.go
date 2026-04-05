@@ -6,11 +6,12 @@ import (
 	"net/http"
 	"time"
 
+	"sqlc/db"
+
 	rk "github.com/reststore/restkit"
-	"github.com/reststore/restkit/examples/sqlc/db"
 
 	_ "github.com/mattn/go-sqlite3"
-	_ "github.com/reststore/restkit/validation/playground"
+	"github.com/reststore/restkit/validators/playground"
 )
 
 func main() {
@@ -30,6 +31,7 @@ func main() {
 	a.WithVersion("1.0")
 	a.WithTitle("User API")
 	a.WithDescription("REST API with sqlc")
+	a.WithValidator(playground.NewValidator(nil))
 
 	a.WithMiddleware(rk.NewCORS())
 	a.WithMiddleware(rk.LoggingMiddleware())

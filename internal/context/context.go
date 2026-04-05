@@ -13,6 +13,21 @@ type queriesKey struct{}
 
 var QueriesCtxKey = &queriesKey{}
 
+// ValidatorKey is the context key for the validator function
+type validatorKey struct{}
+
+var ValidatorCtxKey = &validatorKey{}
+
+// SerializerKey is the context key for the serializer function
+type serializerKey struct{}
+
+var SerializerCtxKey = &serializerKey{}
+
+// DeserializerKey is the context key for the deserializer function
+type deserializerKey struct{}
+
+var DeserializerCtxKey = &deserializerKey{}
+
 // WithQueries injects database queries into the context.
 func WithQueries(ctx context.Context, queries any) context.Context {
 	return context.WithValue(ctx, QueriesCtxKey, queries)

@@ -1,13 +1,11 @@
-module github.com/reststore/restkit/examples
+module sqlc
 
 go 1.26.1
 
 require (
-	github.com/go-chi/chi/v5 v5.2.5
-	github.com/mattn/go-sqlite3 v1.14.40
+	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/reststore/restkit v0.0.0
-	github.com/reststore/restkit/adapters/chi v0.0.0
-	github.com/reststore/restkit/validation/playground v0.0.0
+	github.com/reststore/restkit/validators/playground v0.0.0
 )
 
 require (
@@ -22,7 +20,6 @@ require (
 )
 
 replace (
-	github.com/reststore/restkit => ../
-	github.com/reststore/restkit/adapters/chi => ../adapters/chi
-	github.com/reststore/restkit/validation/playground => ../validation/playground
+	github.com/reststore/restkit => ../..
+	github.com/reststore/restkit/validators/playground => ../../validators/playground
 )

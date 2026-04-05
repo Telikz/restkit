@@ -7,9 +7,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	chiMiddleware "github.com/go-chi/chi/v5/middleware"
-	rest "github.com/reststore/restkit"
+	rk "github.com/reststore/restkit"
 	restchi "github.com/reststore/restkit/adapters/chi"
-	ep "github.com/reststore/restkit/internal/endpoints"
 )
 
 func main() {
@@ -17,7 +16,7 @@ func main() {
 	r.Use(chiMiddleware.Logger)
 	r.Use(chiMiddleware.Recoverer)
 
-	api := rest.NewApi().
+	api := rk.NewApi().
 		WithVersion("1.0.0").
 		WithTitle("Example API").
 		WithDescription("An example API using RestKit with Chi").
@@ -42,8 +41,8 @@ type UserResponse struct {
 	Email string `json:"email"`
 }
 
-func userGroup() *ep.Group {
-	return ep.NewGroup("/users").
+func userGroup() *rk.Group {
+	return rk.NewGroup("/users").
 		WithTitle("User Management").
 		WithDescription("Endpoints for managing users").
 		WithEndpoints(
@@ -53,8 +52,8 @@ func userGroup() *ep.Group {
 		)
 }
 
-func createUserEndpoint() *rest.Endpoint[CreateUserRequest, UserResponse] {
-	return rest.NewEndpoint[CreateUserRequest, UserResponse]().
+func createUserEndpoint() *rk.Endpoint[CreateUserRequest, UserResponse] {
+	return rk.NewEndpoint[CreateUserRequest, UserResponse]().
 		WithPath("/").
 		WithMethod("POST").
 		WithTitle("Create User").
@@ -64,13 +63,13 @@ func createUserEndpoint() *rest.Endpoint[CreateUserRequest, UserResponse] {
 		})
 }
 
-func getUserEndpoint() *rest.Endpoint[rest.NoRequest, UserResponse] {
-	return rest.NewEndpointRes[UserResponse]().
+func getUserEndpoint() *rk.Endpoint[rk.NoRequest, UserResponse] {
+	return rk.NewEndpoint[rk.NoRequest, UserResponse]().
 		WithPath("/{id}").
 		WithMethod("GET").
 		WithTitle("Get User").
 		WithDescription("Retrieve details for a specific user by ID").
-		WithHandler(func(ctx context.Context, _ rest.NoRequest) (UserResponse, error) {
+		WithHandler(func(ctx context.Context, _ rk.NoRequest) (UserResponse, error) {
 			return UserResponse{
 				ID:    1,
 				Name:  "John",
@@ -79,25 +78,25 @@ func getUserEndpoint() *rest.Endpoint[rest.NoRequest, UserResponse] {
 		})
 }
 
-func listUsersEndpoint() *rest.Endpoint[rest.NoRequest, []UserResponse] {
-	return rest.NewEndpointRes[[]UserResponse]().
+func listUsersEndpoint() *rk.Endpoint[rk.NoRequest, []UserResponse] {
+	return rk.NewEndpoint[rk.NoRequest, []UserResponse]().
 		WithPath("/").
 		WithMethod("GET").
 		WithTitle("List Users").
 		WithDescription("Retrieve a list of all users").
-		WithHandler(func(ctx context.Context, _ rest.NoRequest) ([]UserResponse, error) {
+		WithHandler(func(ctx context.Context, _ rk.NoRequest) ([]UserResponse, error) {
 			return []UserResponse{
 				{ID: 1, Name: "John", Email: "john@example.com"},
 			}, nil
 		})
 }
 
-func pingEndpoint() *rest.Endpoint[rest.NoRequest, MessageResponse] {
-	return rest.NewEndpointRes[MessageResponse]().
+func pingEndpoint() *rk.Endpoint[rk.NoRequest, MessageResponse] {
+	return rk.NewEndpoint[rk.NoRequest, MessageResponse]().
 		WithPath("/ping").
 		WithMethod("GET").
 		WithTitle("Ping Endpoint").
-		WithHandler(func(ctx context.Context, _ rest.NoRequest) (MessageResponse, error) {
+		WithHandler(func(ctx context.Context, _ rk.NoRequest) (MessageResponse, error) {
 			return MessageResponse{Message: "pong"}, nil
 		})
 }

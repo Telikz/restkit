@@ -11,6 +11,7 @@ import (
 	err "github.com/reststore/restkit/internal/errors"
 	mw "github.com/reststore/restkit/internal/middleware"
 	sc "github.com/reststore/restkit/internal/schema"
+	"github.com/reststore/restkit/internal/serializers"
 	vd "github.com/reststore/restkit/internal/validation"
 )
 
@@ -75,10 +76,9 @@ var ValidationFailed = err.ValidationFailed
 // ValidationFailedMulti creates a failed validation result with multiple errors
 var ValidationFailedMulti = err.ValidationFailedMulti
 
-// ValidateStruct is a no-op by default. Import playground to enable:
-//
-//	import _ "github.com/reststore/restkit/validation/playground"
-var ValidateStruct = vd.ValidateStruct
+// Validate is the validation function used by endpoints. Set a custom validator via api.WithValidator().
+// The playground validator is available at github.com/reststore/restkit/validators/playground.
+var Validate = vd.Validate
 
 // GenerateOpenAPIFile generates openApi spec file at specified location
 var GenerateOpenAPIFile = docs.CreateOpenAPIFile
@@ -125,6 +125,23 @@ func NewEndpointRes[Res any]() *Endpoint[NoRequest, Res] {
 // This is equivalent to NewEndpoint[Req, NoResponse]().
 func NewEndpointReq[Req any]() *Endpoint[Req, NoResponse] {
 	return ep.NewEndpointReq[Req]()
+}
+
+// Serializers provides standard serialization functions for common formats.
+var Serializers = struct {
+	JSON            func(indent string) func(w http.ResponseWriter, res any) error
+	JSONCompact     func() func(w http.ResponseWriter, res any) error
+	JSONPretty      func() func(w http.ResponseWriter, res any) error
+	JSONDeserialize func() func(r *http.Request, req any) error
+	XML             func() func(w http.ResponseWriter, res any) error
+	XMLDeserialize  func() func(r *http.Request, req any) error
+}{
+	JSON:            serializers.JSON,
+	JSONCompact:     serializers.JSONCompact,
+	JSONPretty:      serializers.JSONPretty,
+	JSONDeserialize: serializers.JSONDeserialize,
+	XML:             serializers.XML,
+	XMLDeserialize:  serializers.XMLDeserialize,
 }
 
 // URLParam retrieves a URL parameter from the request context

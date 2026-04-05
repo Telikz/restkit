@@ -425,21 +425,21 @@ func TestValidateStruct(t *testing.T) {
 
 	// Valid struct - default validator is no-op
 	validReq := TestRequest{Name: "John", Email: "john@example.com"}
-	result := rest.ValidateStruct(ctx, validReq)
+	result := rest.Validate(ctx, validReq)
 	if result.HasErrors() {
 		t.Errorf("Valid struct should not have errors, got: %v", result.Errors)
 	}
 
 	// Invalid struct - default validator is no-op, no validation occurs
 	invalidReq := TestRequest{}
-	result = rest.ValidateStruct(ctx, invalidReq)
+	result = rest.Validate(ctx, invalidReq)
 	if result.HasErrors() {
 		t.Error("Default validator is no-op, should not have errors")
 	}
 
 	// Invalid email - default validator is no-op, no validation occurs
 	invalidEmailReq := TestRequest{Name: "John", Email: "invalid-email"}
-	result = rest.ValidateStruct(ctx, invalidEmailReq)
+	result = rest.Validate(ctx, invalidEmailReq)
 	if result.HasErrors() {
 		t.Error("Default validator is no-op, should not have errors")
 	}

@@ -4,11 +4,11 @@ import (
 	"context"
 	"time"
 
+	"sqlc/db"
+
 	rk "github.com/reststore/restkit"
-	"github.com/reststore/restkit/examples/sqlc/db"
 
 	_ "github.com/mattn/go-sqlite3"
-	_ "github.com/reststore/restkit/validation/playground"
 )
 
 func userEndpoints() *rk.Group {

@@ -8,50 +8,52 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	errs "github.com/reststore/restkit/internal/errors"
-	"github.com/reststore/restkit/internal/validation"
 )
 
 var validate = validator.New()
 
-func init() {
-	validation.DefaultValidator = ValidateStruct
-}
+type ErrorFormatter func(e validator.FieldError) string
 
-func ValidateStruct(ctx context.Context, s any) errs.ValidationResult {
-	result := errs.ValidationResult{}
+func NewValidator(formatter ...ErrorFormatter) func(ctx context.Context, s any) errs.ValidationResult {
+	return func(ctx context.Context, s any) errs.ValidationResult {
+		result := errs.ValidationResult{}
 
-	if s == nil {
-		result.Status = 422
-		result.Code = errs.ErrCodeValidation
-		result.Message = errs.ErrMsgValidation
-		result.Errors = append(result.Errors, errs.ValidationError{
-			Field:   "",
-			Message: "request body is required",
-		})
-		return result
-	}
+		if s == nil {
+			result.Status = 422
+			result.Code = errs.ErrCodeValidation
+			result.Message = errs.ErrMsgValidation
+			result.Errors = append(result.Errors, errs.ValidationError{
+				Field:   "",
+				Message: "request body is required",
+			})
+			return result
+		}
 
-	if err := validate.Struct(s); err != nil {
-		result.Status = 422
-		result.Code = errs.ErrCodeValidation
-		result.Message = errs.ErrMsgValidation
+		if err := validate.Struct(s); err != nil {
+			result.Status = 422
+			result.Code = errs.ErrCodeValidation
+			result.Message = errs.ErrMsgValidation
 
-		if validationErrors, ok := errors.AsType[validator.ValidationErrors](err); ok {
-			for _, e := range validationErrors {
-				field := strings.ToLower(e.Field())
-				message := getErrorMessage(e)
-				result.Errors = append(result.Errors, errs.ValidationError{
-					Field:   field,
-					Message: message,
-				})
+			if validationErrors, ok := errors.AsType[validator.ValidationErrors](err); ok {
+				for _, e := range validationErrors {
+					field := strings.ToLower(e.Field())
+					message := defaultErrorMessage(e)
+					if len(formatter) > 0 {
+						message = formatter[0](e)
+					}
+					result.Errors = append(result.Errors, errs.ValidationError{
+						Field:   field,
+						Message: message,
+					})
+				}
 			}
 		}
-	}
 
-	return result
+		return result
+	}
 }
 
-func getErrorMessage(e validator.FieldError) string {
+func defaultErrorMessage(e validator.FieldError) string {
 	tag := e.Tag()
 	field := e.Field()
 	param := e.Param()

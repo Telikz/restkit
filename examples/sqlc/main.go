@@ -33,7 +33,7 @@ func main() {
 	a.WithDescription("REST API with sqlc")
 	a.WithValidator(playground.NewValidator(nil))
 
-	a.WithMiddleware(rk.NewCORS())
+	a.WithMiddleware(rk.CORSMiddleware())
 	a.WithMiddleware(rk.LoggingMiddleware())
 
 	a.AddGroup(userEndpoints().

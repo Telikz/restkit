@@ -18,7 +18,7 @@ func main() {
 	a.WithValidator(playground.NewValidator())
 
 	// Add global middleware (applies to all endpoints)
-	a.WithMiddleware(rk.NewCORS())
+	a.WithMiddleware(rk.CORSMiddleware())
 	a.WithMiddleware(rk.LoggingMiddleware())
 
 	// Add individual endpoints

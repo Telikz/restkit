@@ -418,7 +418,7 @@ func TestNewCORS(t *testing.T) {
 	})
 
 	t.Run("with specific origins", func(t *testing.T) {
-		middleware := NewCORS(WithOrigins("http://localhost:3000"))
+		middleware := NewCORS(Origins("http://localhost:3000"))
 
 		handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
@@ -437,7 +437,7 @@ func TestNewCORS(t *testing.T) {
 	})
 
 	t.Run("with wildcard origin", func(t *testing.T) {
-		middleware := NewCORS(WithOrigins("*"))
+		middleware := NewCORS(Origins("*"))
 
 		handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
@@ -461,7 +461,7 @@ func TestNewCORS(t *testing.T) {
 	})
 
 	t.Run("with custom methods", func(t *testing.T) {
-		middleware := NewCORS(WithMethods("GET", "POST"))
+		middleware := NewCORS(Methods("GET", "POST"))
 
 		handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
@@ -479,7 +479,7 @@ func TestNewCORS(t *testing.T) {
 	})
 
 	t.Run("with custom headers", func(t *testing.T) {
-		middleware := NewCORS(WithHeaders("X-Custom-Header"))
+		middleware := NewCORS(Headers("X-Custom-Header"))
 
 		handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
@@ -497,7 +497,7 @@ func TestNewCORS(t *testing.T) {
 	})
 
 	t.Run("with credentials", func(t *testing.T) {
-		middleware := NewCORS(WithCredentials())
+		middleware := NewCORS(Credentials())
 
 		handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
@@ -515,7 +515,7 @@ func TestNewCORS(t *testing.T) {
 	})
 
 	t.Run("with custom max age", func(t *testing.T) {
-		middleware := NewCORS(WithMaxAge(3600))
+		middleware := NewCORS(MaxAge(3600))
 
 		handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)

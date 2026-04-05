@@ -6,15 +6,15 @@ import (
 )
 
 // NewCORS creates a CORS middleware with sensible defaults and optional overrides
-// Sensible defaults:
+// defaults:
 //   - Methods: GET, POST, PUT, DELETE, OPTIONS, PATCH
 //   - Headers: Content-Type, Authorization, Accept, X-Requested-With
 //   - Origins: Reflects request origin (safer than wildcard *)
 //   - Max-age: 86400 (24 hours)
 //   - Credentials: false
 func NewCORS(opts ...CORSOption) func(next http.Handler) http.Handler {
-	config := &corsConfig{
-		allowedMethods: []string{
+	config := &CorsConfig{
+		AllowedMethods: []string{
 			"GET",
 			"POST",
 			"PUT",
@@ -22,13 +22,13 @@ func NewCORS(opts ...CORSOption) func(next http.Handler) http.Handler {
 			"OPTIONS",
 			"PATCH",
 		},
-		allowedHeaders: []string{
+		AllowedHeaders: []string{
 			"Content-Type",
 			"Authorization",
 			"Accept",
 			"X-Requested-With",
 		},
-		maxAge: 86400,
+		MaxAge: 86400,
 	}
 
 	for _, opt := range opts {
@@ -40,13 +40,13 @@ func NewCORS(opts ...CORSOption) func(next http.Handler) http.Handler {
 			origin := r.Header.Get("Origin")
 
 			// Check if origin is allowed
-			if len(config.allowedOrigins) == 0 {
+			if len(config.AllowedOrigins) == 0 {
 				if origin != "" {
 					w.Header().Set("Access-Control-Allow-Origin", origin)
 					w.Header().Set("Vary", "Origin")
 				}
 			} else {
-				for _, allowed := range config.allowedOrigins {
+				for _, allowed := range config.AllowedOrigins {
 					if allowed == "*" || allowed == origin {
 						w.Header().Set("Access-Control-Allow-Origin", allowed)
 						if allowed != "*" {
@@ -59,21 +59,21 @@ func NewCORS(opts ...CORSOption) func(next http.Handler) http.Handler {
 
 			// Set methods
 			w.Header().
-				Set("Access-Control-Allow-Methods", joinStrings(config.allowedMethods, ", "))
+				Set("Access-Control-Allow-Methods", joinStrings(config.AllowedMethods, ", "))
 
 			// Set headers
 			w.Header().
-				Set("Access-Control-Allow-Headers", joinStrings(config.allowedHeaders, ", "))
+				Set("Access-Control-Allow-Headers", joinStrings(config.AllowedHeaders, ", "))
 
 			// Set credentials
-			if config.allowCredentials {
+			if config.AllowCredentials {
 				w.Header().Set("Access-Control-Allow-Credentials", "true")
 			}
 
 			// Set max age
-			if config.maxAge > 0 {
+			if config.MaxAge > 0 {
 				w.Header().
-					Set("Access-Control-Max-Age", strconv.Itoa(config.maxAge))
+					Set("Access-Control-Max-Age", strconv.Itoa(config.MaxAge))
 			}
 
 			if r.Method == http.MethodOptions {
@@ -86,48 +86,48 @@ func NewCORS(opts ...CORSOption) func(next http.Handler) http.Handler {
 }
 
 // CORSOption configures CORS middleware behavior
-type CORSOption func(*corsConfig)
+type CORSOption func(*CorsConfig)
 
-// corsConfig holds CORS configuration
-type corsConfig struct {
-	allowedOrigins   []string
-	allowedMethods   []string
-	allowedHeaders   []string
-	allowCredentials bool
-	maxAge           int
+// CorsConfig holds CORS configuration
+type CorsConfig struct {
+	AllowedOrigins   []string
+	AllowedMethods   []string
+	AllowedHeaders   []string
+	AllowCredentials bool
+	MaxAge           int
 }
 
 // WithOrigins sets the allowed origins
-func WithOrigins(origins ...string) CORSOption {
-	return func(c *corsConfig) {
-		c.allowedOrigins = origins
+func Origins(origins ...string) CORSOption {
+	return func(c *CorsConfig) {
+		c.AllowedOrigins = origins
 	}
 }
 
 // WithMethods sets the allowed HTTP methods
-func WithMethods(methods ...string) CORSOption {
-	return func(c *corsConfig) {
-		c.allowedMethods = methods
+func Methods(methods ...string) CORSOption {
+	return func(c *CorsConfig) {
+		c.AllowedMethods = methods
 	}
 }
 
 // WithHeaders sets the allowed headers
-func WithHeaders(headers ...string) CORSOption {
-	return func(c *corsConfig) {
-		c.allowedHeaders = headers
+func Headers(headers ...string) CORSOption {
+	return func(c *CorsConfig) {
+		c.AllowedHeaders = headers
 	}
 }
 
 // WithCredentials enables credentials support
-func WithCredentials() CORSOption {
-	return func(c *corsConfig) {
-		c.allowCredentials = true
+func Credentials() CORSOption {
+	return func(c *CorsConfig) {
+		c.AllowCredentials = true
 	}
 }
 
 // WithMaxAge sets the max age for preflight cache (in seconds)
-func WithMaxAge(seconds int) CORSOption {
-	return func(c *corsConfig) {
-		c.maxAge = seconds
+func MaxAge(seconds int) CORSOption {
+	return func(c *CorsConfig) {
+		c.MaxAge = seconds
 	}
 }

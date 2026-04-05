@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	ep "github.com/reststore/restkit/internal/endpoints"
+	errs "github.com/reststore/restkit/internal/errors"
 	"github.com/reststore/restkit/internal/schema"
 )
 
@@ -42,11 +43,22 @@ func TestApiBuilder(t *testing.T) {
 		}
 	})
 
+	t.Run("WithServers", func(t *testing.T) {
+		api := New().WithServers("http://localhost:8080", "https://api.example.com")
+		if len(api.Servers) != 2 {
+			t.Errorf("expected 2 servers, got %d", len(api.Servers))
+		}
+		if api.Servers[0] != "http://localhost:8080" {
+			t.Errorf("expected first server 'http://localhost:8080', got '%s'", api.Servers[0])
+		}
+	})
+
 	t.Run("Chained builders", func(t *testing.T) {
 		api := New().
 			WithVersion("2.0.0").
 			WithTitle("Chained API").
-			WithDescription("Testing chains")
+			WithDescription("Testing chains").
+			WithServers("http://localhost:8080")
 		if api.Version != "2.0.0" || api.Title != "Chained API" {
 			t.Error("builder chaining failed")
 		}
@@ -154,6 +166,48 @@ func TestWithMiddleware(t *testing.T) {
 
 	if len(api.Middleware) != 2 {
 		t.Errorf("expected 2 middleware, got %d", len(api.Middleware))
+	}
+}
+
+func TestWithValidator(t *testing.T) {
+	api := New()
+
+	validator := func(ctx context.Context, s any) errs.ValidationResult {
+		return errs.NewValidation()
+	}
+
+	api.WithValidator(validator)
+
+	if api.Validator == nil {
+		t.Error("expected validator to be set")
+	}
+}
+
+func TestWithSerializer(t *testing.T) {
+	api := New()
+
+	serializer := func(w http.ResponseWriter, res any) error {
+		return nil
+	}
+
+	api.WithSerializer(serializer)
+
+	if api.Serializer == nil {
+		t.Error("expected serializer to be set")
+	}
+}
+
+func TestWithDeserializer(t *testing.T) {
+	api := New()
+
+	deserializer := func(r *http.Request, req any) error {
+		return nil
+	}
+
+	api.WithDeserializer(deserializer)
+
+	if api.Deserializer == nil {
+		t.Error("expected deserializer to be set")
 	}
 }
 

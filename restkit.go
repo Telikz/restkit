@@ -4,353 +4,306 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/reststore/restkit/internal/api"
-	rc "github.com/reststore/restkit/internal/context"
-	"github.com/reststore/restkit/internal/docs"
-	ep "github.com/reststore/restkit/internal/endpoints"
-	err "github.com/reststore/restkit/internal/errors"
-	mw "github.com/reststore/restkit/internal/middleware"
-	sc "github.com/reststore/restkit/internal/schema"
-	"github.com/reststore/restkit/internal/serializers"
-	vd "github.com/reststore/restkit/internal/validation"
+	"github.com/reststore/restkit/core"
 )
 
-// Api is the main struct for defining your API, including metadata, endpoints, and middleware
-type Api = api.Api
+// API
 
-// Group represents a collection of endpoints that share a common URL prefix and metadata
-type Group = ep.Group
+// Api is the main struct for defining your API, including metadata, endpoints, and middleware.
+type Api = core.Api
 
-// Endpoint represents a unified API endpoint with configurable request and response bodies.
-// Use NoRequest or NoResponse as type parameters when you don't need a request body or response body.
-type Endpoint[Req any, Res any] = ep.Endpoint[Req, Res]
+// NewApi creates a new Api instance.
+var NewApi = core.NewApi
 
-// NoRequest is a sentinel type for endpoints without a request body.
-type NoRequest = ep.NoRequest
+// Group represents a collection of endpoints that share a common URL prefix and metadata.
+type Group = core.Group
 
-// NoResponse is a sentinel type for endpoints without a response body.
-type NoResponse = ep.NoResponse
+// NewGroup creates a new group of endpoints with a common URL prefix.
+var NewGroup = core.NewGroup
 
-// GetRequest is the standard request type for Get endpoints with ID path param.
-type GetRequest = ep.GetRequest
+// Endpoints
 
-// DeleteRequest is the standard request type for Delete endpoints with ID path param.
-type DeleteRequest = ep.DeleteRequest
+type (
+	// Endpoint represents a unified API endpoint with configurable request and response bodies.
+	Endpoint[Req any, Res any] = core.Endpoint[Req, Res]
 
-// MountedRoute represents a route from an external router mounted into RestKit
-type MountedRoute = sc.MountedRoute
+	// NoRequest is a sentinel type for endpoints without a request body.
+	NoRequest = core.NoRequest
 
-// ParamInfo represents a path parameter definition for OpenAPI documentation
-type ParamInfo = sc.ParamInfo
+	// GetRequest is the standard request type for Get endpoints with ID path param.
+	GetRequest = core.GetRequest
 
-// Parameter represents an OpenAPI parameter (path or query)
-type Parameter = ep.Parameter
+	// DeleteRequest is the standard request type for Delete endpoints with ID path param.
+	DeleteRequest = core.DeleteRequest
 
-// ParamLocation defines where a parameter is located
-type ParamLocation = ep.ParamLocation
+	// PaginationRequest provides standard pagination parameters (page, limit).
+	PaginationRequest = core.PaginationRequest
 
-// ParamLocationPath indicates a path parameter
-const ParamLocationPath = ep.ParamLocationPath
+	// SearchRequest provides standard search parameters (query, filters).
+	SearchRequest = core.SearchRequest
 
-// ParamLocationQuery indicates a query parameter
-const ParamLocationQuery = ep.ParamLocationQuery
+	// ListRequest combines pagination and search parameters for list operations.
+	ListRequest = core.ListRequest
 
-// RouteInfo contains metadata for a route used by adapters
-type RouteInfo = sc.RouteInfo
+	// NoResponse is a sentinel type for endpoints without a response body.
+	NoResponse = core.NoResponse
 
-// RouteMeta represents a route with its metadata for extraction
-type RouteMeta = sc.RouteMeta
+	// MessageResponse is a simple JSON response with a message field.
+	MessageResponse = core.MessageResponse
+)
 
-// ValidationError represents a single validation error with field and message
-type ValidationError = err.ValidationError
-
-// ValidationResult is returned by validation functions with code, message, and list of errors
-type ValidationResult = err.ValidationResult
-
-// NewValidation creates an empty validation result to populate with errors
-var NewValidation = err.NewValidation
-
-// ValidationFailed creates a failed validation result with a single error
-var ValidationFailed = err.ValidationFailed
-
-// ValidationFailedMulti creates a failed validation result with multiple errors
-var ValidationFailedMulti = err.ValidationFailedMulti
-
-// Validate is the validation function used by endpoints. Set a custom validator via api.WithValidator().
-// The playground validator is available at github.com/reststore/restkit/validators/playground.
-var Validate = vd.Validate
-
-// GenerateOpenAPIFile generates openApi spec file at specified location
-var GenerateOpenAPIFile = docs.CreateOpenAPIFile
-
-// RouteContext contains information about the current route and request
-type RouteContext = rc.RouteContext
-
-// WithQueries injects database queries into the context.
-var WithQueries = rc.WithQueries
-
-// QueriesFromContext retrieves database queries from the context.
-var QueriesFromContext = rc.QueriesFromContext
-
-// MustQueriesFromContext retrieves database queries from the context.
-// Panics if not found.
-var MustQueriesFromContext = rc.MustQueriesFromContext
-
-// NewApi creates a new Api instance
-func NewApi() *Api {
-	return api.New()
-}
-
-// NewGroup creates a new group of endpoints with a common URL prefix
-func NewGroup(prefix string) *Group {
-	return ep.NewGroup(prefix)
-}
+// Validate is the validation function used by endpoints.
+var Validate = core.Validate
 
 // NewEndpoint creates a new endpoint with both request and response bodies.
-// Sets up sensible defaults: POST method (or GET for NoRequest, DELETE for NoResponse),
-// JSON bind/write (when applicable), auto-generated schemas.
 func NewEndpoint[Req any, Res any]() *Endpoint[Req, Res] {
-	return ep.NewEndpoint[Req, Res]()
+	return core.NewEndpoint[Req, Res]()
 }
 
-// NewEndpointRes creates an endpoint that only returns a response body without accepting a request body.
-// Sets up sensible defaults: GET method, JSON write, auto-generated response schema.
-// This is equivalent to NewEndpoint[NoRequest, Res]().
+// NewEndpointRes creates an endpoint that only returns a response body.
 func NewEndpointRes[Res any]() *Endpoint[NoRequest, Res] {
-	return ep.NewEndpointRes[Res]()
+	return core.NewEndpointRes[Res]()
 }
 
-// NewEndpointReq creates an endpoint that only accepts a request body without returning a response body.
-// Sets up sensible defaults: DELETE method, JSON bind, auto-generated request schema.
-// This is equivalent to NewEndpoint[Req, NoResponse]().
+// NewEndpointReq creates an endpoint that only accepts a request body.
 func NewEndpointReq[Req any]() *Endpoint[Req, NoResponse] {
-	return ep.NewEndpointReq[Req]()
+	return core.NewEndpointReq[Req]()
 }
 
-// Serializers provides standard serialization functions for common formats.
-var Serializers = struct {
-	JSON            func(indent string) func(w http.ResponseWriter, res any) error
-	JSONCompact     func() func(w http.ResponseWriter, res any) error
-	JSONPretty      func() func(w http.ResponseWriter, res any) error
-	JSONDeserialize func() func(r *http.Request, req any) error
-	XML             func() func(w http.ResponseWriter, res any) error
-	XMLDeserialize  func() func(r *http.Request, req any) error
-}{
-	JSON:            serializers.JSON,
-	JSONCompact:     serializers.JSONCompact,
-	JSONPretty:      serializers.JSONPretty,
-	JSONDeserialize: serializers.JSONDeserialize,
-	XML:             serializers.XML,
-	XMLDeserialize:  serializers.XMLDeserialize,
-}
-
-// URLParam retrieves a URL parameter from the request context
-func URLParam(ctx context.Context, key string) string {
-	return rc.URLParam(ctx, key)
-}
-
-// URLQueryParam retrieves a URL query parameter from the request context
-func URLQueryParam(ctx context.Context, key string) string {
-	return rc.URLQueryParam(ctx, key)
-}
-
-// RouteCtxFromContext extracts the route context from a request context
-func RouteCtxFromContext(ctx context.Context) *RouteContext {
-	return rc.RouteCtxFromContext(ctx)
-}
-
-// ExtractPathParams extracts parameters from a URL path using a pattern
-// Pattern should be like "/users/{id}/posts/{postId}"
-func ExtractPathParams(pattern, path string) map[string]string {
-	return rc.ExtractPathParams(pattern, path)
-}
-
-// JSONBinder creates a bind function for JSON request bodies
-func JSONBinder[Req any]() func(r *http.Request) (Req, error) {
-	return mw.JSONBinder[Req]()
-}
-
-// QueryBinder creates a bind function that extracts query parameters
-// and path parameters into a struct with `query` and `path` tags.
-func QueryBinder[Req any]() func(r *http.Request) (Req, error) {
-	return mw.QueryBinder[Req]()
-}
-
-// MixedBinder creates a bind function for Update operations that binds
-// path parameters from URL and JSON body to a struct.
-func MixedBinder[Req any]() func(r *http.Request) (Req, error) {
-	return mw.MixedBinder[Req]()
-}
-
-// SchemaFrom generates a JSON Schema from a Go type using reflection
-// Useful for manually setting or overriding endpoint schemas
-func SchemaFrom[T any]() map[string]any {
-	return sc.SchemaFrom[T]()
-}
-
-// PathParamBinder creates a bind function that extracts the last path segment
-// and converts it to the specified type
-func PathParamBinder[T any](
-	convert func(string) (T, error),
-) func(r *http.Request) (T, error) {
-	return mw.PathParamBinder(convert)
-}
-
-// JSONWriter creates a write function for JSON responses
-func JSONWriter[Res any]() func(w http.ResponseWriter, res Res) error {
-	return mw.JSONWriter[Res]()
-}
-
-// JSONErrorWriter writes error responses as JSON
-func JSONErrorWriter(
-	w http.ResponseWriter,
-	r *http.Request,
-	err error,
-) {
-	mw.JSONErrorWriter(w, r, err)
-}
-
-// LoggingMiddleware logs incoming requests with timing
-func LoggingMiddleware() func(next http.Handler) http.Handler {
-	return mw.LoggingMiddleware()
-}
-
-// CORSOption configures CORS middleware behavior
-type CORSOption = mw.CORSOption
-
-// NewCORS creates a CORS middleware with sensible defaults and optional overrides
-func NewCORS(
-	opts ...CORSOption,
-) func(next http.Handler) http.Handler {
-	return mw.NewCORS(opts...)
-}
-
-// WithOrigins sets the allowed origins for CORS
-func WithOrigins(origins ...string) CORSOption {
-	return mw.WithOrigins(origins...)
-}
-
-// WithMethods sets the allowed HTTP methods for CORS
-func WithMethods(methods ...string) CORSOption {
-	return mw.WithMethods(methods...)
-}
-
-// WithHeaders sets the allowed headers for CORS
-func WithHeaders(headers ...string) CORSOption {
-	return mw.WithHeaders(headers...)
-}
-
-// WithCredentials enables credentials support for CORS
-func WithCredentials() CORSOption {
-	return mw.WithCredentials()
-}
-
-// WithMaxAge sets the max age for preflight cache (in seconds)
-func WithMaxAge(seconds int) CORSOption {
-	return mw.WithMaxAge(seconds)
-}
-
-// RecoveryMiddleware recovers from panics and returns 500 error
-var RecoveryMiddleware = mw.RecoveryMiddleware
-
-// DBMiddleware injects database queries into every request context.
-var DBMiddleware = mw.DBMiddleware
-
-// TransactionMiddleware wraps requests in a database transaction.
-var TransactionMiddleware = mw.TransactionMiddleware
-
-// StringToInt converts a string to int
-var StringToInt = mw.StringToInt
-
-// StringToString is a no-op converter for string path params
-var StringToString = mw.StringToString
-
-// ParseID converts a string ID to int64.
-var ParseID = ep.ParseID
-
-// ParseIntID converts a string ID to int.
-var ParseIntID = ep.ParseIntID
-
-// MessageResponse is a simple response with a message.
-type MessageResponse = ep.MessageResponse
-
-// PaginationParams contains common pagination parameters.
-type PaginationParams = ep.PaginationParams
-
-// ListParams contains pagination and sorting parameters for list endpoints.
-type ListParams = ep.ListParams
-
-// SearchParams contains pagination and search query parameters.
-type SearchParams = ep.SearchParams
-
+// ListEndpoint creates an endpoint for listing resources.
 func ListEndpoint[Q any, Req any, Res any](
 	path string,
 	listFn func(ctx context.Context, queries Q, req Req) ([]Res, error),
 ) *Endpoint[Req, []Res] {
-	return ep.ListEndpoint(path, listFn)
+	return core.ListEndpoint(path, listFn)
 }
 
+// GetEndpoint creates an endpoint for getting a single resource.
 func GetEndpoint[Q any, Req any, Res any](
 	path string,
 	getFn func(ctx context.Context, queries Q, req Req) (Res, error),
 ) *Endpoint[Req, Res] {
-	return ep.GetEndpoint(path, getFn)
+	return core.GetEndpoint(path, getFn)
 }
 
+// CreateEndpoint creates an endpoint for creating resources.
 func CreateEndpoint[Q any, Req any, Res any](
 	path string,
 	createFn func(ctx context.Context, queries Q, req Req) (Res, error),
 ) *Endpoint[Req, Res] {
-	return ep.CreateEndpoint(path, createFn)
+	return core.CreateEndpoint(path, createFn)
 }
 
+// UpdateEndpoint creates an endpoint for updating resources.
 func UpdateEndpoint[Q any, Req any](
 	path string,
 	updateFn func(ctx context.Context, queries Q, req Req) error,
 ) *Endpoint[Req, NoResponse] {
-	return ep.UpdateEndpoint(path, updateFn)
+	return core.UpdateEndpoint(path, updateFn)
 }
 
+// DeleteEndpoint creates an endpoint for deleting resources.
 func DeleteEndpoint[Q any, Req any](
 	path string,
 	deleteFn func(ctx context.Context, queries Q, req Req) error,
 ) *Endpoint[Req, MessageResponse] {
-	return ep.DeleteEndpoint(path, deleteFn)
+	return core.DeleteEndpoint(path, deleteFn)
 }
 
+// SearchEndpoint creates an endpoint for searching resources.
 func SearchEndpoint[Q any, Req any, Res any](
 	path string,
 	searchFn func(ctx context.Context, queries Q, req Req) ([]Res, error),
 ) *Endpoint[Req, []Res] {
-	return ep.SearchEndpoint(path, searchFn)
+	return core.SearchEndpoint(path, searchFn)
 }
 
-// Error codes returned by the API for programmatic error handling
+// Parameters
+
+// Parameter represents an OpenAPI parameter (path or query).
+type Parameter = core.Parameter
+
 const (
-	// ErrCodeInternal indicates an internal server error
-	ErrCodeInternal = err.ErrCodeInternal
+	// ParamLocationPath indicates a path parameter (e.g., /users/{id}).
+	ParamLocationPath = core.ParamLocationPath
 
-	// ErrCodeConfiguration indicates the endpoint is not properly configured
-	ErrCodeConfiguration = err.ErrCodeConfiguration
+	// ParamLocationQuery indicates a query parameter (e.g., ?page=1).
+	ParamLocationQuery = core.ParamLocationQuery
+)
 
-	// ErrCodeValidation indicates validation failed
-	ErrCodeValidation = err.ErrCodeValidation
+// Errors
 
-	// ErrCodeBind indicates a request binding/parsing error
-	ErrCodeBind = err.ErrCodeBind
+type (
+	// APIError represents a standardized API error response with status, code, and message.
+	APIError = core.APIError
 
-	// ErrCodeNotFound indicates a resource was not found
-	ErrCodeNotFound = err.ErrCodeNotFound
+	// ValidationResult is returned by validation functions with code, message, and list of errors.
+	ValidationResult = core.ValidationResult
 
-	// ErrCodeUnauthorized indicates authentication is required
-	ErrCodeUnauthorized = err.ErrCodeUnauthorized
+	// ValidationError represents a single validation error with field and message.
+	ValidationError = core.ValidationError
+)
 
-	// ErrCodeForbidden indicates access is denied
-	ErrCodeForbidden = err.ErrCodeForbidden
+var (
+	// NewAPIError creates a standardized API error response with status code, error code, and message.
+	NewAPIError = core.NewAPIError
 
-	// ErrCodeBadRequest indicates a malformed request
-	ErrCodeBadRequest = err.ErrCodeBadRequest
+	// NewValidation creates an empty validation result to populate with errors.
+	NewValidation = core.NewValidation
 
-	// ErrCodeMissingParam indicates a missing path parameter
-	ErrCodeMissingParam = err.ErrCodeMissingParam
+	// ValidationFailed creates a failed validation result with a single error.
+	ValidationFailed = core.ValidationFailed
+
+	// ValidationFailedMulti creates a failed validation result with multiple errors.
+	ValidationFailedMulti = core.ValidationFailedMulti
+)
+
+// Error codes returned by the API for programmatic error handling.
+const (
+	ErrCodeInternal      = core.ErrCodeInternal
+	ErrCodeConfiguration = core.ErrCodeConfiguration
+	ErrCodeValidation    = core.ErrCodeValidation
+	ErrCodeBind          = core.ErrCodeBind
+	ErrCodeNotFound      = core.ErrCodeNotFound
+	ErrCodeUnauthorized  = core.ErrCodeUnauthorized
+	ErrCodeForbidden     = core.ErrCodeForbidden
+	ErrCodeBadRequest    = core.ErrCodeBadRequest
+	ErrCodeMissingParam  = core.ErrCodeMissingParam
+)
+
+// Context
+
+var (
+	// URLParam retrieves a URL parameter from the request context.
+	URLParam = core.URLParam
+
+	// ExtractPathParams extracts parameters from a URL path using a pattern.
+	ExtractPathParams = core.ExtractPathParams
+
+	// RouteCtxFromContext extracts the route context from a request context.
+	RouteCtxFromContext = core.RouteCtxFromContext
+
+	// URLQueryParam retrieves a URL query parameter from the request context.
+	URLQueryParam = core.URLQueryParam
+
+	// WithQueries injects database queries into the context.
+	WithQueries = core.WithQueries
+
+	// QueriesFromContext retrieves database queries from the context.
+	QueriesFromContext = core.QueriesFromContext
+
+	// MustQueriesFromContext retrieves database queries from the context (panics if not found).
+	MustQueriesFromContext = core.MustQueriesFromContext
+)
+
+// Serializers and Binders
+
+// Serializers provides standard serialization functions for common formats (JSON, XML).
+var Serializers = core.Serializers
+
+// Binders and Writers
+
+// JSONErrorWriter writes error responses as JSON.
+var JSONErrorWriter = core.JSONErrorWriter
+
+// JSONBinder creates a bind function for JSON request bodies.
+func JSONBinder[Req any]() func(r *http.Request) (Req, error) {
+	return core.JSONBinder[Req]()
+}
+
+// JSONWriter creates a write function for JSON responses.
+func JSONWriter[Res any]() func(w http.ResponseWriter, res Res) error {
+	return core.JSONWriter[Res]()
+}
+
+// QueryBinder creates a bind function that extracts query parameters.
+func QueryBinder[Req any]() func(r *http.Request) (Req, error) {
+	return core.QueryBinder[Req]()
+}
+
+// MixedBinder creates a bind function that combines path params and JSON body.
+func MixedBinder[Req any]() func(r *http.Request) (Req, error) {
+	return core.MixedBinder[Req]()
+}
+
+// PathParamBinder creates a bind function that extracts the last path segment.
+func PathParamBinder[T any](convert func(string) (T, error)) func(r *http.Request) (T, error) {
+	return core.PathParamBinder(convert)
+}
+
+// Middleware
+
+var (
+	// CORSMiddleware creates a CORS middleware with sensible defaults.
+	CORSMiddleware = core.NewCORS
+
+	// CORSOptions provides option functions for CORS middleware.
+	CORSOptions = core.CORSOptions
+
+	// SecurityHeaderMiddleware adds security headers to all responses.
+	SecurityHeaderMiddleware = core.SecurityHeaders
+
+	// SecurityHeadersOptions provides option functions for SecurityHeaders middleware.
+	SecurityHeadersOptions = core.SecurityHeadersOptions
+
+	// RequestIDMiddleware injects a unique request ID into each request.
+	RequestIDMiddleware = core.RequestID
+
+	// RequestIDOptions provides option functions for RequestID middleware.
+	RequestIDOptions = core.RequestIDOptions
+
+	// RequestIDFromContext retrieves the request ID from context.
+	RequestIDFromContext = core.RequestIDFromContext
+
+	// DBMiddleware injects database queries into every request context.
+	DBMiddleware = core.DBMiddleware
+
+	// TransactionMiddleware wraps requests in a database transaction.
+	TransactionMiddleware = core.TransactionMiddleware
+
+	// LoggingMiddleware logs incoming requests with timing.
+	LoggingMiddleware = core.LoggingMiddleware
+
+	// RecoveryMiddleware recovers from panics and returns 500 error.
+	RecoveryMiddleware = core.RecoveryMiddleware
+)
+
+// OpenAPI
+
+// GenerateOpenAPIFile generates OpenAPI spec file at specified location.
+var GenerateOpenAPIFile = core.GenerateOpenAPIFile
+
+type (
+	// MountedRoute represents a route from an external router mounted into RestKit.
+	MountedRoute = core.MountedRoute
+
+	// ParamInfo represents a path parameter definition for OpenAPI documentation.
+	ParamInfo = core.ParamInfo
+
+	// RouteInfo contains metadata for a route used by adapters.
+	RouteInfo = core.RouteInfo
+
+	// RouteMeta represents a route with its metadata for extraction.
+	RouteMeta = core.RouteMeta
+)
+
+// SchemaFrom generates a JSON Schema from a Go type using reflection.
+func SchemaFrom[T any]() map[string]any {
+	return core.SchemaFrom[T]()
+}
+
+// Helpers and utilities
+
+var (
+	// StringToInt converts a string to int.
+	StringToInt = core.StringToInt
+
+	// StringToString is a no-op converter for string path params.
+	StringToString = core.StringToString
+
+	// ParseID converts a string ID to int64.
+	ParseID = core.ParseID
+
+	// ParseIntID converts a string ID to int.
+	ParseIntID = core.ParseIntID
 )

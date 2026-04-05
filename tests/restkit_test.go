@@ -531,7 +531,7 @@ func TestErrorCodes(t *testing.T) {
 }
 
 func TestNewCORS(t *testing.T) {
-	cors := rest.NewCORS(rest.WithOrigins("https://example.com"))
+	cors := rest.CORSMiddleware(rest.CORSOptions.Origins("https://example.com"))
 
 	handler := cors(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -555,12 +555,12 @@ func TestNewCORS(t *testing.T) {
 }
 
 func TestNewCORSWithFullConfig(t *testing.T) {
-	cors := rest.NewCORS(
-		rest.WithOrigins("https://example.com"),
-		rest.WithMethods("GET", "POST"),
-		rest.WithHeaders("Content-Type", "Authorization"),
-		rest.WithCredentials(),
-		rest.WithMaxAge(3600),
+	cors := rest.CORSMiddleware(
+		rest.CORSOptions.Origins("https://example.com"),
+		rest.CORSOptions.Methods("GET", "POST"),
+		rest.CORSOptions.Headers("Content-Type", "Authorization"),
+		rest.CORSOptions.Credentials(),
+		rest.CORSOptions.MaxAge(3600),
 	)
 
 	handler := cors(
@@ -595,7 +595,7 @@ func TestNewCORSWithFullConfig(t *testing.T) {
 }
 
 func TestNewCORSDefaults(t *testing.T) {
-	cors := rest.NewCORS()
+	cors := rest.CORSMiddleware()
 
 	handler := cors(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -236,3 +236,102 @@ func TestDeleteEndpoint(t *testing.T) {
 		t.Errorf("expected 1 parameter, got %d", len(endpoint.Parameters))
 	}
 }
+
+func TestParseID(t *testing.T) {
+	t.Run("valid int64 id", func(t *testing.T) {
+		id, err := endpoints.ParseID("12345")
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+		if id != 12345 {
+			t.Errorf("expected id=12345, got %d", id)
+		}
+	})
+
+	t.Run("valid large int64 id", func(t *testing.T) {
+		id, err := endpoints.ParseID("9223372036854775807") // max int64
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+		if id != 9223372036854775807 {
+			t.Errorf("expected max int64, got %d", id)
+		}
+	})
+
+	t.Run("invalid id - non-numeric", func(t *testing.T) {
+		_, err := endpoints.ParseID("abc")
+		if err == nil {
+			t.Error("expected error for non-numeric id")
+		}
+	})
+
+	t.Run("invalid id - empty string", func(t *testing.T) {
+		_, err := endpoints.ParseID("")
+		if err == nil {
+			t.Error("expected error for empty id")
+		}
+	})
+
+	t.Run("invalid id - float", func(t *testing.T) {
+		_, err := endpoints.ParseID("123.45")
+		if err == nil {
+			t.Error("expected error for float id")
+		}
+	})
+
+	t.Run("negative id", func(t *testing.T) {
+		id, err := endpoints.ParseID("-123")
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+		if id != -123 {
+			t.Errorf("expected id=-123, got %d", id)
+		}
+	})
+
+	t.Run("zero id", func(t *testing.T) {
+		id, err := endpoints.ParseID("0")
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+		if id != 0 {
+			t.Errorf("expected id=0, got %d", id)
+		}
+	})
+}
+
+func TestParseIntID(t *testing.T) {
+	t.Run("valid int id", func(t *testing.T) {
+		id, err := endpoints.ParseIntID("12345")
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+		if id != 12345 {
+			t.Errorf("expected id=12345, got %d", id)
+		}
+	})
+
+	t.Run("invalid id - non-numeric", func(t *testing.T) {
+		_, err := endpoints.ParseIntID("abc")
+		if err == nil {
+			t.Error("expected error for non-numeric id")
+		}
+	})
+
+	t.Run("invalid id - empty string", func(t *testing.T) {
+		_, err := endpoints.ParseIntID("")
+		if err == nil {
+			t.Error("expected error for empty id")
+		}
+	})
+
+	t.Run("valid zero id", func(t *testing.T) {
+		id, err := endpoints.ParseIntID("0")
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+		if id != 0 {
+			t.Errorf("expected id=0, got %d", id)
+		}
+	})
+}

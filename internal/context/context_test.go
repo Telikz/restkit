@@ -271,3 +271,159 @@ func TestContextKey(t *testing.T) {
 		t.Errorf("unexpected context key string: %s", RouteCtxKey.String())
 	}
 }
+
+func TestWithQueries(t *testing.T) {
+	queries := map[string]string{"db": "test"}
+	ctx := WithQueries(context.Background(), queries)
+
+	retrieved := QueriesFromContext(ctx)
+	if retrieved == nil {
+		t.Fatal("expected to retrieve queries from context")
+	}
+
+	retrievedMap, ok := retrieved.(map[string]string)
+	if !ok {
+		t.Fatal("retrieved value is not the expected type")
+	}
+
+	if retrievedMap["db"] != "test" {
+		t.Errorf("expected db='test', got '%s'", retrievedMap["db"])
+	}
+}
+
+func TestQueriesFromContext(t *testing.T) {
+	t.Run("retrieve existing queries", func(t *testing.T) {
+		queries := "test-queries"
+		ctx := WithQueries(context.Background(), queries)
+
+		result := QueriesFromContext(ctx)
+		if result != queries {
+			t.Errorf("expected '%v', got '%v'", queries, result)
+		}
+	})
+
+	t.Run("retrieve from empty context", func(t *testing.T) {
+		ctx := context.Background()
+		result := QueriesFromContext(ctx)
+
+		if result != nil {
+			t.Error("expected nil for empty context")
+		}
+	})
+}
+
+func TestMustQueriesFromContext(t *testing.T) {
+	t.Run("retrieve existing queries", func(t *testing.T) {
+		queries := "test-queries"
+		ctx := WithQueries(context.Background(), queries)
+
+		result := MustQueriesFromContext(ctx)
+		if result != queries {
+			t.Errorf("expected '%v', got '%v'", queries, result)
+		}
+	})
+
+	t.Run("panic on missing queries", func(t *testing.T) {
+		ctx := context.Background()
+
+		defer func() {
+			if r := recover(); r == nil {
+				t.Error("expected panic for missing queries")
+			}
+		}()
+
+		MustQueriesFromContext(ctx)
+	})
+}
+
+func TestURLQueryParam(t *testing.T) {
+	t.Run("get existing query param", func(t *testing.T) {
+		rc := NewRouteContext()
+		rc.SetURLQueryParam("page", "1")
+
+		val := rc.URLQueryParam("page")
+		if val != "1" {
+			t.Errorf("expected '1', got '%s'", val)
+		}
+	})
+
+	t.Run("get non-existent query param", func(t *testing.T) {
+		rc := NewRouteContext()
+
+		val := rc.URLQueryParam("nonexistent")
+		if val != "" {
+			t.Errorf("expected empty string, got '%s'", val)
+		}
+	})
+
+	t.Run("nil context", func(t *testing.T) {
+		var rc *RouteContext
+
+		val := rc.URLQueryParam("page")
+		if val != "" {
+			t.Errorf("expected empty string for nil context, got '%s'", val)
+		}
+	})
+
+	t.Run("nil queryParams map", func(t *testing.T) {
+		rc := &RouteContext{queryParams: nil}
+
+		val := rc.URLQueryParam("page")
+		if val != "" {
+			t.Errorf("expected empty string for nil map, got '%s'", val)
+		}
+	})
+}
+
+func TestSetURLQueryParam(t *testing.T) {
+	t.Run("set new query param", func(t *testing.T) {
+		rc := NewRouteContext()
+		rc.SetURLQueryParam("limit", "10")
+
+		if rc.URLQueryParam("limit") != "10" {
+			t.Error("failed to set query param")
+		}
+	})
+
+	t.Run("set param with nil map", func(t *testing.T) {
+		rc := &RouteContext{queryParams: nil}
+		rc.SetURLQueryParam("offset", "20")
+
+		if rc.URLQueryParam("offset") != "20" {
+			t.Error("failed to set query param with nil map")
+		}
+	})
+
+	t.Run("overwrite existing param", func(t *testing.T) {
+		rc := NewRouteContext()
+		rc.SetURLQueryParam("sort", "asc")
+		rc.SetURLQueryParam("sort", "desc")
+
+		if rc.URLQueryParam("sort") != "desc" {
+			t.Error("failed to overwrite query param")
+		}
+	})
+}
+
+func TestURLQueryParamFromContext(t *testing.T) {
+	t.Run("extract query param from context", func(t *testing.T) {
+		rc := NewRouteContext()
+		rc.SetURLQueryParam("search", "golang")
+
+		ctx := context.WithValue(context.Background(), RouteCtxKey, rc)
+		val := URLQueryParam(ctx, "search")
+
+		if val != "golang" {
+			t.Errorf("expected 'golang', got '%s'", val)
+		}
+	})
+
+	t.Run("extract from context without RouteContext", func(t *testing.T) {
+		ctx := context.Background()
+		val := URLQueryParam(ctx, "search")
+
+		if val != "" {
+			t.Errorf("expected empty string, got '%s'", val)
+		}
+	})
+}

@@ -16,7 +16,6 @@ func TestJSON(t *testing.T) {
 
 		data := map[string]string{"message": "hello"}
 		err := serializer(w, data)
-
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
@@ -45,7 +44,6 @@ func TestJSON(t *testing.T) {
 
 		data := map[string]string{"message": "hello"}
 		err := serializer(w, data)
-
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
@@ -68,7 +66,6 @@ func TestJSON(t *testing.T) {
 
 		data := TestStruct{Name: "test", Value: 42}
 		err := serializer(w, data)
-
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
@@ -90,7 +87,6 @@ func TestJSONCompact(t *testing.T) {
 
 	data := map[string]interface{}{"a": 1, "b": "test"}
 	err := serializer(w, data)
-
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
@@ -107,7 +103,6 @@ func TestJSONPretty(t *testing.T) {
 
 	data := map[string]interface{}{"a": 1, "b": "test"}
 	err := serializer(w, data)
-
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
@@ -133,7 +128,6 @@ func TestJSONDeserialize(t *testing.T) {
 
 		var result TestStruct
 		err := deserializer(req, &result)
-
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
@@ -185,7 +179,6 @@ func TestXML(t *testing.T) {
 
 		data := TestStruct{Name: "test", Value: 42}
 		err := serializer(w, data)
-
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
@@ -222,7 +215,6 @@ func TestXMLDeserialize(t *testing.T) {
 
 		var result TestStruct
 		err := deserializer(req, &result)
-
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}

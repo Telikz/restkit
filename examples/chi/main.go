@@ -2,105 +2,140 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	chiMiddleware "github.com/go-chi/chi/v5/middleware"
-	rk "github.com/reststore/restkit"
+	"github.com/reststore/restkit"
 	restchi "github.com/reststore/restkit/adapters/chi"
 )
 
-func main() {
-	r := chi.NewRouter()
-	r.Use(chiMiddleware.Logger)
-	r.Use(chiMiddleware.Recoverer)
-
-	api := rk.NewApi().
-		WithVersion("1.0.0").
-		WithTitle("Example API").
-		WithDescription("An example API using RestKit with Chi").
-		AddGroup(userGroup()).
-		AddEndpoint(pingEndpoint()).
-		WithSwaggerUI("/docs")
-
-	restchi.RegisterRoutes(r, api)
-
-	log.Println("Server on :8080")
-	log.Fatal(http.ListenAndServe(":8080", r))
-}
-
-type CreateUserRequest struct {
-	Name  string `json:"name"  validate:"required"`
-	Email string `json:"email" validate:"required,email"`
-}
-
-type UserResponse struct {
+type User struct {
 	ID    int    `json:"id"`
 	Name  string `json:"name"`
 	Email string `json:"email"`
 }
 
-func userGroup() *rk.Group {
-	return rk.NewGroup("/users").
-		WithTitle("User Management").
-		WithDescription("Endpoints for managing users").
+type CreateUserReq struct {
+	Name  string `json:"name"  validate:"required"`
+	Email string `json:"email" validate:"required,email"`
+}
+
+func main() {
+	r := chi.NewRouter()
+
+	api := restkit.NewApi().
+		WithVersion("1.0.0").
+		WithTitle("Chi + RestKit Example").
+		WithSwaggerUI("/docs")
+
+	api.AddGroup(userGroup())
+	api.AddEndpoint(ping())
+	restchi.RegisterRoutes(r, api)
+
+	chiRouter := chi.NewRouter()
+	chiRouter.Get("/native/users", chiListUsers)
+	chiRouter.Get("/native/users/{id}", chiGetUser)
+	chiRouter.Post("/native/users", chiCreateUser)
+
+	meta := []restkit.RouteMeta{
+		{
+			Method: "GET",
+			Path:   "/native/users",
+			Info: restkit.RouteInfo{
+				Summary:      "List users",
+				ResponseType: []User{},
+			},
+		},
+		{
+			Method: "GET",
+			Path:   "/native/users/{id}",
+			Info: restkit.RouteInfo{
+				Summary:      "Get user",
+				ResponseType: User{},
+			},
+		},
+		{
+			Method: "POST",
+			Path:   "/native/users",
+			Info: restkit.RouteInfo{
+				Summary:      "Create user",
+				RequestType:  CreateUserReq{},
+				ResponseType: User{},
+			},
+		},
+	}
+
+	_ = restchi.Mount(api, "/api/v1", chiRouter, meta)
+
+	log.Println("Server on :8080")
+	log.Fatal(http.ListenAndServe(":8080", api.Mux()))
+}
+
+func userGroup() *restkit.Group {
+	return restkit.NewGroup("/users").
 		WithEndpoints(
-			createUserEndpoint(),
-			getUserEndpoint(),
-			listUsersEndpoint(),
+			createUser(),
+			getUser(),
+			listUsers(),
 		)
 }
 
-func createUserEndpoint() *rk.Endpoint[CreateUserRequest, UserResponse] {
-	return rk.NewEndpoint[CreateUserRequest, UserResponse]().
+func createUser() *restkit.Endpoint[CreateUserReq, User] {
+	return restkit.NewEndpoint[CreateUserReq, User]().
 		WithPath("/").
 		WithMethod("POST").
-		WithTitle("Create User").
-		WithDescription("Create a new user with the provided name and email").
-		WithHandler(func(ctx context.Context, req CreateUserRequest) (UserResponse, error) {
-			return UserResponse{ID: 1, Name: req.Name, Email: req.Email}, nil
+		WithHandler(func(ctx context.Context, req CreateUserReq) (User, error) {
+			return User{ID: 1, Name: req.Name, Email: req.Email}, nil
 		})
 }
 
-func getUserEndpoint() *rk.Endpoint[rk.NoRequest, UserResponse] {
-	return rk.NewEndpoint[rk.NoRequest, UserResponse]().
+func getUser() *restkit.Endpoint[restkit.NoRequest, User] {
+	return restkit.NewEndpoint[restkit.NoRequest, User]().
 		WithPath("/{id}").
 		WithMethod("GET").
-		WithTitle("Get User").
-		WithDescription("Retrieve details for a specific user by ID").
-		WithHandler(func(ctx context.Context, _ rk.NoRequest) (UserResponse, error) {
-			return UserResponse{
-				ID:    1,
-				Name:  "John",
-				Email: "john@example.com",
-			}, nil
+		WithHandler(func(ctx context.Context, _ restkit.NoRequest) (User, error) {
+			return User{ID: 1, Name: "John", Email: "john@example.com"}, nil
 		})
 }
 
-func listUsersEndpoint() *rk.Endpoint[rk.NoRequest, []UserResponse] {
-	return rk.NewEndpoint[rk.NoRequest, []UserResponse]().
+func listUsers() *restkit.Endpoint[restkit.NoRequest, []User] {
+	return restkit.NewEndpoint[restkit.NoRequest, []User]().
 		WithPath("/").
 		WithMethod("GET").
-		WithTitle("List Users").
-		WithDescription("Retrieve a list of all users").
-		WithHandler(func(ctx context.Context, _ rk.NoRequest) ([]UserResponse, error) {
-			return []UserResponse{
-				{ID: 1, Name: "John", Email: "john@example.com"},
-			}, nil
+		WithHandler(func(ctx context.Context, _ restkit.NoRequest) ([]User, error) {
+			return []User{{ID: 1, Name: "John", Email: "john@example.com"}}, nil
 		})
 }
 
-func pingEndpoint() *rk.Endpoint[rk.NoRequest, MessageResponse] {
-	return rk.NewEndpoint[rk.NoRequest, MessageResponse]().
+func ping() *restkit.Endpoint[restkit.NoRequest, Pong] {
+	return restkit.NewEndpoint[restkit.NoRequest, Pong]().
 		WithPath("/ping").
 		WithMethod("GET").
-		WithTitle("Ping Endpoint").
-		WithHandler(func(ctx context.Context, _ rk.NoRequest) (MessageResponse, error) {
-			return MessageResponse{Message: "pong"}, nil
+		WithHandler(func(ctx context.Context, _ restkit.NoRequest) (Pong, error) {
+			return Pong{Message: "pong"}, nil
 		})
 }
 
-type MessageResponse struct {
+type Pong struct {
 	Message string `json:"message"`
+}
+
+func chiListUsers(w http.ResponseWriter, r *http.Request) {
+	_ = json.NewEncoder(w).Encode([]User{
+		{ID: 1, Name: "Alice"},
+		{ID: 2, Name: "Bob"},
+	})
+}
+
+func chiGetUser(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	_ = json.NewEncoder(w).Encode(User{ID: 1, Name: "Alice (" + id + ")"})
+}
+
+func chiCreateUser(w http.ResponseWriter, r *http.Request) {
+	var req CreateUserReq
+	_ = json.NewDecoder(r.Body).Decode(&req)
+	_ = json.NewEncoder(w).Encode(User{ID: 3, Name: req.Name, Email: req.Email})
 }

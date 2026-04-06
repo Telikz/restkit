@@ -1,23 +1,24 @@
-package restchi
+package restgin
 
 import (
 	"context"
 	"errors"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
-	"github.com/go-chi/chi/v5"
+	"github.com/gin-gonic/gin"
 	"github.com/reststore/restkit/internal/api"
 	ep "github.com/reststore/restkit/internal/endpoints"
 	"github.com/reststore/restkit/internal/schema"
 )
 
 func TestRegisterRoutes(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
 	t.Run("group endpoints with prefix", func(t *testing.T) {
-		r := chi.NewRouter()
+		r := gin.New()
 		apiInstance := api.New()
 
 		endpoint := ep.NewEndpointRes[string]().
@@ -44,7 +45,7 @@ func TestRegisterRoutes(t *testing.T) {
 	})
 
 	t.Run("individual endpoints", func(t *testing.T) {
-		r := chi.NewRouter()
+		r := gin.New()
 		apiInstance := api.New()
 
 		endpoint := ep.NewEndpointRes[string]().
@@ -67,7 +68,7 @@ func TestRegisterRoutes(t *testing.T) {
 	})
 
 	t.Run("duplicate registration skipped", func(t *testing.T) {
-		r := chi.NewRouter()
+		r := gin.New()
 		apiInstance := api.New()
 
 		endpoint := ep.NewEndpointRes[string]().
@@ -92,7 +93,7 @@ func TestRegisterRoutes(t *testing.T) {
 	})
 
 	t.Run("swagger UI endpoints", func(t *testing.T) {
-		r := chi.NewRouter()
+		r := gin.New()
 		apiInstance := api.New().
 			WithTitle("Test API").
 			WithVersion("1.0.0").
@@ -124,7 +125,7 @@ func TestRegisterRoutes(t *testing.T) {
 	})
 
 	t.Run("middleware applied", func(t *testing.T) {
-		r := chi.NewRouter()
+		r := gin.New()
 		apiInstance := api.New()
 
 		var middlewareCalled bool
@@ -155,7 +156,7 @@ func TestRegisterRoutes(t *testing.T) {
 	})
 
 	t.Run("handler error", func(t *testing.T) {
-		r := chi.NewRouter()
+		r := gin.New()
 		apiInstance := api.New()
 
 		endpoint := ep.NewEndpointRes[string]().
@@ -179,11 +180,11 @@ func TestRegisterRoutes(t *testing.T) {
 }
 
 func TestExtract(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
 	t.Run("extract with metadata", func(t *testing.T) {
-		r := chi.NewRouter()
-		r.Get("/users", func(w http.ResponseWriter, r *http.Request) {
-			_, _ = w.Write([]byte("users"))
-		})
+		r := gin.New()
+		r.GET("/users", func(c *gin.Context) { c.String(200, "users") })
 
 		metas := []schema.RouteMeta{
 			{
@@ -213,15 +214,13 @@ func TestExtract(t *testing.T) {
 	})
 
 	t.Run("extract with path params", func(t *testing.T) {
-		r := chi.NewRouter()
-		r.Get("/users/{id}", func(w http.ResponseWriter, r *http.Request) {
-			_, _ = w.Write([]byte("user"))
-		})
+		r := gin.New()
+		r.GET("/users/:id", func(c *gin.Context) { c.String(200, "user") })
 
 		metas := []schema.RouteMeta{
 			{
 				Method: "GET",
-				Path:   "/users/{id}",
+				Path:   "/users/:id",
 				Info: schema.RouteInfo{
 					Summary: "Get user",
 					PathParams: []schema.ParamInfo{
@@ -243,14 +242,14 @@ func TestExtract(t *testing.T) {
 			t.Errorf("expected 1 path param, got %d", len(routes[0].PathParams))
 		}
 		if routes[0].PathParams[0].Name != "id" {
-			t.Errorf("expected param name 'id', got '%s'", routes[0].PathParams[0].Name)
+			t.Errorf("expected param name 'id', got %s", routes[0].PathParams[0].Name)
 		}
 	})
 
 	t.Run("skip routes not in metadata", func(t *testing.T) {
-		r := chi.NewRouter()
-		r.Get("/users", func(w http.ResponseWriter, r *http.Request) {})
-		r.Get("/posts", func(w http.ResponseWriter, r *http.Request) {})
+		r := gin.New()
+		r.GET("/users", func(c *gin.Context) {})
+		r.GET("/posts", func(c *gin.Context) {})
 
 		metas := []schema.RouteMeta{
 			{Method: "GET", Path: "/users", Info: schema.RouteInfo{Summary: "List users"}},
@@ -267,10 +266,10 @@ func TestExtract(t *testing.T) {
 	})
 
 	t.Run("extract all routes", func(t *testing.T) {
-		r := chi.NewRouter()
-		r.Get("/users", func(w http.ResponseWriter, r *http.Request) {})
-		r.Post("/users", func(w http.ResponseWriter, r *http.Request) {})
-		r.Get("/users/{id}", func(w http.ResponseWriter, r *http.Request) {})
+		r := gin.New()
+		r.GET("/users", func(c *gin.Context) {})
+		r.POST("/users", func(c *gin.Context) {})
+		r.GET("/users/:id", func(c *gin.Context) {})
 
 		routes, err := ExtractAll(r)
 		if err != nil {
@@ -283,8 +282,8 @@ func TestExtract(t *testing.T) {
 	})
 
 	t.Run("auto path params from pattern", func(t *testing.T) {
-		r := chi.NewRouter()
-		r.Get("/users/{id}/posts/{postId}", func(w http.ResponseWriter, r *http.Request) {})
+		r := gin.New()
+		r.GET("/users/:id/posts/:postId", func(c *gin.Context) {})
 
 		routes, err := ExtractAll(r)
 		if err != nil {
@@ -309,11 +308,11 @@ func TestExtract(t *testing.T) {
 }
 
 func TestMount(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
 	t.Run("mount router", func(t *testing.T) {
-		r := chi.NewRouter()
-		r.Get("/test", func(w http.ResponseWriter, r *http.Request) {
-			_, _ = w.Write([]byte("test"))
-		})
+		r := gin.New()
+		r.GET("/test", func(c *gin.Context) { c.String(200, "test") })
 
 		apiInstance := api.New()
 		err := Mount(apiInstance, "/api", r, nil)
@@ -330,10 +329,8 @@ func TestMount(t *testing.T) {
 	})
 
 	t.Run("mount with metadata", func(t *testing.T) {
-		r := chi.NewRouter()
-		r.Get("/external", func(w http.ResponseWriter, r *http.Request) {
-			_, _ = w.Write([]byte("external"))
-		})
+		r := gin.New()
+		r.GET("/external", func(c *gin.Context) { c.String(200, "external") })
 
 		metas := []schema.RouteMeta{
 			{
@@ -381,15 +378,15 @@ func TestRouteMatching(t *testing.T) {
 			shouldMatch: false,
 		},
 		{
-			name:        "path param match chi syntax",
+			name:        "path param match",
 			request:     httptest.NewRequest("GET", "/users/123", nil),
-			route:       schema.MountedRoute{Method: "GET", Path: "/users/{id}"},
+			route:       schema.MountedRoute{Method: "GET", Path: "/users/:id"},
 			shouldMatch: true,
 		},
 		{
 			name:        "wrong segment count",
 			request:     httptest.NewRequest("GET", "/users/123/posts", nil),
-			route:       schema.MountedRoute{Method: "GET", Path: "/users/{id}"},
+			route:       schema.MountedRoute{Method: "GET", Path: "/users/:id"},
 			shouldMatch: false,
 		},
 	}
@@ -411,8 +408,8 @@ func TestMatchPath(t *testing.T) {
 		want        bool
 	}{
 		{"/users", "/users", true},
-		{"/users/123", "/users/{id}", true},
-		{"/users/123/posts/456", "/users/{id}/posts/{postId}", true},
+		{"/users/123", "/users/:id", true},
+		{"/users/123/posts/456", "/users/:id/posts/:postId", true},
 		{"/users", "/posts", false},
 		{"/users/123", "/users", false},
 		{"/users", "/users/123", false},
@@ -474,8 +471,7 @@ func TestValidationMiddleware(t *testing.T) {
 
 	t.Run("validates valid request", func(t *testing.T) {
 		next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			body, _ := io.ReadAll(r.Body)
-			w.Write(body)
+			w.WriteHeader(http.StatusOK)
 		})
 
 		handler := validationMiddleware(next, TestRequest{})
@@ -532,7 +528,7 @@ func TestExtractParams(t *testing.T) {
 			{Name: "id", Type: "integer", Required: true},
 		}
 
-		result := extractParams("/users/{id}", provided)
+		result := extractParams("/users/:id", provided)
 
 		if len(result) != 1 {
 			t.Errorf("expected 1 param, got %d", len(result))
@@ -543,7 +539,7 @@ func TestExtractParams(t *testing.T) {
 	})
 
 	t.Run("extracts from path when empty", func(t *testing.T) {
-		result := extractParams("/users/{userId}/posts/{postId}", []schema.ParamInfo{})
+		result := extractParams("/users/:userId/posts/:postId", []schema.ParamInfo{})
 
 		if len(result) != 2 {
 			t.Errorf("expected 2 params, got %d", len(result))
@@ -559,7 +555,7 @@ func TestExtractParams(t *testing.T) {
 	})
 
 	t.Run("extracts from path when nil", func(t *testing.T) {
-		result := extractParams("/test/{param}", nil)
+		result := extractParams("/test/:param", nil)
 
 		if len(result) != 1 {
 			t.Errorf("expected 1 param, got %d", len(result))
@@ -578,7 +574,7 @@ func TestRouteKey(t *testing.T) {
 	}{
 		{"GET", "/users", "GET /users"},
 		{"POST", "/users", "POST /users"},
-		{"GET", "/users/{id}", "GET /users/{id}"},
+		{"GET", "/users/:id", "GET /users/:id"},
 		{"DELETE", "/users/123", "DELETE /users/123"},
 	}
 
@@ -587,45 +583,5 @@ func TestRouteKey(t *testing.T) {
 		if result != tt.expected {
 			t.Errorf("routeKey(%q, %q) = %q, want %q", tt.method, tt.path, result, tt.expected)
 		}
-	}
-}
-
-func TestExtractPathParams(t *testing.T) {
-	tests := []struct {
-		pattern  string
-		expected []string
-	}{
-		{"/users/{id}", []string{"id"}},
-		{"/users/{userId}/posts/{postId}", []string{"userId", "postId"}},
-		{"/health", []string{}},
-		{"/api/{version}/users", []string{"version"}},
-		{"/{a}/{b}/{c}", []string{"a", "b", "c"}},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.pattern, func(t *testing.T) {
-			result := extractPathParams(tt.pattern)
-
-			if len(result) != len(tt.expected) {
-				t.Errorf("expected %d params, got %d", len(tt.expected), len(result))
-				return
-			}
-
-			for i, expected := range tt.expected {
-				if result[i].Name != expected {
-					t.Errorf("param %d: expected name '%s', got '%s'", i, expected, result[i].Name)
-				}
-				if result[i].Type != "string" {
-					t.Errorf(
-						"param %d: expected default type 'string', got '%s'",
-						i,
-						result[i].Type,
-					)
-				}
-				if !result[i].Required {
-					t.Errorf("param %d: expected required=true", i)
-				}
-			}
-		})
 	}
 }

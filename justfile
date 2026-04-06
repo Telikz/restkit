@@ -12,9 +12,12 @@ release version:
     VERSION="{{version}}"; VERSION=${VERSION#v}; \
     git tag -a "v$VERSION" -m "Release v$VERSION" && \
     git tag -a "adapters/chi/v$VERSION" -m "Release adapters/chi v$VERSION" && \
+    git tag -a "adapters/echo/v$VERSION" -m "Release adapters/echo v$VERSION" && \
+    git tag -a "adapters/gin/v$VERSION" -m "Release adapters/gin v$VERSION" && \
+    git tag -a "adapters/stdlib/v$VERSION" -m "Release adapters/stdlib v$VERSION" && \
     git tag -a "validators/playground/v$VERSION" -m "Release validators/playground v$VERSION" && \
     git tag -a "serializers/yaml/v$VERSION" -m "Release serializers/yaml v$VERSION" && \
-    git push origin "v$VERSION" "adapters/chi/v$VERSION" "validators/playground/v$VERSION" "serializers/yaml/v$VERSION" && \
+    git push origin "v$VERSION" "adapters/chi/v$VERSION" "adapters/echo/v$VERSION" "adapters/gin/v$VERSION" "adapters/stdlib/v$VERSION" "validators/playground/v$VERSION" "serializers/yaml/v$VERSION" && \
     echo "Released v$VERSION"
 
 fmt:

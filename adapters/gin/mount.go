@@ -1,11 +1,11 @@
-package restchi
+package restgin
 
 import (
 	"errors"
 	"net/http"
 	"strings"
 
-	"github.com/go-chi/chi/v5"
+	"github.com/gin-gonic/gin"
 	"github.com/reststore/restkit/internal/api"
 	"github.com/reststore/restkit/internal/cache"
 	"github.com/reststore/restkit/internal/schema"
@@ -16,7 +16,7 @@ var mountCache = cache.NewRouteCache()
 func Mount(
 	restkitApi *api.Api,
 	prefix string,
-	router chi.Router,
+	router *gin.Engine,
 	metas []schema.RouteMeta,
 ) error {
 	var routes []schema.MountedRoute
@@ -29,7 +29,7 @@ func Mount(
 	}
 
 	if err != nil {
-		return errors.New("extracting routes from chi router: " + err.Error())
+		return errors.New("extracting routes from gin router: " + err.Error())
 	}
 
 	for _, route := range routes {
@@ -42,9 +42,7 @@ func Mount(
 				route.RequestType,
 			)
 		} else {
-			handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				router.ServeHTTP(w, r)
-			})
+			handler = router
 		}
 		mountCache.Set(route.Method, prefix+route.Path, handler)
 	}
@@ -62,7 +60,7 @@ func Mount(
 
 type cachedMountHandler struct {
 	cache  *cache.RouteCache
-	router chi.Router
+	router *gin.Engine
 	prefix string
 }
 
@@ -91,14 +89,10 @@ func matchPath(requestPath, routePath string) bool {
 	}
 
 	for i := range routeParts {
-		routePart := routeParts[i]
-		requestPart := requestParts[i]
-
-		if strings.HasPrefix(routePart, "{") && strings.HasSuffix(routePart, "}") {
+		if strings.HasPrefix(routeParts[i], ":") {
 			continue
 		}
-
-		if routePart != requestPart {
+		if routeParts[i] != requestParts[i] {
 			return false
 		}
 	}

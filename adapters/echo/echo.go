@@ -1,53 +1,52 @@
-package restchi
+package restecho
 
 import (
-	"net/http"
+	"fmt"
 
-	"github.com/go-chi/chi/v5"
+	"github.com/labstack/echo/v4"
 	"github.com/reststore/restkit/internal/api"
 	"github.com/reststore/restkit/internal/docs"
 )
 
-func RegisterRoutes(r chi.Router, apiInstance *api.Api) {
+func RegisterRoutes(e *echo.Echo, apiInstance *api.Api) {
 	registered := make(map[string]bool)
 
 	for _, group := range apiInstance.Groups {
 		for _, endpoint := range group.GetEndpoints() {
-			key := endpoint.GetMethod() + " " + endpoint.GetPath()
+			key := fmt.Sprintf("%s %s", endpoint.GetMethod(), endpoint.GetPath())
 			registered[key] = true
 			handler := endpoint.GetHandler()
-			r.Method(
+			e.Add(
 				endpoint.GetMethod(),
 				endpoint.GetPath(),
-				handler,
+				echo.WrapHandler(handler),
 			)
 		}
 	}
 
 	for _, endpoint := range apiInstance.Endpoints {
-		key := endpoint.GetMethod() + " " + endpoint.GetPath()
+		key := fmt.Sprintf("%s %s", endpoint.GetMethod(), endpoint.GetPath())
 		if !registered[key] {
 			handler := endpoint.GetHandler()
 			for i := len(apiInstance.Middleware) - 1; i >= 0; i-- {
 				handler = apiInstance.Middleware[i](handler)
 			}
-			r.Method(
+			e.Add(
 				endpoint.GetMethod(),
 				endpoint.GetPath(),
-				handler,
+				echo.WrapHandler(handler),
 			)
 		}
 	}
 
 	if apiInstance.SwaggerUIEnabled {
-		r.Get(apiInstance.SwaggerUIPath, func(w http.ResponseWriter, r *http.Request) {
-			docs.ServeSwaggerUI(w, apiInstance.SwaggerUIPath)
+		e.GET(apiInstance.SwaggerUIPath, func(c echo.Context) error {
+			docs.ServeSwaggerUI(c.Response().Writer, apiInstance.SwaggerUIPath)
+			return nil
 		})
-		r.Get(
-			apiInstance.SwaggerUIPath+"/openapi.json",
-			func(w http.ResponseWriter, r *http.Request) {
-				apiInstance.ServeOpenAPI(w, r)
-			},
-		)
+		e.GET(apiInstance.SwaggerUIPath+"/openapi.json", func(c echo.Context) error {
+			apiInstance.ServeOpenAPI(c.Response().Writer, c.Request())
+			return nil
+		})
 	}
 }

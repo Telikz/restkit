@@ -1,11 +1,10 @@
-package restchi
+package reststdlib
 
 import (
 	"errors"
 	"net/http"
 	"strings"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/reststore/restkit/internal/api"
 	"github.com/reststore/restkit/internal/cache"
 	"github.com/reststore/restkit/internal/schema"
@@ -13,23 +12,18 @@ import (
 
 var mountCache = cache.NewRouteCache()
 
-func Mount(
-	restkitApi *api.Api,
-	prefix string,
-	router chi.Router,
-	metas []schema.RouteMeta,
-) error {
+func Mount(restkitApi *api.Api, prefix string, mux *http.ServeMux, metas []schema.RouteMeta) error {
 	var routes []schema.MountedRoute
 	var err error
 
 	if len(metas) > 0 {
-		routes, err = Extract(router, metas)
+		routes, err = Extract(mux, metas)
 	} else {
-		routes, err = ExtractAll(router)
+		routes, err = ExtractAll(mux)
 	}
 
 	if err != nil {
-		return errors.New("extracting routes from chi router: " + err.Error())
+		return errors.New("extracting routes from stdlib mux: " + err.Error())
 	}
 
 	for _, route := range routes {
@@ -37,21 +31,19 @@ func Mount(
 		if route.RequestType != nil {
 			handler = validationMiddleware(
 				http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					router.ServeHTTP(w, r)
+					mux.ServeHTTP(w, r)
 				}),
 				route.RequestType,
 			)
 		} else {
-			handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				router.ServeHTTP(w, r)
-			})
+			handler = mux
 		}
 		mountCache.Set(route.Method, prefix+route.Path, handler)
 	}
 
 	cachedHandler := &cachedMountHandler{
 		cache:  mountCache,
-		router: router,
+		mux:    mux,
 		prefix: prefix,
 	}
 
@@ -62,7 +54,7 @@ func Mount(
 
 type cachedMountHandler struct {
 	cache  *cache.RouteCache
-	router chi.Router
+	mux    *http.ServeMux
 	prefix string
 }
 
@@ -72,14 +64,7 @@ func (h *cachedMountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.router.ServeHTTP(w, r)
-}
-
-func matchesRoute(r *http.Request, route schema.MountedRoute) bool {
-	if !strings.EqualFold(r.Method, route.Method) {
-		return false
-	}
-	return matchPath(r.URL.Path, route.Path)
+	h.mux.ServeHTTP(w, r)
 }
 
 func matchPath(requestPath, routePath string) bool {
@@ -91,14 +76,10 @@ func matchPath(requestPath, routePath string) bool {
 	}
 
 	for i := range routeParts {
-		routePart := routeParts[i]
-		requestPart := requestParts[i]
-
-		if strings.HasPrefix(routePart, "{") && strings.HasSuffix(routePart, "}") {
+		if strings.HasPrefix(routeParts[i], "{") && strings.HasSuffix(routeParts[i], "}") {
 			continue
 		}
-
-		if routePart != requestPart {
+		if routeParts[i] != requestParts[i] {
 			return false
 		}
 	}

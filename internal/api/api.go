@@ -9,6 +9,7 @@ import (
 	ep "github.com/reststore/restkit/internal/endpoints"
 	errs "github.com/reststore/restkit/internal/errors"
 	"github.com/reststore/restkit/internal/schema"
+	"github.com/reststore/restkit/internal/validation"
 )
 
 // Api is the main struct for defining your API
@@ -100,6 +101,7 @@ func (api *Api) WithValidator(
 	validator func(ctx context.Context, s any) errs.ValidationResult,
 ) *Api {
 	api.Validator = validator
+	validation.DefaultValidator = validator
 	return api
 }
 

@@ -66,12 +66,12 @@ func ExtractParams[Req any]() []Parameter {
 	return params
 }
 
-func GetEndpoint[Q any, Req any, Res any](
+func Get[Req any, Res any](
 	path string,
-	getFn func(ctx context.Context, queries Q, req Req) (Res, error),
+	getFn func(ctx context.Context, req Req) (Res, error),
 ) *Endpoint[Req, Res] {
 	handler := func(ctx context.Context, req Req) (Res, error) {
-		return getFn(ctx, rctx.MustQueriesFromContext(ctx).(Q), req)
+		return getFn(ctx, req)
 	}
 
 	return &Endpoint[Req, Res]{
@@ -85,15 +85,70 @@ func GetEndpoint[Q any, Req any, Res any](
 	}
 }
 
-func ListEndpoint[Q any, Req any, Res any](
+func GetWithQueries[Q any, Req any, Res any](
+	path string,
+	getFn func(ctx context.Context, queries Q, req Req) (Res, error),
+) *Endpoint[Req, Res] {
+	handler := func(ctx context.Context, req Req) (Res, error) {
+		q, err := rctx.MustQueriesFromContext(ctx)
+		if err != nil {
+			return *new(Res), err
+		}
+		return getFn(ctx, q.(Q), req)
+	}
+
+	return &Endpoint[Req, Res]{
+		Method:      http.MethodGet,
+		Path:        path,
+		Title:       "Get",
+		Description: "Get a resource by ID",
+		Handler:     handler,
+		Bind:        middleware.QueryBinder[Req](),
+		Parameters:  ExtractParams[Req](),
+	}
+}
+
+func List[Req any, Res any](
+	path string,
+	listFn func(ctx context.Context, req Req) ([]Res, error),
+) *Endpoint[Req, []Res] {
+	handler := func(ctx context.Context, req Req) ([]Res, error) {
+		list, err := listFn(ctx, req)
+		if err != nil {
+			return []Res{}, err
+		}
+		if list == nil {
+			return []Res{}, nil
+		}
+		return list, nil
+	}
+
+	return &Endpoint[Req, []Res]{
+		Method:      http.MethodGet,
+		Path:        path,
+		Title:       "List",
+		Description: "List resources",
+		Handler:     handler,
+		Bind:        middleware.QueryBinder[Req](),
+		Parameters:  ExtractParams[Req](),
+	}
+}
+
+func ListWithQueries[Q any, Req any, Res any](
 	path string,
 	listFn func(ctx context.Context, queries Q, req Req) ([]Res, error),
 ) *Endpoint[Req, []Res] {
 	handler := func(ctx context.Context, req Req) ([]Res, error) {
-		list, err := listFn(ctx, rctx.MustQueriesFromContext(ctx).(Q), req)
+		q, err := rctx.MustQueriesFromContext(ctx)
 		if err != nil {
 			return []Res{}, err
 		}
+
+		list, err := listFn(ctx, q.(Q), req)
+		if err != nil {
+			return []Res{}, err
+		}
+
 		if list == nil {
 			return []Res{}, nil
 		}
@@ -111,12 +166,35 @@ func ListEndpoint[Q any, Req any, Res any](
 	}
 }
 
-func CreateEndpoint[Q any, Req any, Res any](
+func Create[Req any, Res any](
+	path string,
+	createFn func(ctx context.Context, req Req) (Res, error),
+) *Endpoint[Req, Res] {
+	handler := func(ctx context.Context, req Req) (Res, error) {
+		return createFn(ctx, req)
+	}
+
+	return &Endpoint[Req, Res]{
+		Method:      http.MethodPost,
+		Path:        path,
+		Title:       "Create",
+		Description: "Create a new resource",
+		Handler:     handler,
+		Bind:        middleware.JSONBinder[Req](),
+		Parameters:  ExtractParams[Req](),
+	}
+}
+
+func CreateWithQueries[Q any, Req any, Res any](
 	path string,
 	createFn func(ctx context.Context, queries Q, req Req) (Res, error),
 ) *Endpoint[Req, Res] {
 	handler := func(ctx context.Context, req Req) (Res, error) {
-		return createFn(ctx, rctx.MustQueriesFromContext(ctx).(Q), req)
+		q, err := rctx.MustQueriesFromContext(ctx)
+		if err != nil {
+			return *new(Res), err
+		}
+		return createFn(ctx, q.(Q), req)
 	}
 
 	return &Endpoint[Req, Res]{
@@ -129,15 +207,15 @@ func CreateEndpoint[Q any, Req any, Res any](
 	}
 }
 
-func UpdateEndpoint[Q any, Req any](
+func Update[Req any, Res any](
 	path string,
-	updateFn func(ctx context.Context, queries Q, req Req) error,
-) *Endpoint[Req, NoResponse] {
-	handler := func(ctx context.Context, req Req) (NoResponse, error) {
-		return NoResponse{}, updateFn(ctx, rctx.MustQueriesFromContext(ctx).(Q), req)
+	updateFn func(ctx context.Context, req Req) (Res, error),
+) *Endpoint[Req, Res] {
+	handler := func(ctx context.Context, req Req) (Res, error) {
+		return updateFn(ctx, req)
 	}
 
-	return &Endpoint[Req, NoResponse]{
+	return &Endpoint[Req, Res]{
 		Method:      http.MethodPatch,
 		Path:        path,
 		Title:       "Update",
@@ -148,34 +226,106 @@ func UpdateEndpoint[Q any, Req any](
 	}
 }
 
-func DeleteEndpoint[Q any, Req any](
+func UpdateWithQueries[Q any, Req any, Res any](
 	path string,
-	deleteFn func(ctx context.Context, queries Q, req Req) error,
-) *Endpoint[Req, MessageResponse] {
-	handler := func(ctx context.Context, req Req) (MessageResponse, error) {
-		if err := deleteFn(ctx, rctx.MustQueriesFromContext(ctx).(Q), req); err != nil {
-			return MessageResponse{}, err
+	updateFn func(ctx context.Context, queries Q, req Req) (Res, error),
+) *Endpoint[Req, Res] {
+	handler := func(ctx context.Context, req Req) (Res, error) {
+		q, err := rctx.MustQueriesFromContext(ctx)
+		if err != nil {
+			return *new(Res), err
 		}
-		return MessageResponse{Message: "deleted successfully"}, nil
+		return updateFn(ctx, q.(Q), req)
 	}
 
-	return &Endpoint[Req, MessageResponse]{
+	return &Endpoint[Req, Res]{
+		Method:      http.MethodPatch,
+		Path:        path,
+		Title:       "Update",
+		Description: "Update a resource by ID",
+		Handler:     handler,
+		Bind:        middleware.MixedBinder[Req](),
+		Parameters:  ExtractParams[Req](),
+	}
+}
+
+func Delete[Req any](
+	path string,
+	deleteFn func(ctx context.Context, req Req) error,
+) *Endpoint[Req, NoResponse] {
+	handler := func(ctx context.Context, req Req) (NoResponse, error) {
+		if err := deleteFn(ctx, req); err != nil {
+			return NoResponse{}, err
+		}
+		return NoResponse{}, nil
+	}
+
+	return &Endpoint[Req, NoResponse]{
 		Method:      http.MethodDelete,
 		Path:        path,
 		Title:       "Delete",
 		Description: "Delete a resource by ID",
+		Handler:     handler,
+	}
+}
+
+func DeleteWithQueries[Q any, Req any](
+	path string,
+	deleteFn func(ctx context.Context, queries Q, req Req) error,
+) *Endpoint[Req, NoResponse] {
+	handler := func(ctx context.Context, req Req) (NoResponse, error) {
+		q, err := rctx.MustQueriesFromContext(ctx)
+		if err != nil {
+			return NoResponse{}, err
+		}
+		return NoResponse{}, deleteFn(ctx, q.(Q), req)
+	}
+
+	return &Endpoint[Req, NoResponse]{
+		Method:      http.MethodDelete,
+		Path:        path,
+		Title:       "Delete",
+		Description: "Delete a resource by ID",
+		Handler:     handler,
+	}
+}
+
+func Search[Req any, Res any](
+	path string,
+	searchFn func(ctx context.Context, req Req) ([]Res, error),
+) *Endpoint[Req, []Res] {
+	handler := func(ctx context.Context, req Req) ([]Res, error) {
+		list, err := searchFn(ctx, req)
+		if err != nil {
+			return []Res{}, err
+		}
+		if list == nil {
+			return []Res{}, nil
+		}
+		return list, nil
+	}
+
+	return &Endpoint[Req, []Res]{
+		Method:      http.MethodGet,
+		Path:        path,
+		Title:       "Search",
+		Description: "Search resources by query parameters",
 		Handler:     handler,
 		Bind:        middleware.QueryBinder[Req](),
 		Parameters:  ExtractParams[Req](),
 	}
 }
 
-func SearchEndpoint[Q any, Req any, Res any](
+func SearchWithQueries[Q any, Req any, Res any](
 	path string,
 	searchFn func(ctx context.Context, queries Q, req Req) ([]Res, error),
 ) *Endpoint[Req, []Res] {
 	handler := func(ctx context.Context, req Req) ([]Res, error) {
-		list, err := searchFn(ctx, rctx.MustQueriesFromContext(ctx).(Q), req)
+		q, err := rctx.MustQueriesFromContext(ctx)
+		if err != nil {
+			return []Res{}, err
+		}
+		list, err := searchFn(ctx, q.(Q), req)
 		if err != nil {
 			return []Res{}, err
 		}

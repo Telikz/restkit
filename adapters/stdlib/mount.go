@@ -10,8 +10,6 @@ import (
 	"github.com/reststore/restkit/internal/schema"
 )
 
-var mountCache = cache.NewRouteCache()
-
 func Mount(restkitApi *api.Api, prefix string, mux *http.ServeMux, metas []schema.RouteMeta) error {
 	var routes []schema.MountedRoute
 	var err error
@@ -26,6 +24,9 @@ func Mount(restkitApi *api.Api, prefix string, mux *http.ServeMux, metas []schem
 		return errors.New("extracting routes from stdlib mux: " + err.Error())
 	}
 
+	// Create per-instance cache instead of using global
+	mountCache := cache.NewRouteCache()
+
 	for _, route := range routes {
 		var handler http.Handler
 		if route.RequestType != nil {
@@ -38,7 +39,7 @@ func Mount(restkitApi *api.Api, prefix string, mux *http.ServeMux, metas []schem
 		} else {
 			handler = mux
 		}
-		mountCache.Set(route.Method, prefix+route.Path, handler)
+		mountCache.Set(route.Method, route.Path, handler)
 	}
 
 	cachedHandler := &cachedMountHandler{
@@ -59,30 +60,19 @@ type cachedMountHandler struct {
 }
 
 func (h *cachedMountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if route, ok := h.cache.Get(r.Method, r.URL.Path); ok {
+	// Strip the prefix from the request path for cache lookup
+	path := r.URL.Path
+	if h.prefix != "" && strings.HasPrefix(path, h.prefix) {
+		path = path[len(h.prefix):]
+		if path == "" {
+			path = "/"
+		}
+	}
+
+	if route, ok := h.cache.Get(r.Method, path); ok {
 		route.Handler.ServeHTTP(w, r)
 		return
 	}
 
 	h.mux.ServeHTTP(w, r)
-}
-
-func matchPath(requestPath, routePath string) bool {
-	requestParts := strings.Split(requestPath, "/")
-	routeParts := strings.Split(routePath, "/")
-
-	if len(requestParts) != len(routeParts) {
-		return false
-	}
-
-	for i := range routeParts {
-		if strings.HasPrefix(routeParts[i], "{") && strings.HasSuffix(routeParts[i], "}") {
-			continue
-		}
-		if routeParts[i] != requestParts[i] {
-			return false
-		}
-	}
-
-	return true
 }

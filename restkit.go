@@ -70,12 +70,26 @@ func NewEndpointReq[Req any]() *Endpoint[Req, NoResponse] {
 	return core.NewEndpointReq[Req]()
 }
 
+func List[Req any, Res any](
+	path string,
+	listFn func(ctx context.Context, req Req) ([]Res, error),
+) *Endpoint[Req, []Res] {
+	return core.List(path, listFn)
+}
+
 // ListEndpoint creates an endpoint for listing resources.
 func ListEndpoint[Q any, Req any, Res any](
 	path string,
 	listFn func(ctx context.Context, queries Q, req Req) ([]Res, error),
 ) *Endpoint[Req, []Res] {
 	return core.ListEndpoint(path, listFn)
+}
+
+func Get[Req any, Res any](
+	path string,
+	getFn func(ctx context.Context, req Req) (Res, error),
+) *Endpoint[Req, Res] {
+	return core.Get(path, getFn)
 }
 
 // GetEndpoint creates an endpoint for getting a single resource.
@@ -86,6 +100,13 @@ func GetEndpoint[Q any, Req any, Res any](
 	return core.GetEndpoint(path, getFn)
 }
 
+func Create[Req any, Res any](
+	path string,
+	createFn func(ctx context.Context, req Req) (Res, error),
+) *Endpoint[Req, Res] {
+	return core.Create(path, createFn)
+}
+
 // CreateEndpoint creates an endpoint for creating resources.
 func CreateEndpoint[Q any, Req any, Res any](
 	path string,
@@ -94,20 +115,41 @@ func CreateEndpoint[Q any, Req any, Res any](
 	return core.CreateEndpoint(path, createFn)
 }
 
-// UpdateEndpoint creates an endpoint for updating resources.
-func UpdateEndpoint[Q any, Req any](
+func Update[Req any, Res any](
 	path string,
-	updateFn func(ctx context.Context, queries Q, req Req) error,
-) *Endpoint[Req, NoResponse] {
+	updateFn func(ctx context.Context, req Req) (Res, error),
+) *Endpoint[Req, Res] {
+	return core.Update(path, updateFn)
+}
+
+// UpdateEndpoint creates an endpoint for updating resources.
+func UpdateEndpoint[Q any, Req any, Res any](
+	path string,
+	updateFn func(ctx context.Context, queries Q, req Req) (Res, error),
+) *Endpoint[Req, Res] {
 	return core.UpdateEndpoint(path, updateFn)
+}
+
+func Delete[Req any](
+	path string,
+	deleteFn func(ctx context.Context, req Req) error,
+) *Endpoint[Req, NoResponse] {
+	return core.Delete(path, deleteFn)
 }
 
 // DeleteEndpoint creates an endpoint for deleting resources.
 func DeleteEndpoint[Q any, Req any](
 	path string,
 	deleteFn func(ctx context.Context, queries Q, req Req) error,
-) *Endpoint[Req, MessageResponse] {
+) *Endpoint[Req, NoResponse] {
 	return core.DeleteEndpoint(path, deleteFn)
+}
+
+func Search[Req any, Res any](
+	path string,
+	searchFn func(ctx context.Context, req Req) ([]Res, error),
+) *Endpoint[Req, []Res] {
+	return core.Search(path, searchFn)
 }
 
 // SearchEndpoint creates an endpoint for searching resources.

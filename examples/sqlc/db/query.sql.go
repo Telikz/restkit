@@ -56,8 +56,10 @@ func (q *Queries) GetUser(ctx context.Context, id int64) (User, error) {
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT id, name, email, created_at FROM users
-LIMIT ? OFFSET ?
+SELECT id, name, email, created_at
+FROM users
+ORDER BY id
+LIMIT ?1 OFFSET ?2
 `
 
 type ListUsersParams struct {
@@ -157,8 +159,9 @@ func (q *Queries) SearchUsers(ctx context.Context, arg SearchUsersParams) ([]Use
 	return items, nil
 }
 
-const updateUser = `-- name: UpdateUser :exec
+const updateUser = `-- name: UpdateUser :one
 UPDATE users SET name = ?, email = ? WHERE id = ?
+RETURNING id, name, email, created_at
 `
 
 type UpdateUserParams struct {
@@ -167,7 +170,14 @@ type UpdateUserParams struct {
 	ID    int64  `json:"id"`
 }
 
-func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
-	_, err := q.db.ExecContext(ctx, updateUser, arg.Name, arg.Email, arg.ID)
-	return err
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, updateUser, arg.Name, arg.Email, arg.ID)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.CreatedAt,
+	)
+	return i, err
 }

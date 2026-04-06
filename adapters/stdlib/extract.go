@@ -1,6 +1,7 @@
 package reststdlib
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
@@ -35,8 +36,8 @@ func Extract(mux *http.ServeMux, metas []schema.RouteMeta) ([]schema.MountedRout
 }
 
 func ExtractAll(mux *http.ServeMux) ([]schema.MountedRoute, error) {
-	// http.ServeMux doesn't expose its routes
-	return []schema.MountedRoute{}, nil
+	// http.ServeMux doesn't expose its routes - requires manual metadata
+	return nil, errors.New("http.ServeMux does not expose registered routes; please provide route metadata via the metas parameter")
 }
 
 func extractPathParams(pattern string) []schema.ParamInfo {

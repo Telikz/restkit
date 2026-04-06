@@ -1,1 +1,10 @@
-.idea
+*
+!*/
+!*.*
+
+.idea/
+*.db
+*.log
+*.sqlite
+*.sqlite3
+*.db-journal

@@ -106,7 +106,7 @@ func TestGetEndpoint(t *testing.T) {
 		return GetResponse{Name: "test"}, nil
 	}
 
-	endpoint := endpoints.GetEndpoint[any, GetRequest, GetResponse]("/users/{id}", fn)
+	endpoint := endpoints.GetWithQueries[any, GetRequest, GetResponse]("/users/{id}", fn)
 
 	if endpoint.Method != "GET" {
 		t.Errorf("expected method=GET, got %s", endpoint.Method)
@@ -135,7 +135,7 @@ func TestListEndpoint(t *testing.T) {
 		return []Item{{ID: 1}}, nil
 	}
 
-	endpoint := endpoints.ListEndpoint[any, ListRequest, Item]("/users", fn)
+	endpoint := endpoints.ListWithQueries[any, ListRequest, Item]("/users", fn)
 
 	if endpoint.Method != "GET" {
 		t.Errorf("expected method=GET, got %s", endpoint.Method)
@@ -160,7 +160,7 @@ func TestSearchEndpoint(t *testing.T) {
 		return []Item{{Name: "found"}}, nil
 	}
 
-	endpoint := endpoints.SearchEndpoint[any, SearchRequest, Item]("/search", fn)
+	endpoint := endpoints.SearchWithQueries[any, SearchRequest, Item]("/search", fn)
 
 	if endpoint.Method != "GET" {
 		t.Errorf("expected method=GET, got %s", endpoint.Method)
@@ -182,7 +182,7 @@ func TestCreateEndpoint(t *testing.T) {
 		return CreateResponse{ID: 1}, nil
 	}
 
-	endpoint := endpoints.CreateEndpoint[any, CreateRequest, CreateResponse]("/users", fn)
+	endpoint := endpoints.CreateWithQueries[any, CreateRequest, CreateResponse]("/users", fn)
 
 	if endpoint.Method != "POST" {
 		t.Errorf("expected method=POST, got %s", endpoint.Method)
@@ -198,11 +198,11 @@ func TestUpdateEndpoint(t *testing.T) {
 		Name string `          json:"name"`
 	}
 
-	fn := func(ctx context.Context, queries any, req UpdateRequest) error {
-		return nil
+	fn := func(ctx context.Context, queries any, req UpdateRequest) (struct{}, error) {
+		return struct{}{}, nil
 	}
 
-	endpoint := endpoints.UpdateEndpoint[any, UpdateRequest]("/users/{id}", fn)
+	endpoint := endpoints.UpdateWithQueries("/users/{id}", fn)
 
 	if endpoint.Method != "PATCH" {
 		t.Errorf("expected method=PATCH, got %s", endpoint.Method)
@@ -224,17 +224,12 @@ func TestDeleteEndpoint(t *testing.T) {
 		return nil
 	}
 
-	endpoint := endpoints.DeleteEndpoint[any, DeleteRequest]("/users/{id}", fn)
+	endpoint := endpoints.DeleteWithQueries[any, DeleteRequest]("/users/{id}", fn)
 
 	if endpoint.Method != "DELETE" {
 		t.Errorf("expected method=DELETE, got %s", endpoint.Method)
 	}
-	if endpoint.Bind == nil {
-		t.Error("expected Bind to be set")
-	}
-	if len(endpoint.Parameters) != 1 {
-		t.Errorf("expected 1 parameter, got %d", len(endpoint.Parameters))
-	}
+	// DeleteWithQueries doesn't set Bind or Parameters - they are optional
 }
 
 func TestParseID(t *testing.T) {

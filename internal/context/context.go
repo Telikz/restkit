@@ -2,6 +2,7 @@ package context
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"sync"
 )
@@ -39,12 +40,12 @@ func QueriesFromContext(ctx context.Context) any {
 }
 
 // MustQueriesFromContext retrieves database queries from the context.
-func MustQueriesFromContext(ctx context.Context) any {
+func MustQueriesFromContext(ctx context.Context) (any, error) {
 	queries := QueriesFromContext(ctx)
 	if queries == nil {
-		panic("database queries not found in context, add DBMiddleware to your middleware stack")
+		return nil, fmt.Errorf("database queries not found in context, add DBMiddleware to your middleware stack")
 	}
-	return queries
+	return queries, nil
 }
 
 var pathParamRegex = regexp.MustCompile(`\{([^}]+)}`)

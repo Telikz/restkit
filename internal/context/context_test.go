@@ -317,22 +317,22 @@ func TestMustQueriesFromContext(t *testing.T) {
 		queries := "test-queries"
 		ctx := WithQueries(context.Background(), queries)
 
-		result := MustQueriesFromContext(ctx)
+		result, err := MustQueriesFromContext(ctx)
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
 		if result != queries {
 			t.Errorf("expected '%v', got '%v'", queries, result)
 		}
 	})
 
-	t.Run("panic on missing queries", func(t *testing.T) {
+	t.Run("error on missing queries", func(t *testing.T) {
 		ctx := context.Background()
 
-		defer func() {
-			if r := recover(); r == nil {
-				t.Error("expected panic for missing queries")
-			}
-		}()
-
-		MustQueriesFromContext(ctx)
+		_, err := MustQueriesFromContext(ctx)
+		if err == nil {
+			t.Error("expected error for missing queries")
+		}
 	})
 }
 

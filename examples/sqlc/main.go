@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
-	"time"
 
 	"sqlc/db"
 
@@ -31,32 +30,33 @@ func main() {
 	a.WithVersion("1.0")
 	a.WithTitle("User API")
 	a.WithDescription("REST API with sqlc")
-	a.WithValidator(playground.NewValidator(nil))
+	a.WithMiddleware(rk.LoggingMiddleware())   // Built-in logging middleware
+	a.WithValidator(playground.NewValidator()) // Go-playground style validaiton
 
-	a.WithMiddleware(rk.CORSMiddleware())
-	a.WithMiddleware(rk.LoggingMiddleware())
+	a.AddGroup(rk.NewGroup("/users").
+		WithTitle("User Management").
+		WithEndpoints(
+			getUserEndpoint(queries),
+			listUsersEndpoint(queries),
+			createUserEndpoint(queries),
+			updateUserEndpoint(queries),
+			deleteUserEndpoint(queries),
+			searchUsersEndpoint(queries),
+		),
+	)
 
-	a.AddGroup(userEndpoints().
-		WithMiddleware(rk.DBMiddleware(queries)))
-
-	a.WithSwaggerUI()
-
-	server := http.Server{
-		Addr:         ":8080",
-		Handler:      a.Mux(),
-		ReadTimeout:  15 * time.Second,
-		WriteTimeout: 15 * time.Second,
-	}
+	a.WithSwaggerUI() // Serve Swagger UI at /swagger
 
 	log.Println("Server on :8080")
-	log.Fatal(server.ListenAndServe())
+	if err := http.ListenAndServe(":8080", a.Mux()); err != nil {
+		log.Fatal(err)
+	}
 }
 
 const schema = `
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    email TEXT NOT NULL UNIQUE,
+    email TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-`
+);`

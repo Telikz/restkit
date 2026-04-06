@@ -11,21 +11,8 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func userEndpoints() *rk.Group {
-	return rk.NewGroup("/users").
-		WithTitle("User Management").
-		WithDescription("Endpoints for managing users").
-		WithEndpoints(
-			getUserEndpoint(),
-			listUsersEndpoint(),
-			createUserEndpoint(),
-			updateUserEndpoint(),
-			deleteUserEndpoint(),
-			searchUsersEndpoint(),
-		)
-}
-
-// Response DTO - never return raw db models directly
+// UserResponse is a simplified version of db.User for API responses.
+// API responses should not expose internal fields, so we define a separate struct.
 type UserResponse struct {
 	ID        int64  `json:"id"`
 	Name      string `json:"name"`
@@ -33,112 +20,142 @@ type UserResponse struct {
 	CreatedAt string `json:"created_at"`
 }
 
-// CreateUserRequest body validated via struct tags
+// GetUserRequest defines the request path for getting a user by ID.
+type GetUserRequest struct {
+	ID int64 `path:"id"` // Set path:"id" to extract from URL path
+}
+
+func getUserEndpoint(q *db.Queries) *rk.Endpoint[GetUserRequest, UserResponse] {
+	return rk.Get("/{id}",
+		func(ctx context.Context, req GetUserRequest,
+		) (UserResponse, error) {
+			user, err := q.GetUser(ctx, req.ID)
+			if err != nil {
+				return UserResponse{}, err
+			}
+			return toUserResponse(user), nil
+		},
+	)
+}
+
+// ListUsersRequest defines query parameters for listing users with pagination.
+type ListUsersRequest struct {
+	Limit  int64 `query:"limit"  default:"20"` // Default limit is 20
+	Offset int64 `query:"offset" default:"0"`  // Default offset is 0
+}
+
+// listUsersEndpoint defines an endpoint for listing users with pagination support.
+func listUsersEndpoint(q *db.Queries) *rk.Endpoint[ListUsersRequest, []UserResponse] {
+	return rk.List("/",
+		func(ctx context.Context, req ListUsersRequest,
+		) ([]UserResponse, error) {
+			users, err := q.ListUsers(ctx, db.ListUsersParams{
+				Limit:  req.Limit,
+				Offset: req.Offset,
+			})
+			if err != nil {
+				return nil, err
+			}
+			return mapUsersToResponse(users), nil
+		},
+	)
+}
+
+// CreateUserRequest defines the request body for creating a new user, through JSON binding.
+// Validation tags are used by go-playground/validator to validate incoming requests.
 type CreateUserRequest struct {
 	Name  string `json:"name"  validate:"required,min=2,max=32"`
 	Email string `json:"email" validate:"required,email"`
 }
 
-// UpdateUserRequest combines path param (ID) with body fields
+// createUserEndpoint defines an endpoint for creating a new user.
+func createUserEndpoint(q *db.Queries) *rk.Endpoint[CreateUserRequest, UserResponse] {
+	return rk.Create("/",
+		func(ctx context.Context, req CreateUserRequest,
+		) (UserResponse, error) {
+			user, err := q.CreateUser(ctx, db.CreateUserParams{
+				Name:  req.Name,
+				Email: req.Email,
+			})
+			if err != nil {
+				return UserResponse{}, err
+			}
+			return toUserResponse(user), nil
+		},
+	)
+}
+
+// UpdateUserRequest defines the request path and body for updating a user, through JSON binding.
+// Validation tags are used by go-playground/validator to validate incoming requests.
 type UpdateUserRequest struct {
 	ID    int64  `path:"id"`
 	Name  string `          json:"name"  validate:"omitempty,min=2,max=32"`
 	Email string `          json:"email" validate:"omitempty,email"`
 }
 
-// SearchUsersRequest uses pointer fields for optional filters
-type SearchUsersRequest struct {
+// updateUserEndpoint defines an endpoint for updating a user by ID.
+func updateUserEndpoint(q *db.Queries) *rk.Endpoint[UpdateUserRequest, UserResponse] {
+	return rk.Update("/{id}",
+		func(ctx context.Context, req UpdateUserRequest,
+		) (UserResponse, error) {
+			user, err := q.UpdateUser(ctx, db.UpdateUserParams{
+				ID:    req.ID,
+				Name:  req.Name,
+				Email: req.Email,
+			})
+			if err != nil {
+				return UserResponse{}, err
+			}
+			return toUserResponse(user), nil
+		},
+	)
+}
+
+// DeleteUserRequest defines the request path for deleting a user.
+type DeleteUserRequest struct {
+	ID int64 `path:"id"`
+}
+
+// deleteUserEndpoint defines an endpoint for deleting a user by ID.
+func deleteUserEndpoint(q *db.Queries) *rk.Endpoint[DeleteUserRequest, rk.NoResponse] {
+	return rk.Delete("/{id}",
+		func(ctx context.Context, req DeleteUserRequest,
+		) error {
+			return q.DeleteUser(ctx, req.ID)
+		},
+	)
+}
+
+// SearchUsersRequest defines query parameters for searching users with optional filters.
+// All fields are pointers to allow distinguishing between "not provided" and "provided with zero value".
+type SearchUserRequest struct {
 	ID        *string `query:"id"`
 	Name      *string `query:"name"`
 	Email     *string `query:"email"`
 	CreatedAt *string `query:"created_at"`
 }
 
-// ListUsersRequest for pagination
-type ListUsersRequest struct {
-	Limit  int32 `query:"limit"  default:"20"`
-	Offset int32 `query:"offset" default:"0"`
+// SearchUsersEndpoint allows searching users with optional filters provided as query parameters.
+func searchUsersEndpoint(q *db.Queries) *rk.Endpoint[SearchUserRequest, []UserResponse] {
+	return rk.Search("/search",
+		func(ctx context.Context, req SearchUserRequest,
+		) ([]UserResponse, error) {
+			users, err := q.SearchUsers(ctx, db.SearchUsersParams{
+				ID:        req.ID,
+				Name:      req.Name,
+				Email:     req.Email,
+				CreatedAt: req.CreatedAt,
+			})
+			if err != nil {
+				return nil, err
+			}
+			return mapUsersToResponse(users), nil
+		},
+	)
 }
 
-func getUserEndpoint() *rk.Endpoint[rk.GetRequest, UserResponse] {
-	return rk.GetEndpoint("/{id}", func(ctx context.Context, q *db.Queries, req rk.GetRequest) (UserResponse, error) {
-		user, err := q.GetUser(ctx, req.ID)
-		if err != nil {
-			return UserResponse{}, err
-		}
-		return toUserResponse(user), nil
-	}).
-		WithTitle("Get User").
-		WithDescription("Get user by ID")
-}
-
-func listUsersEndpoint() *rk.Endpoint[ListUsersRequest, []UserResponse] {
-	return rk.ListEndpoint("/", func(ctx context.Context, q *db.Queries, req ListUsersRequest) ([]UserResponse, error) {
-		users, err := q.ListUsers(ctx, db.ListUsersParams{
-			Limit:  int64(req.Limit),
-			Offset: int64(req.Offset),
-		})
-		if err != nil {
-			return nil, err
-		}
-		return mapUsersToResponse(users), nil
-	}).
-		WithTitle("List Users").
-		WithDescription("List users with pagination")
-}
-
-func createUserEndpoint() *rk.Endpoint[CreateUserRequest, UserResponse] {
-	return rk.CreateEndpoint("/", func(ctx context.Context, q *db.Queries, req CreateUserRequest) (UserResponse, error) {
-		user, err := q.CreateUser(ctx, db.CreateUserParams{
-			Name:  req.Name,
-			Email: req.Email,
-		})
-		if err != nil {
-			return UserResponse{}, err
-		}
-		return toUserResponse(user), nil
-	}).
-		WithTitle("Create User").
-		WithDescription("Create a new user")
-}
-
-func updateUserEndpoint() *rk.Endpoint[UpdateUserRequest, rk.NoResponse] {
-	return rk.UpdateEndpoint("/{id}", func(ctx context.Context, q *db.Queries, req UpdateUserRequest) error {
-		return q.UpdateUser(ctx, db.UpdateUserParams{
-			ID:    req.ID,
-			Name:  req.Name,
-			Email: req.Email,
-		})
-	}).
-		WithTitle("Update User").
-		WithDescription("Update user details")
-}
-
-func deleteUserEndpoint() *rk.Endpoint[rk.DeleteRequest, rk.MessageResponse] {
-	return rk.DeleteEndpoint("/{id}", func(ctx context.Context, q *db.Queries, req rk.DeleteRequest) error {
-		return q.DeleteUser(ctx, req.ID)
-	}).
-		WithTitle("Delete User").
-		WithDescription("Delete a user")
-}
-
-func searchUsersEndpoint() *rk.Endpoint[SearchUsersRequest, []UserResponse] {
-	return rk.SearchEndpoint("/search", func(ctx context.Context, q *db.Queries, req SearchUsersRequest) ([]UserResponse, error) {
-		users, err := q.SearchUsers(ctx, db.SearchUsersParams{
-			ID:        req.ID,
-			Name:      req.Name,
-			Email:     req.Email,
-			CreatedAt: req.CreatedAt,
-		})
-		if err != nil {
-			return nil, err
-		}
-		return mapUsersToResponse(users), nil
-	}).
-		WithTitle("Search Users").
-		WithDescription("Search users by query parameters")
-}
-
+// toUserResponse converts a db.User to a UserResponse,
+// formatting the CreatedAt field as an RFC3339 string.
 func toUserResponse(u db.User) UserResponse {
 	createdAt := ""
 	if u.CreatedAt.Valid {
@@ -152,6 +169,7 @@ func toUserResponse(u db.User) UserResponse {
 	}
 }
 
+// mapUsersToResponse converts a slice of db.User to a slice of UserResponse.
 func mapUsersToResponse(users []db.User) []UserResponse {
 	result := make([]UserResponse, len(users))
 	for i, u := range users {

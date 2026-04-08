@@ -2,8 +2,10 @@ package endpoints
 
 import (
 	"context"
+	"encoding/hex"
 	"net/http"
 	"strconv"
+	"strings"
 
 	rctx "github.com/reststore/restkit/internal/context"
 	"github.com/reststore/restkit/internal/errors"
@@ -374,4 +376,31 @@ func parseIntIDWithError(idStr string) (int, error) {
 		).ToAPIError()
 	}
 	return id, nil
+}
+
+func ParseUUID(idStr string) ([16]byte, error) {
+	return parseUUIDWithError(idStr)
+}
+
+func parseUUIDWithError(idStr string) ([16]byte, error) {
+	var uuid [16]byte
+
+	s := strings.ReplaceAll(idStr, "-", "")
+	if len(s) != 32 {
+		return uuid, errors.ValidationFailed(
+			http.StatusBadRequest, errors.ErrCodeBind,
+			"Invalid uuid format", "id", "must be a valid uuid",
+		).ToAPIError()
+	}
+
+	bytes, err := hex.DecodeString(s)
+	if err != nil {
+		return uuid, errors.ValidationFailed(
+			http.StatusBadRequest, errors.ErrCodeBind,
+			"Invalid uuid format", "id", "must be a valid uuid",
+		).ToAPIError()
+	}
+
+	copy(uuid[:], bytes)
+	return uuid, nil
 }

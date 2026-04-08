@@ -348,4 +348,7 @@ var (
 
 	// ParseIntID converts a string ID to int.
 	ParseIntID = core.ParseIntID
+
+	// ParseUUID converts a string ID to UUID [16]byte.
+	ParseUUID = core.ParseUUID
 )

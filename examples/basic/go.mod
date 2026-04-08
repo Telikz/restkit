@@ -3,6 +3,7 @@ module github.com/reststore/restkit/examples/basic
 go 1.26.1
 
 require (
+	github.com/google/uuid v1.6.0
 	github.com/reststore/restkit v0.0.0
 	github.com/reststore/restkit/validators/playground v0.0.0
 )

@@ -40,7 +40,15 @@ func TypeToSchema(t reflect.Type) map[string]any {
 		schema["type"] = "number"
 	case reflect.Bool:
 		schema["type"] = "boolean"
-	case reflect.Slice, reflect.Array:
+	case reflect.Array:
+		if t.Elem().Kind() == reflect.Uint8 && t.Len() == 16 {
+			schema["type"] = "string"
+			schema["format"] = "uuid"
+		} else {
+			schema["type"] = "array"
+			schema["items"] = TypeToSchema(t.Elem())
+		}
+	case reflect.Slice:
 		schema["type"] = "array"
 		schema["items"] = TypeToSchema(t.Elem())
 	case reflect.Map:
@@ -172,6 +180,11 @@ func goTypeToJSONType(t reflect.Type) string {
 	switch t.Kind() {
 	case reflect.String:
 		return "string"
+	case reflect.Array:
+		if t.Elem().Kind() == reflect.Uint8 && t.Len() == 16 {
+			return "string"
+		}
+		return "array"
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
 		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		return "integer"

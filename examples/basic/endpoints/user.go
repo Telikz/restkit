@@ -4,15 +4,15 @@ import (
 	"context"
 	"errors"
 	"net/http"
-	"strconv"
 	"time"
 
+	"github.com/google/uuid"
 	rk "github.com/reststore/restkit"
 )
 
 // User represents a user in the system
 type User struct {
-	ID        int       `json:"id"`
+	ID        uuid.UUID `json:"id"`
 	Name      string    `json:"name"`
 	Email     string    `json:"email"`
 	CreatedAt time.Time `json:"created_at"`
@@ -30,19 +30,23 @@ type UpdateUserRequest struct {
 	Email string `json:"email" validate:"omitempty,email"`
 }
 
+type GetUserRequest struct {
+	ID uuid.UUID `path:"id"`
+}
+
 // MessageResponse is a generic response for operations that return a message
 type MessageResponse struct {
 	Message string `json:"message"`
 }
 
-func GetUser() *rk.Endpoint[rk.NoRequest, User] {
-	return rk.NewEndpoint[rk.NoRequest, User]().
+func GetUser() *rk.Endpoint[GetUserRequest, User] {
+	return rk.NewEndpoint[GetUserRequest, User]().
 		WithMethod(http.MethodGet).
 		WithPath("/users/{id}").
 		WithTitle("Get User").
 		WithDescription("Get a user by ID").
-		WithHandler(func(ctx context.Context, _ rk.NoRequest) (User, error) {
-			return getUserHandler(ctx)
+		WithHandler(func(ctx context.Context, req GetUserRequest) (User, error) {
+			return getUserHandler(ctx, req)
 		})
 }
 
@@ -90,31 +94,36 @@ func DeleteUser() *rk.Endpoint[rk.NoRequest, MessageResponse] {
 
 var nextID = 3
 
-var users = map[int]User{
-	1: {
-		ID:        1,
+// TestUUIDs for predictable testing
+var (
+	AliceUUID = uuid.MustParse("019d6c96-65c7-7422-876e-7dff72c62556")
+	BobUUID   = uuid.MustParse("12345678-1234-1234-1234-123456789abc")
+)
+
+var users = map[uuid.UUID]User{
+	AliceUUID: {
+		ID:        AliceUUID,
 		Name:      "Alice",
 		Email:     "alice@example.com",
 		CreatedAt: time.Now(),
 	},
-	2: {ID: 2, Name: "Bob", Email: "bob@example.com", CreatedAt: time.Now()},
+	BobUUID: {
+		ID:        BobUUID,
+		Name:      "Bob",
+		Email:     "bob@example.com",
+		CreatedAt: time.Now(),
+	},
 }
 
-func getUserHandler(ctx context.Context) (User, error) {
-	idStr := rk.URLParam(ctx, "id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		return User{}, errors.New("invalid id")
-	}
-
-	user, exists := users[id]
+func getUserHandler(_ context.Context, req GetUserRequest) (User, error) {
+	user, exists := users[req.ID]
 	if !exists {
 		return User{}, errors.New("user not found")
 	}
 	return user, nil
 }
 
-func listUsersHandler(ctx context.Context) ([]User, error) {
+func listUsersHandler(_ context.Context) ([]User, error) {
 	userList := make([]User, 0, len(users))
 	for _, u := range users {
 		userList = append(userList, u)
@@ -127,7 +136,7 @@ func createUserHandler(
 	req CreateUserRequest,
 ) (*User, error) {
 	user := User{
-		ID:        nextID,
+		ID:        uuid.New(),
 		Name:      req.Name,
 		Email:     req.Email,
 		CreatedAt: time.Now(),
@@ -139,7 +148,7 @@ func createUserHandler(
 
 func updateUserHandler(ctx context.Context, req UpdateUserRequest) error {
 	idStr := rk.URLParam(ctx, "id")
-	id, err := strconv.Atoi(idStr)
+	id, err := uuid.Parse(idStr)
 	if err != nil {
 		return errors.New("invalid id")
 	}
@@ -162,7 +171,7 @@ func updateUserHandler(ctx context.Context, req UpdateUserRequest) error {
 
 func deleteUserHandler(ctx context.Context) (MessageResponse, error) {
 	idStr := rk.URLParam(ctx, "id")
-	id, err := strconv.Atoi(idStr)
+	id, err := uuid.Parse(idStr)
 	if err != nil {
 		return MessageResponse{}, errors.New("invalid id")
 	}

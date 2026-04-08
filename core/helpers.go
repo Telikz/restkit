@@ -11,6 +11,9 @@ var ParseID = ep.ParseID
 // ParseIntID converts a string ID to int.
 var ParseIntID = ep.ParseIntID
 
+// ParseUUID converts a string ID to UUID [16]byte.
+var ParseUUID = ep.ParseUUID
+
 // StringToInt converts a string to int.
 var StringToInt = mw.StringToInt
 

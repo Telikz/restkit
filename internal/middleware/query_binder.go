@@ -1,11 +1,13 @@
 package middleware
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"reflect"
 	"strconv"
+	"strings"
 )
 
 // QueryBinder binds query and path parameters to a struct using tags.
@@ -147,10 +149,39 @@ func setFieldValue(field reflect.Value, value string) error {
 			return fmt.Errorf("invalid boolean value %q", value)
 		}
 		field.SetBool(boolVal)
+	case reflect.Array:
+		if field.Type().Elem().Kind() == reflect.Uint8 && field.Len() == 16 {
+			uuid, err := parseUUID(value)
+			if err != nil {
+				return err
+			}
+			field.Set(reflect.ValueOf(uuid))
+			return nil
+		}
+		return fmt.Errorf("unsupported array type %v", field.Type())
 	default:
 		return fmt.Errorf("unsupported field type %v", field.Kind())
 	}
 	return nil
+}
+
+// parseUUID parses a UUID string and returns it as [16]byte.
+func parseUUID(s string) ([16]byte, error) {
+	var uuid [16]byte
+
+	s = strings.ReplaceAll(s, "-", "")
+
+	if len(s) != 32 {
+		return uuid, fmt.Errorf("invalid UUID format: expected 32 hex characters, got %d", len(s))
+	}
+
+	bytes, err := hex.DecodeString(s)
+	if err != nil {
+		return uuid, fmt.Errorf("invalid UUID format: %w", err)
+	}
+
+	copy(uuid[:], bytes)
+	return uuid, nil
 }
 
 // QueryParamInfo contains metadata for OpenAPI documentation.
@@ -211,12 +242,17 @@ func ExtractPathParams[Req any]() []PathParamInfo {
 }
 
 func goTypeToJSONType(t reflect.Type) string {
-	if t.Kind() == reflect.Ptr {
+	if t.Kind() == reflect.Pointer {
 		t = t.Elem()
 	}
 
 	switch t.Kind() {
 	case reflect.String:
+		return "string"
+	case reflect.Array:
+		if t.Elem().Kind() == reflect.Uint8 && t.Len() == 16 {
+			return "string"
+		}
 		return "string"
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
 		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:

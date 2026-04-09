@@ -27,6 +27,9 @@ type (
 	// Endpoint represents a unified API endpoint with configurable request and response bodies.
 	Endpoint[Req any, Res any] = core.Endpoint[Req, Res]
 
+	// Event is an alias for internal/endpoints.Event. See restkit.Event for details.
+	Event[T any] = core.Event[T]
+
 	// NoRequest is a sentinel type for endpoints without a request body.
 	NoRequest = core.NoRequest
 
@@ -50,9 +53,6 @@ type (
 
 	// MessageResponse is a simple JSON response with a message field.
 	MessageResponse = core.MessageResponse
-
-	// Event is an alias for internal/endpoints.Event. See restkit.Event for details.
-	Event[T any] = core.Event[T]
 )
 
 // Validate is the validation function used by endpoints.
@@ -80,27 +80,11 @@ func List[Req any, Res any](
 	return core.List(path, listFn)
 }
 
-// ListEndpoint creates an endpoint for listing resources.
-func ListEndpoint[Q any, Req any, Res any](
-	path string,
-	listFn func(ctx context.Context, queries Q, req Req) ([]Res, error),
-) *Endpoint[Req, []Res] {
-	return core.ListEndpoint(path, listFn)
-}
-
 func Get[Req any, Res any](
 	path string,
 	getFn func(ctx context.Context, req Req) (Res, error),
 ) *Endpoint[Req, Res] {
 	return core.Get(path, getFn)
-}
-
-// GetEndpoint creates an endpoint for getting a single resource.
-func GetEndpoint[Q any, Req any, Res any](
-	path string,
-	getFn func(ctx context.Context, queries Q, req Req) (Res, error),
-) *Endpoint[Req, Res] {
-	return core.GetEndpoint(path, getFn)
 }
 
 func Create[Req any, Res any](
@@ -110,27 +94,11 @@ func Create[Req any, Res any](
 	return core.Create(path, createFn)
 }
 
-// CreateEndpoint creates an endpoint for creating resources.
-func CreateEndpoint[Q any, Req any, Res any](
-	path string,
-	createFn func(ctx context.Context, queries Q, req Req) (Res, error),
-) *Endpoint[Req, Res] {
-	return core.CreateEndpoint(path, createFn)
-}
-
 func Update[Req any, Res any](
 	path string,
 	updateFn func(ctx context.Context, req Req) (Res, error),
 ) *Endpoint[Req, Res] {
 	return core.Update(path, updateFn)
-}
-
-// UpdateEndpoint creates an endpoint for updating resources.
-func UpdateEndpoint[Q any, Req any, Res any](
-	path string,
-	updateFn func(ctx context.Context, queries Q, req Req) (Res, error),
-) *Endpoint[Req, Res] {
-	return core.UpdateEndpoint(path, updateFn)
 }
 
 func Delete[Req any](
@@ -140,27 +108,11 @@ func Delete[Req any](
 	return core.Delete(path, deleteFn)
 }
 
-// DeleteEndpoint creates an endpoint for deleting resources.
-func DeleteEndpoint[Q any, Req any](
-	path string,
-	deleteFn func(ctx context.Context, queries Q, req Req) error,
-) *Endpoint[Req, NoResponse] {
-	return core.DeleteEndpoint(path, deleteFn)
-}
-
 func Search[Req any, Res any](
 	path string,
 	searchFn func(ctx context.Context, req Req) ([]Res, error),
 ) *Endpoint[Req, []Res] {
 	return core.Search(path, searchFn)
-}
-
-// SearchEndpoint creates an endpoint for searching resources.
-func SearchEndpoint[Q any, Req any, Res any](
-	path string,
-	searchFn func(ctx context.Context, queries Q, req Req) ([]Res, error),
-) *Endpoint[Req, []Res] {
-	return core.SearchEndpoint(path, searchFn)
 }
 
 func Stream[Req any, Res any](
@@ -241,11 +193,11 @@ var (
 	// WithQueries injects database queries into the context.
 	WithQueries = core.WithQueries
 
-	// QueriesFromContext retrieves database queries from the context.
-	QueriesFromContext = core.QueriesFromContext
+	// Queries retrieves database queries from the context.
+	Queries = core.Queries
 
-	// MustQueriesFromContext retrieves database queries from the context (panics if not found).
-	MustQueriesFromContext = core.MustQueriesFromContext
+	// MustQueries retrieves database queries from the context (panics if not found).
+	MustQueries = core.MustQueries
 )
 
 // Serializers and Binders

@@ -1,0 +1,4 @@
+github.com/gorilla/websocket v1.5.3 h1:saDtZ6Pbx/0u+bgYQ3q96pZgCzfhKXGPqt7kZ72aNNg=
+github.com/gorilla/websocket v1.5.3/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
+github.com/reststore/restkit v0.6.5 h1:pNJgIlbhfSe2IN46pDcBgp1o20xbylUXGuoibO3m1xc=
+github.com/reststore/restkit v0.6.5/go.mod h1:J7J08FG7zTcw0o+YS+j4ZhVgvnKMeY1IbDtbKC6u2SQ=

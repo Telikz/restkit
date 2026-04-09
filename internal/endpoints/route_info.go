@@ -52,6 +52,10 @@ func (r *routeInfo) GetParameters() []Parameter {
 	return r.route.GetParameters()
 }
 
+func (r *routeInfo) GetScheme() string {
+	return r.route.GetScheme()
+}
+
 func (r *routeInfo) GetHandler() http.Handler {
 	handler := r.route.GetHandler()
 	for i := len(r.middleware) - 1; i >= 0; i-- {

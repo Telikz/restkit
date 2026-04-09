@@ -124,6 +124,12 @@ func buildOperation(
 		"description": endpoint.GetDescription(),
 	}
 
+	// Add WebSocket flag if it's a WebSocket endpoint
+	scheme := endpoint.GetScheme()
+	if scheme == "ws" || scheme == "wss" {
+		op["x-websocket"] = true
+	}
+
 	// Build parameters list
 	var paramList []map[string]any
 

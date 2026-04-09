@@ -66,7 +66,7 @@ func main() {
 	// Mount the old stdlib mux at /api/v1 with the provided metadata
 	_ = reststdlib.Mount(api, "/api/v1", stdlibMux, meta)
 
-	api.WithServers("http://localhost:8081") // Set server URL for OpenAPI docs
+	api.WithServer("http://localhost:8081", "Dev Server for old routes", nil)
 	log.Println("Serving RestKit with mounted stdlib routes at :8081")
 	go http.ListenAndServe(":8081", api.Mux())
 
@@ -89,7 +89,7 @@ func main() {
 		),
 	)
 
-	api2.WithServers("http://localhost:8082") // Set server URL for OpenAPI docs
+	api2.WithServer("http://localhost:8082", "Dev Server for old and new routes", nil)
 	log.Println("Serving RestKit API with old and new routes at :8082")
 	http.ListenAndServe(":8082", api2.Mux())
 }

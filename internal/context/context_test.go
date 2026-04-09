@@ -276,7 +276,7 @@ func TestWithQueries(t *testing.T) {
 	queries := map[string]string{"db": "test"}
 	ctx := WithQueries(context.Background(), queries)
 
-	retrieved := QueriesFromContext(ctx)
+	retrieved := Queries(ctx)
 	if retrieved == nil {
 		t.Fatal("expected to retrieve queries from context")
 	}
@@ -296,7 +296,7 @@ func TestQueriesFromContext(t *testing.T) {
 		queries := "test-queries"
 		ctx := WithQueries(context.Background(), queries)
 
-		result := QueriesFromContext(ctx)
+		result := Queries(ctx)
 		if result != queries {
 			t.Errorf("expected '%v', got '%v'", queries, result)
 		}
@@ -304,20 +304,19 @@ func TestQueriesFromContext(t *testing.T) {
 
 	t.Run("retrieve from empty context", func(t *testing.T) {
 		ctx := context.Background()
-		result := QueriesFromContext(ctx)
-
+		result := Queries(ctx)
 		if result != nil {
 			t.Error("expected nil for empty context")
 		}
 	})
 }
 
-func TestMustQueriesFromContext(t *testing.T) {
+func TestMustQueries(t *testing.T) {
 	t.Run("retrieve existing queries", func(t *testing.T) {
 		queries := "test-queries"
 		ctx := WithQueries(context.Background(), queries)
 
-		result, err := MustQueriesFromContext(ctx)
+		result, err := MustQueries(ctx)
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
@@ -329,7 +328,7 @@ func TestMustQueriesFromContext(t *testing.T) {
 	t.Run("error on missing queries", func(t *testing.T) {
 		ctx := context.Background()
 
-		_, err := MustQueriesFromContext(ctx)
+		_, err := MustQueries(ctx)
 		if err == nil {
 			t.Error("expected error for missing queries")
 		}

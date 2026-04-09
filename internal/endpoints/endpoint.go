@@ -20,6 +20,7 @@ type Endpoint[Req any, Res any] struct {
 	Description string
 	Method      string
 	Path        string
+	Scheme      string // "http", "https", "ws", "wss"
 
 	pathParams []string
 
@@ -93,6 +94,14 @@ func (e *Endpoint[Req, Res]) GetParameters() []Parameter {
 	return params
 }
 
+// GetScheme returns the protocol scheme for this endpoint (http, https, ws, wss).
+func (e *Endpoint[Req, Res]) GetScheme() string {
+	if e.Scheme != "" {
+		return e.Scheme
+	}
+	return "http"
+}
+
 // WithParameters sets query/path parameters for OpenAPI documentation.
 func (e *Endpoint[Req, Res]) WithParameters(params ...Parameter) *Endpoint[Req, Res] {
 	e.Parameters = params
@@ -126,6 +135,12 @@ func (e *Endpoint[Req, Res]) WithMethod(method string) *Endpoint[Req, Res] {
 // WithPath sets the URL path for the endpoint.
 func (e *Endpoint[Req, Res]) WithPath(path string) *Endpoint[Req, Res] {
 	e.Path = path
+	return e
+}
+
+// WithScheme sets the protocol scheme for the endpoint (http, https, ws, wss).
+func (e *Endpoint[Req, Res]) WithScheme(scheme string) *Endpoint[Req, Res] {
+	e.Scheme = scheme
 	return e
 }
 

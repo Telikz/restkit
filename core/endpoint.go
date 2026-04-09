@@ -55,6 +55,10 @@ func NewEndpointReq[Req any]() *Endpoint[Req, NoResponse] {
 
 // Parameters
 
+func ExtractParams[Req any]() []Parameter {
+	return ep.ExtractParams[Req]()
+}
+
 // Parameter is an alias for internal/endpoints.Parameter. See restkit.Parameter for details.
 type Parameter = ep.Parameter
 
@@ -75,27 +79,11 @@ func List[Req any, Res any](
 	return ep.List(path, listFn)
 }
 
-// ListEndpoint creates an endpoint for listing resources.
-func ListEndpoint[Q any, Req any, Res any](
-	path string,
-	listFn func(ctx context.Context, queries Q, req Req) ([]Res, error),
-) *Endpoint[Req, []Res] {
-	return ep.ListWithQueries(path, listFn)
-}
-
 func Get[Req any, Res any](
 	path string,
 	getFn func(ctx context.Context, req Req) (Res, error),
 ) *Endpoint[Req, Res] {
 	return ep.Get(path, getFn)
-}
-
-// GetEndpoint creates an endpoint for getting a single resource.
-func GetEndpoint[Q any, Req any, Res any](
-	path string,
-	getFn func(ctx context.Context, queries Q, req Req) (Res, error),
-) *Endpoint[Req, Res] {
-	return ep.GetWithQueries(path, getFn)
 }
 
 func Create[Req any, Res any](
@@ -105,27 +93,11 @@ func Create[Req any, Res any](
 	return ep.Create(path, createFn)
 }
 
-// CreateEndpoint creates an endpoint for creating resources.
-func CreateEndpoint[Q any, Req any, Res any](
-	path string,
-	createFn func(ctx context.Context, queries Q, req Req) (Res, error),
-) *Endpoint[Req, Res] {
-	return ep.CreateWithQueries(path, createFn)
-}
-
 func Update[Req any, Res any](
 	path string,
 	updateFn func(ctx context.Context, req Req) (Res, error),
 ) *Endpoint[Req, Res] {
 	return ep.Update(path, updateFn)
-}
-
-// UpdateEndpoint creates an endpoint for updating resources.
-func UpdateEndpoint[Q any, Req any, Res any](
-	path string,
-	updateFn func(ctx context.Context, queries Q, req Req) (Res, error),
-) *Endpoint[Req, Res] {
-	return ep.UpdateWithQueries(path, updateFn)
 }
 
 func Delete[Req any](
@@ -135,27 +107,11 @@ func Delete[Req any](
 	return ep.Delete(path, deleteFn)
 }
 
-// DeleteEndpoint creates an endpoint for deleting resources.
-func DeleteEndpoint[Q any, Req any](
-	path string,
-	deleteFn func(ctx context.Context, queries Q, req Req) error,
-) *Endpoint[Req, NoResponse] {
-	return ep.DeleteWithQueries(path, deleteFn)
-}
-
 func Search[Req any, Res any](
 	path string,
 	searchFn func(ctx context.Context, req Req) ([]Res, error),
 ) *Endpoint[Req, []Res] {
 	return ep.Search(path, searchFn)
-}
-
-// SearchEndpoint creates an endpoint for searching resources.
-func SearchEndpoint[Q any, Req any, Res any](
-	path string,
-	searchFn func(ctx context.Context, queries Q, req Req) ([]Res, error),
-) *Endpoint[Req, []Res] {
-	return ep.SearchWithQueries(path, searchFn)
 }
 
 // StreamEndpoint creates an endpoint for streaming resources using Server-Sent Events (SSE).

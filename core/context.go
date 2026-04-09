@@ -8,11 +8,11 @@ import (
 type RouteContext = rc.RouteContext
 
 var (
-	WithQueries            = rc.WithQueries
-	QueriesFromContext     = rc.QueriesFromContext
-	MustQueriesFromContext = rc.MustQueriesFromContext
-	URLParam               = rc.URLParam
-	URLQueryParam          = rc.URLQueryParam
-	RouteCtxFromContext    = rc.RouteCtxFromContext
-	ExtractPathParams      = rc.ExtractPathParams
+	WithQueries         = rc.WithQueries
+	Queries             = rc.Queries
+	MustQueries         = rc.MustQueries
+	URLParam            = rc.URLParam
+	URLQueryParam       = rc.URLQueryParam
+	RouteCtxFromContext = rc.RouteCtxFromContext
+	ExtractPathParams   = rc.ExtractPathParams
 )

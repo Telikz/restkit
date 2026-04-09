@@ -35,13 +35,13 @@ func WithQueries(ctx context.Context, queries any) context.Context {
 }
 
 // QueriesFromContext retrieves database queries from the context.
-func QueriesFromContext(ctx context.Context) any {
+func Queries(ctx context.Context) any {
 	return ctx.Value(QueriesCtxKey)
 }
 
 // MustQueriesFromContext retrieves database queries from the context.
-func MustQueriesFromContext(ctx context.Context) (any, error) {
-	queries := QueriesFromContext(ctx)
+func MustQueries(ctx context.Context) (any, error) {
+	queries := Queries(ctx)
 	if queries == nil {
 		return nil, fmt.Errorf("database queries not found in context, add DBMiddleware to your middleware stack")
 	}

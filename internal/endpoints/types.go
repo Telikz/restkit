@@ -37,6 +37,7 @@ type Route interface {
 	GetResponseSchema() map[string]any
 	GetHandler() http.Handler
 	GetParameters() []Parameter
+	GetScheme() string
 	setPath(path string)
 	addMiddleware(mw []func(http.Handler) http.Handler)
 }

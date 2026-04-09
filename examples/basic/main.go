@@ -14,6 +14,7 @@ func main() {
 	a := rk.NewApi()
 	a.WithVersion("1.1")
 	a.WithTitle("User API")
+	a.WithSummary("Basic REST API")
 	a.WithDescription("RESTful API for managing users")
 	a.WithValidator(playground.NewValidator())
 

@@ -14,10 +14,25 @@ import (
 
 // Api is the main struct for defining your API
 type Api struct {
-	Version     string
-	Title       string
-	Description string
-	Servers     []string
+	Version string
+
+	Title          string
+	Summary        string
+	Description    string
+	TermsOfService string
+
+	Contact struct {
+		Name  string
+		URL   string
+		Email string
+	}
+
+	License struct {
+		Name string
+		URL  string
+	}
+
+	Servers []docs.Server
 
 	Endpoints      []ep.Route
 	Groups         []*ep.Group
@@ -30,6 +45,9 @@ type Api struct {
 	Validator    func(ctx context.Context, s any) errs.ValidationResult
 	Serializer   func(w http.ResponseWriter, res any) error
 	Deserializer func(r *http.Request, req any) error
+
+	tlsCertFile string
+	tlsKeyFile  string
 }
 
 func New() *Api {
@@ -46,13 +64,47 @@ func (api *Api) WithTitle(title string) *Api {
 	return api
 }
 
+func (api *Api) WithSummary(summary string) *Api {
+	api.Summary = summary
+	return api
+}
+
 func (api *Api) WithDescription(description string) *Api {
 	api.Description = description
 	return api
 }
 
-func (api *Api) WithServers(servers ...string) *Api {
-	api.Servers = servers
+func (api *Api) WithTermsOfService(tos string) *Api {
+	api.TermsOfService = tos
+	return api
+}
+
+func (api *Api) WithContact(name, url, email string) *Api {
+	api.Contact.Name = name
+	api.Contact.URL = url
+	api.Contact.Email = email
+	return api
+}
+
+func (api *Api) WithLicense(name, url string) *Api {
+	api.License.Name = name
+	api.License.URL = url
+	return api
+}
+
+// WithServer adds a server to the API
+func (api *Api) WithServer(url, description string, variables map[string]struct{ Default, Description string }) *Api {
+	api.Servers = append(api.Servers, docs.Server{
+		URL:         url,
+		Description: description,
+		Variables:   variables,
+	})
+	return api
+}
+
+// WithServers adds one or more servers to the API
+func (api *Api) WithServers(servers ...docs.Server) *Api {
+	api.Servers = append(api.Servers, servers...)
 	return api
 }
 
@@ -116,6 +168,12 @@ func (api *Api) WithDeserializer(
 	deserializer func(r *http.Request, req any) error,
 ) *Api {
 	api.Deserializer = deserializer
+	return api
+}
+
+func (api *Api) WithTLS(certFile, keyFile string) *Api {
+	api.tlsCertFile = certFile
+	api.tlsKeyFile = keyFile
 	return api
 }
 
@@ -205,11 +263,31 @@ func (api *Api) Serve(addr string) error {
 	return http.ListenAndServe(addr, api.Mux())
 }
 
+func (api *Api) ServeTLS(addr, certFile, keyFile string) error {
+	cert := certFile
+	key := keyFile
+	if cert == "" {
+		cert = api.tlsCertFile
+	}
+	if key == "" {
+		key = api.tlsKeyFile
+	}
+	if cert == "" || key == "" {
+		return errs.NewAPIError(
+			http.StatusInternalServerError,
+			errs.ErrCodeConfiguration,
+			"TLS certificate and key files must be provided via WithTLS() or ServeTLS()",
+		)
+	}
+	return http.ListenAndServeTLS(addr, cert, key, api.Mux())
+}
+
 // GenerateOpenAPI generates an OpenAPI spec including both RestKit endpoints and mounted routes
 func (api *Api) GenerateOpenAPI() map[string]any {
 	s := &docs.OpenAPISpec{
 		Version:     api.Version,
 		Title:       api.Title,
+		Summary:     api.Summary,
 		Description: api.Description,
 		Endpoints:   api.Endpoints,
 		Groups:      api.Groups,
@@ -217,7 +295,7 @@ func (api *Api) GenerateOpenAPI() map[string]any {
 	}
 
 	if len(s.Servers) == 0 {
-		s.Servers = append(s.Servers, "http://localhost:8080")
+		s.Servers = append(s.Servers, docs.Server{URL: "http://localhost:8080", Description: "Dev Server"})
 	}
 
 	spec := docs.GenerateOpenAPI(s)

@@ -30,6 +30,7 @@ type Route interface {
 	GetMethod() string
 	GetPath() string
 	GetTitle() string
+	GetSummary() string
 	GetDescription() string
 	GetMiddleware() []func(http.Handler) http.Handler
 	GetRequestSchema() map[string]any

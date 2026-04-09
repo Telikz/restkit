@@ -16,6 +16,7 @@ import (
 // or either one individually using NoRequest or NoResponse as type parameters.
 type Endpoint[Req any, Res any] struct {
 	Title       string
+	Summary     string
 	Description string
 	Method      string
 	Path        string
@@ -48,6 +49,10 @@ func (e *Endpoint[Req, Res]) GetPath() string {
 // GetTitle returns the title of the endpoint.
 func (e *Endpoint[Req, Res]) GetTitle() string {
 	return e.Title
+}
+
+func (e *Endpoint[Req, Res]) GetSummary() string {
+	return e.Summary
 }
 
 // GetDescription returns the description of the endpoint.
@@ -97,6 +102,12 @@ func (e *Endpoint[Req, Res]) WithParameters(params ...Parameter) *Endpoint[Req, 
 // WithTitle sets the title of the endpoint.
 func (e *Endpoint[Req, Res]) WithTitle(title string) *Endpoint[Req, Res] {
 	e.Title = title
+	return e
+}
+
+// WithSummary sets the summary of the endpoint.
+func (e *Endpoint[Req, Res]) WithSummary(summary string) *Endpoint[Req, Res] {
+	e.Summary = summary
 	return e
 }
 

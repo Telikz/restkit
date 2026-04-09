@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/reststore/restkit/internal/docs"
 	ep "github.com/reststore/restkit/internal/endpoints"
 	errs "github.com/reststore/restkit/internal/errors"
 	"github.com/reststore/restkit/internal/schema"
@@ -44,12 +45,18 @@ func TestApiBuilder(t *testing.T) {
 	})
 
 	t.Run("WithServers", func(t *testing.T) {
-		api := New().WithServers("http://localhost:8080", "https://api.example.com")
+
+		servers := []docs.Server{
+			{URL: "http://localhost:8080", Description: "Local Dev Server"},
+			{URL: "https://api.example.com", Description: "Production Server"},
+		}
+
+		api := New().WithServers(servers...)
 		if len(api.Servers) != 2 {
 			t.Errorf("expected 2 servers, got %d", len(api.Servers))
 		}
-		if api.Servers[0] != "http://localhost:8080" {
-			t.Errorf("expected first server 'http://localhost:8080', got '%s'", api.Servers[0])
+		if api.Servers[0].URL != "http://localhost:8080" {
+			t.Errorf("expected first server 'http://localhost:8080', got '%s'", api.Servers[0].URL)
 		}
 	})
 
@@ -58,7 +65,7 @@ func TestApiBuilder(t *testing.T) {
 			WithVersion("2.0.0").
 			WithTitle("Chained API").
 			WithDescription("Testing chains").
-			WithServers("http://localhost:8080")
+			WithServers(docs.Server{URL: "http://localhost:8080", Description: "Local Dev Server"})
 		if api.Version != "2.0.0" || api.Title != "Chained API" {
 			t.Error("builder chaining failed")
 		}

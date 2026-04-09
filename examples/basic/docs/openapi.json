@@ -1,6 +1,7 @@
 {
   "info": {
     "description": "RESTful API for managing users",
+    "summary": "Basic REST API",
     "title": "User API",
     "version": "1.1"
   },
@@ -115,10 +116,11 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "List Users",
+        "summary": "List all users",
         "tags": [
           "User Management v1"
-        ]
+        ],
+        "title": "List Users"
       },
       "post": {
         "description": "Create a new user",
@@ -228,10 +230,11 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "Create User",
+        "summary": "",
         "tags": [
           "User Management v1"
-        ]
+        ],
+        "title": "Create User"
       }
     },
     "/api/v1/users/{id}": {
@@ -354,10 +357,11 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "Delete User",
+        "summary": "",
         "tags": [
           "User Management v1"
-        ]
+        ],
+        "title": "Delete User"
       },
       "get": {
         "description": "Get a user by ID",
@@ -478,10 +482,11 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "Get User",
+        "summary": "Get a user by ID",
         "tags": [
           "User Management v1"
-        ]
+        ],
+        "title": "Get User"
       },
       "patch": {
         "description": "Update a user by ID",
@@ -602,10 +607,11 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "Update User",
+        "summary": "",
         "tags": [
           "User Management v1"
-        ]
+        ],
+        "title": "Update User"
       }
     },
     "/api/v2/create-user": {
@@ -717,10 +723,11 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "Create User",
+        "summary": "",
         "tags": [
           "User Management v2"
-        ]
+        ],
+        "title": "Create User"
       }
     },
     "/api/v2/delete-user": {
@@ -832,10 +839,11 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "Delete User",
+        "summary": "",
         "tags": [
           "User Management v2"
-        ]
+        ],
+        "title": "Delete User"
       }
     },
     "/api/v2/get-user": {
@@ -947,10 +955,11 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "Get User",
+        "summary": "Get a user by ID",
         "tags": [
           "User Management v2"
-        ]
+        ],
+        "title": "Get User"
       }
     },
     "/api/v2/list-users": {
@@ -1062,10 +1071,11 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "List Users",
+        "summary": "List all users",
         "tags": [
           "User Management v2"
-        ]
+        ],
+        "title": "List Users"
       }
     },
     "/api/v2/update-user": {
@@ -1177,10 +1187,11 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "Update User",
+        "summary": "",
         "tags": [
           "User Management v2"
-        ]
+        ],
+        "title": "Update User"
       }
     },
     "/ping": {
@@ -1292,13 +1303,16 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "Ping Endpoint"
+        "summary": "",
+        "title": "Ping Endpoint"
       }
     }
   },
   "servers": [
     {
-      "url": "http://localhost:8080"
+      "description": "Dev Server",
+      "url": "http://localhost:8080",
+      "variables": null
     }
   ],
   "tags": [

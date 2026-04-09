@@ -24,6 +24,9 @@ type DeleteRequest = ep.DeleteRequest
 // MessageResponse is an alias for internal/endpoints.MessageResponse. See restkit.MessageResponse for details.
 type MessageResponse = ep.MessageResponse
 
+// Event is an alias for internal/endpoints.Event. See restkit.Event for details.
+type Event[T any] = ep.Event[T]
+
 // SearchRequest is an alias for internal/endpoints.SearchParams.
 type SearchRequest = ep.SearchParams
 
@@ -153,4 +156,12 @@ func SearchEndpoint[Q any, Req any, Res any](
 	searchFn func(ctx context.Context, queries Q, req Req) ([]Res, error),
 ) *Endpoint[Req, []Res] {
 	return ep.SearchWithQueries(path, searchFn)
+}
+
+// StreamEndpoint creates an endpoint for streaming resources using Server-Sent Events (SSE).
+func Stream[Req any, Res any](
+	path string,
+	streamFn func(ctx context.Context, req Req) (<-chan ep.Event[Res], error),
+) *Endpoint[Req, <-chan ep.Event[Res]] {
+	return ep.Stream(path, streamFn)
 }

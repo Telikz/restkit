@@ -17,10 +17,20 @@ import (
 type OpenAPISpec struct {
 	Version     string      `json:"version"`
 	Title       string      `json:"title"`
+	Summary     string      `json:"summary"`
 	Description string      `json:"description"`
 	Endpoints   []ep.Route  `json:"endpoints"`
 	Groups      []*ep.Group `json:"groups"`
-	Servers     []string    `json:"servers"`
+	Servers     []Server    `json:"servers"`
+}
+
+type Server struct {
+	URL         string
+	Description string
+	Variables   map[string]struct {
+		Default     string
+		Description string
+	}
 }
 
 // GenerateOpenAPI generates an OpenAPI 3.0 specification from endpoints
@@ -79,7 +89,9 @@ func GenerateOpenAPI(s *OpenAPISpec) map[string]any {
 	servers := make([]map[string]any, 0, len(s.Servers))
 	for _, server := range s.Servers {
 		servers = append(servers, map[string]any{
-			"url": server,
+			"url":         server.URL,
+			"description": server.Description,
+			"variables":   server.Variables,
 		})
 	}
 
@@ -88,6 +100,7 @@ func GenerateOpenAPI(s *OpenAPISpec) map[string]any {
 		"servers": servers,
 		"info": map[string]any{
 			"title":       s.Title,
+			"summary":     s.Summary,
 			"description": s.Description,
 			"version":     s.Version,
 		},
@@ -106,7 +119,8 @@ func buildOperation(
 	endpoint ep.Route, groups []*ep.Group,
 ) map[string]any {
 	op := map[string]any{
-		"summary":     endpoint.GetTitle(),
+		"title":       endpoint.GetTitle(),
+		"summary":     endpoint.GetSummary(),
 		"description": endpoint.GetDescription(),
 	}
 
@@ -321,9 +335,7 @@ func structToSchema(t reflect.Type) map[string]any {
 	properties := make(map[string]any)
 	required := make([]string, 0)
 
-	for i := 0; i < t.NumField(); i++ {
-		field := t.Field(i)
-
+	for field := range t.Fields() {
 		if !field.IsExported() {
 			continue
 		}

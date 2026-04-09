@@ -24,6 +24,10 @@ func (r *routeInfo) GetTitle() string {
 	return r.route.GetTitle()
 }
 
+func (r *routeInfo) GetSummary() string {
+	return r.route.GetSummary()
+}
+
 func (r *routeInfo) GetDescription() string {
 	return r.route.GetDescription()
 }

@@ -50,6 +50,9 @@ type (
 
 	// MessageResponse is a simple JSON response with a message field.
 	MessageResponse = core.MessageResponse
+
+	// Event is an alias for internal/endpoints.Event. See restkit.Event for details.
+	Event[T any] = core.Event[T]
 )
 
 // Validate is the validation function used by endpoints.
@@ -158,6 +161,13 @@ func SearchEndpoint[Q any, Req any, Res any](
 	searchFn func(ctx context.Context, queries Q, req Req) ([]Res, error),
 ) *Endpoint[Req, []Res] {
 	return core.SearchEndpoint(path, searchFn)
+}
+
+func Stream[Req any, Res any](
+	path string,
+	streamFn func(ctx context.Context, req Req) (<-chan Event[Res], error),
+) *Endpoint[Req, <-chan Event[Res]] {
+	return core.Stream(path, streamFn)
 }
 
 // Parameters

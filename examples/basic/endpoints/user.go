@@ -44,6 +44,7 @@ func GetUser() *rk.Endpoint[GetUserRequest, User] {
 		WithMethod(http.MethodGet).
 		WithPath("/users/{id}").
 		WithTitle("Get User").
+		WithSummary("Get a user by ID").
 		WithDescription("Get a user by ID").
 		WithHandler(func(ctx context.Context, req GetUserRequest) (User, error) {
 			return getUserHandler(ctx, req)
@@ -55,6 +56,7 @@ func ListUsers() *rk.Endpoint[rk.NoRequest, []User] {
 		WithMethod(http.MethodGet).
 		WithPath("/users").
 		WithTitle("List Users").
+		WithSummary("List all users").
 		WithDescription("Get a list of all users").
 		WithHandler(func(ctx context.Context, _ rk.NoRequest) ([]User, error) {
 			return listUsersHandler(ctx)

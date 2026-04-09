@@ -184,6 +184,7 @@ func TestBuildOperation(t *testing.T) {
 			WithMethod("GET").
 			WithPath("/test").
 			WithTitle("Test Endpoint").
+			WithSummary("Test Endpoint").
 			WithDescription("A test endpoint")
 
 		op := buildOperation(endpoint, []*ep.Group{})

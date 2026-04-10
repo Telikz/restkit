@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/reststore/restkit/internal/errors"
-	"github.com/reststore/restkit/internal/middleware"
+	mw "github.com/reststore/restkit/internal/middleware"
 )
 
 type MessageResponse struct {
@@ -44,7 +44,7 @@ type DeleteRequest struct {
 func ExtractParams[Req any]() []Parameter {
 	var params []Parameter
 
-	queryParams := middleware.ExtractQueryParams[Req]()
+	queryParams := mw.ExtractQueryParams[Req]()
 	for _, p := range queryParams {
 		params = append(params, Parameter{
 			Name:     p.Name,
@@ -54,7 +54,7 @@ func ExtractParams[Req any]() []Parameter {
 		})
 	}
 
-	pathParams := middleware.ExtractPathParams[Req]()
+	pathParams := mw.ExtractPathParams[Req]()
 	for _, p := range pathParams {
 		params = append(params, Parameter{
 			Name:     p.Name,
@@ -79,9 +79,10 @@ func Get[Req any, Res any](
 		Method:      http.MethodGet,
 		Path:        path,
 		Title:       "Get",
-		Description: "Get a resource by ID",
+		Summary:     "Get a resource",
+		Description: "Look up a resource",
 		Handler:     handler,
-		Bind:        middleware.QueryBinder[Req](),
+		Bind:        mw.QueryBinder[Req](),
 		Parameters:  ExtractParams[Req](),
 	}
 }
@@ -105,33 +106,54 @@ func List[Req any, Res any](
 		Method:      http.MethodGet,
 		Path:        path,
 		Title:       "List",
-		Description: "List resources",
+		Summary:     "List resources",
+		Description: "Retrieve a list of resources",
 		Handler:     handler,
-		Bind:        middleware.QueryBinder[Req](),
+		Bind:        mw.QueryBinder[Req](),
 		Parameters:  ExtractParams[Req](),
 	}
 }
 
-func Create[Req any, Res any](
+func Post[Req any, Res any](
 	path string,
-	createFn func(ctx context.Context, req Req) (Res, error),
+	postFn func(ctx context.Context, req Req) (Res, error),
 ) *Endpoint[Req, Res] {
 	handler := func(ctx context.Context, req Req) (Res, error) {
-		return createFn(ctx, req)
+		return postFn(ctx, req)
 	}
 
 	return &Endpoint[Req, Res]{
 		Method:      http.MethodPost,
 		Path:        path,
 		Title:       "Create",
+		Summary:     "Create a new resource",
 		Description: "Create a new resource",
 		Handler:     handler,
-		Bind:        middleware.JSONBinder[Req](),
+		Bind:        mw.JSONBinder[Req](),
 		Parameters:  ExtractParams[Req](),
 	}
 }
 
-func Update[Req any, Res any](
+func Put[Req any, Res any](
+	path string,
+	updateFn func(ctx context.Context, req Req) (Res, error),
+) *Endpoint[Req, Res] {
+	handler := func(ctx context.Context, req Req) (Res, error) {
+		return updateFn(ctx, req)
+	}
+
+	return &Endpoint[Req, Res]{
+		Method:      http.MethodPut,
+		Title:       "Update",
+		Summary:     "Update a resource by ID",
+		Description: "Update a resource by ID",
+		Handler:     handler,
+		Bind:        mw.JSONBinder[Req](),
+		Parameters:  ExtractParams[Req](),
+	}
+}
+
+func Patch[Req any, Res any](
 	path string,
 	updateFn func(ctx context.Context, req Req) (Res, error),
 ) *Endpoint[Req, Res] {
@@ -143,56 +165,29 @@ func Update[Req any, Res any](
 		Method:      http.MethodPatch,
 		Path:        path,
 		Title:       "Update",
+		Summary:     "Update a resource by ID",
 		Description: "Update a resource by ID",
 		Handler:     handler,
-		Bind:        middleware.MixedBinder[Req](),
+		Bind:        mw.MixedBinder[Req](),
 		Parameters:  ExtractParams[Req](),
 	}
 }
 
-func Delete[Req any](
+func Delete[Req any, Res any](
 	path string,
-	deleteFn func(ctx context.Context, req Req) error,
-) *Endpoint[Req, NoResponse] {
-	handler := func(ctx context.Context, req Req) (NoResponse, error) {
-		if err := deleteFn(ctx, req); err != nil {
-			return NoResponse{}, err
-		}
-		return NoResponse{}, nil
+	deleteFn func(ctx context.Context, req Req) (Res, error),
+) *Endpoint[Req, Res] {
+	handler := func(ctx context.Context, req Req) (Res, error) {
+		return deleteFn(ctx, req)
 	}
 
-	return &Endpoint[Req, NoResponse]{
+	return &Endpoint[Req, Res]{
 		Method:      http.MethodDelete,
 		Path:        path,
 		Title:       "Delete",
+		Summary:     "Delete a resource by ID",
 		Description: "Delete a resource by ID",
 		Handler:     handler,
-	}
-}
-
-func Search[Req any, Res any](
-	path string,
-	searchFn func(ctx context.Context, req Req) ([]Res, error),
-) *Endpoint[Req, []Res] {
-	handler := func(ctx context.Context, req Req) ([]Res, error) {
-		list, err := searchFn(ctx, req)
-		if err != nil {
-			return []Res{}, err
-		}
-		if list == nil {
-			return []Res{}, nil
-		}
-		return list, nil
-	}
-
-	return &Endpoint[Req, []Res]{
-		Method:      http.MethodGet,
-		Path:        path,
-		Title:       "Search",
-		Description: "Search resources by query parameters",
-		Handler:     handler,
-		Bind:        middleware.QueryBinder[Req](),
-		Parameters:  ExtractParams[Req](),
 	}
 }
 

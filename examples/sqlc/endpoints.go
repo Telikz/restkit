@@ -70,7 +70,7 @@ type CreateUserRequest struct {
 
 // createUserEndpoint defines an endpoint for creating a new user.
 func createUserEndpoint(q *db.Queries) *rk.Endpoint[CreateUserRequest, UserResponse] {
-	return rk.Create("/",
+	return rk.Post("/",
 		func(ctx context.Context, req CreateUserRequest,
 		) (UserResponse, error) {
 			user, err := q.CreateUser(ctx, db.CreateUserParams{
@@ -95,7 +95,7 @@ type UpdateUserRequest struct {
 
 // updateUserEndpoint defines an endpoint for updating a user by ID.
 func updateUserEndpoint(q *db.Queries) *rk.Endpoint[UpdateUserRequest, UserResponse] {
-	return rk.Update("/{id}",
+	return rk.Patch("/{id}",
 		func(ctx context.Context, req UpdateUserRequest,
 		) (UserResponse, error) {
 			user, err := q.UpdateUser(ctx, db.UpdateUserParams{
@@ -119,9 +119,11 @@ type DeleteUserRequest struct {
 // deleteUserEndpoint defines an endpoint for deleting a user by ID.
 func deleteUserEndpoint(q *db.Queries) *rk.Endpoint[DeleteUserRequest, rk.NoResponse] {
 	return rk.Delete("/{id}",
-		func(ctx context.Context, req DeleteUserRequest,
-		) error {
-			return q.DeleteUser(ctx, req.ID)
+		func(ctx context.Context, req DeleteUserRequest) (rk.NoResponse, error) {
+			if err := q.DeleteUser(ctx, req.ID); err != nil {
+				return rk.NoResponse{}, err
+			}
+			return rk.NoResponse{}, nil
 		},
 	)
 }
@@ -137,7 +139,7 @@ type SearchUserRequest struct {
 
 // SearchUsersEndpoint allows searching users with optional filters provided as query parameters.
 func searchUsersEndpoint(q *db.Queries) *rk.Endpoint[SearchUserRequest, []UserResponse] {
-	return rk.Search("/search",
+	return rk.List("/search",
 		func(ctx context.Context, req SearchUserRequest,
 		) ([]UserResponse, error) {
 			users, err := q.SearchUsers(ctx, db.SearchUsersParams{

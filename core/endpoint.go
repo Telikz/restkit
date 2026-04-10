@@ -86,32 +86,25 @@ func Get[Req any, Res any](
 	return ep.Get(path, getFn)
 }
 
-func Create[Req any, Res any](
+func Post[Req any, Res any](
 	path string,
-	createFn func(ctx context.Context, req Req) (Res, error),
+	postFn func(ctx context.Context, req Req) (Res, error),
 ) *Endpoint[Req, Res] {
-	return ep.Create(path, createFn)
+	return ep.Post(path, postFn)
 }
 
-func Update[Req any, Res any](
+func Patch[Req any, Res any](
 	path string,
-	updateFn func(ctx context.Context, req Req) (Res, error),
+	patchFn func(ctx context.Context, req Req) (Res, error),
 ) *Endpoint[Req, Res] {
-	return ep.Update(path, updateFn)
+	return ep.Patch(path, patchFn)
 }
 
-func Delete[Req any](
+func Delete[Req any, Res any](
 	path string,
-	deleteFn func(ctx context.Context, req Req) error,
-) *Endpoint[Req, NoResponse] {
+	deleteFn func(ctx context.Context, req Req) (Res, error),
+) *Endpoint[Req, Res] {
 	return ep.Delete(path, deleteFn)
-}
-
-func Search[Req any, Res any](
-	path string,
-	searchFn func(ctx context.Context, req Req) ([]Res, error),
-) *Endpoint[Req, []Res] {
-	return ep.Search(path, searchFn)
 }
 
 // StreamEndpoint creates an endpoint for streaming resources using Server-Sent Events (SSE).

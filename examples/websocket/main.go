@@ -6,7 +6,7 @@ import (
 	"log"
 
 	ws "github.com/gorilla/websocket"
-	"github.com/reststore/restkit"
+	rk "github.com/reststore/restkit"
 	"github.com/reststore/restkit/extra/websocket"
 )
 
@@ -16,12 +16,11 @@ type ChatRequest struct {
 }
 
 func main() {
-	router := restkit.NewApi()
-	router.WithSwaggerUI()
+	api := rk.NewApi()
+	api.WithSwaggerUI()
 
-	wsEndpoint := websocket.New(
-		"/api/chat/{roomID}",
-		func(ctx context.Context, req ChatRequest, conn *ws.Conn) error {
+	wsEndpoint := websocket.New("/api/chat/{roomID}",
+		func(_ context.Context, req ChatRequest, conn *ws.Conn) error {
 			user := req.User
 
 			if user == "" {
@@ -49,15 +48,14 @@ func main() {
 		},
 	)
 
-	router.AddEndpoint(wsEndpoint)
-	router.WithServer("ws://localhost:8080", "WebSocket server testing not supported", nil)
-	router.WithServer("http://localhost:8080", "HTTP server for Swagger UI", nil)
+	api.AddEndpoint(wsEndpoint)
+	api.WithServer("ws://localhost:8080", "WebSocket server testing not supported", nil)
+	api.WithServer("http://localhost:8080", "HTTP server for Swagger UI", nil)
 
 	log.Println("WebSocket server running on http://localhost:8080")
-	log.Println("Swagger UI available at http://localhost:8080/swagger/")
+	log.Println("Swagger UI available at http://localhost:8080/swagger")
 
-	err := router.Serve(":8080")
-	if err != nil {
+	if err := api.Serve(":8080"); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 }

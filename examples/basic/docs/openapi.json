@@ -9,7 +9,7 @@
   "paths": {
     "/api/v1/users": {
       "get": {
-        "description": "Get a list of all users",
+        "description": "Retrieve a list of resources",
         "responses": {
           "204": {
             "description": "No Content"
@@ -116,14 +116,14 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "List all users",
+        "summary": "List resources",
         "tags": [
           "User Management v1"
         ],
-        "title": "List Users"
+        "title": "List"
       },
       "post": {
-        "description": "Create a new user",
+        "description": "Create a new resource",
         "responses": {
           "204": {
             "description": "No Content"
@@ -230,16 +230,16 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "",
+        "summary": "Create a new resource",
         "tags": [
           "User Management v1"
         ],
-        "title": "Create User"
+        "title": "Create"
       }
     },
     "/api/v1/users/{id}": {
       "delete": {
-        "description": "Delete a user by ID",
+        "description": "Delete a resource by ID",
         "parameters": [
           {
             "description": "id parameter",
@@ -357,17 +357,17 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "",
+        "summary": "Delete a resource by ID",
         "tags": [
           "User Management v1"
         ],
-        "title": "Delete User"
+        "title": "Delete"
       },
       "get": {
-        "description": "Get a user by ID",
+        "description": "Look up a resource",
         "parameters": [
           {
-            "description": "id parameter",
+            "description": "",
             "in": "path",
             "name": "id",
             "required": true,
@@ -482,17 +482,17 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "Get a user by ID",
+        "summary": "Get a resource",
         "tags": [
           "User Management v1"
         ],
-        "title": "Get User"
+        "title": "Get"
       },
       "patch": {
-        "description": "Update a user by ID",
+        "description": "Update a resource by ID",
         "parameters": [
           {
-            "description": "id parameter",
+            "description": "",
             "in": "path",
             "name": "id",
             "required": true,
@@ -607,16 +607,16 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "",
+        "summary": "Update a resource by ID",
         "tags": [
           "User Management v1"
         ],
-        "title": "Update User"
+        "title": "Update"
       }
     },
     "/api/v2/create-user": {
       "post": {
-        "description": "Create a new user",
+        "description": "Create a new resource",
         "responses": {
           "204": {
             "description": "No Content"
@@ -723,16 +723,16 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "",
+        "summary": "Create a new resource",
         "tags": [
           "User Management v2"
         ],
-        "title": "Create User"
+        "title": "Create"
       }
     },
     "/api/v2/delete-user": {
       "delete": {
-        "description": "Delete a user by ID",
+        "description": "Delete a resource by ID",
         "responses": {
           "204": {
             "description": "No Content"
@@ -839,16 +839,27 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "",
+        "summary": "Delete a resource by ID",
         "tags": [
           "User Management v2"
         ],
-        "title": "Delete User"
+        "title": "Delete"
       }
     },
     "/api/v2/get-user": {
       "get": {
-        "description": "Get a user by ID",
+        "description": "Look up a resource",
+        "parameters": [
+          {
+            "description": "",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "204": {
             "description": "No Content"
@@ -955,16 +966,16 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "Get a user by ID",
+        "summary": "Get a resource",
         "tags": [
           "User Management v2"
         ],
-        "title": "Get User"
+        "title": "Get"
       }
     },
     "/api/v2/list-users": {
       "get": {
-        "description": "Get a list of all users",
+        "description": "Retrieve a list of resources",
         "responses": {
           "204": {
             "description": "No Content"
@@ -1071,16 +1082,27 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "List all users",
+        "summary": "List resources",
         "tags": [
           "User Management v2"
         ],
-        "title": "List Users"
+        "title": "List"
       }
     },
     "/api/v2/update-user": {
       "patch": {
-        "description": "Update a user by ID",
+        "description": "Update a resource by ID",
+        "parameters": [
+          {
+            "description": "",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "204": {
             "description": "No Content"
@@ -1187,124 +1209,11 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "",
+        "summary": "Update a resource by ID",
         "tags": [
           "User Management v2"
         ],
-        "title": "Update User"
-      }
-    },
-    "/ping": {
-      "get": {
-        "description": "A simple endpoint to test connectivity",
-        "responses": {
-          "204": {
-            "description": "No Content"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "properties": {
-                    "code": {
-                      "example": "bad_request",
-                      "type": "string"
-                    },
-                    "message": {
-                      "example": "Failed to parse request",
-                      "type": "string"
-                    },
-                    "status": {
-                      "example": 400,
-                      "type": "integer"
-                    }
-                  },
-                  "required": [
-                    "status",
-                    "code",
-                    "message"
-                  ],
-                  "type": "object"
-                }
-              }
-            },
-            "description": "Bad Request"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "properties": {
-                    "code": {
-                      "example": "validation",
-                      "type": "string"
-                    },
-                    "errors": {
-                      "items": {
-                        "properties": {
-                          "field": {
-                            "type": "string"
-                          },
-                          "message": {
-                            "type": "string"
-                          }
-                        },
-                        "type": "object"
-                      },
-                      "type": "array"
-                    },
-                    "message": {
-                      "example": "Validation failed",
-                      "type": "string"
-                    },
-                    "status": {
-                      "example": 422,
-                      "type": "integer"
-                    }
-                  },
-                  "required": [
-                    "status",
-                    "code",
-                    "message"
-                  ],
-                  "type": "object"
-                }
-              }
-            },
-            "description": "Validation Error"
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "properties": {
-                    "code": {
-                      "example": "internal",
-                      "type": "string"
-                    },
-                    "message": {
-                      "example": "Internal server error",
-                      "type": "string"
-                    },
-                    "status": {
-                      "example": 500,
-                      "type": "integer"
-                    }
-                  },
-                  "required": [
-                    "status",
-                    "code",
-                    "message"
-                  ],
-                  "type": "object"
-                }
-              }
-            },
-            "description": "Internal Server Error"
-          }
-        },
-        "summary": "",
-        "title": "Ping Endpoint"
+        "title": "Update"
       }
     }
   },

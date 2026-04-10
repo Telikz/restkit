@@ -4,7 +4,6 @@ go 1.26.1
 
 require (
 	github.com/reststore/restkit v0.0.0
-	github.com/reststore/restkit/adapters/stdlib v0.0.0
 	github.com/reststore/restkit/validators/playground v0.0.0
 )
 
@@ -21,6 +20,5 @@ require (
 
 replace (
 	github.com/reststore/restkit => ../..
-	github.com/reststore/restkit/adapters/stdlib => ../../adapters/stdlib
 	github.com/reststore/restkit/validators/playground => ../../validators/playground
 )

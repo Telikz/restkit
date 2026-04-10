@@ -16,7 +16,7 @@ type streamRequest struct {
 
 // streamResponse defines the structure of the data sent in each event.
 type streamResponse struct {
-	To      string `json:"to"`      // The ID of the stream recipient taken from the path parameter
+	From    string `json:"from"`    // The ID of the stream sender taken from the path parameter
 	Message string `json:"message"` // The message content
 }
 
@@ -42,7 +42,7 @@ func main() {
 						ID:    fmt.Sprintf("%d", i),
 						Event: "message",
 						Data: streamResponse{
-							To:      req.ID,
+							From:    req.ID,
 							Message: fmt.Sprintf("Message %d for topic %s", i, req.Topic)},
 					}
 					time.Sleep(1 * time.Second) // Simulate delay between events
@@ -52,7 +52,7 @@ func main() {
 			return stream, nil // Return the stream channel to the endpoint handler
 		})
 
-	api.AddEndpoint(streamEndpoint)
+	api.AddEndpoint(streamEndpoint) // Add the streaming endpoint to the API
 
 	fmt.Println("Starting Server on http://localhost:8080...")
 	fmt.Println("Swagger starting on http://localhost:8080/swagger")

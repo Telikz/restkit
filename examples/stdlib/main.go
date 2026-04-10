@@ -126,7 +126,7 @@ func stdlibCreateUser(store *UserStore) http.HandlerFunc {
 
 // createUser defines a RestKit endpoint for creating a new user.
 func createUserEndpoint(store *UserStore) *rk.Endpoint[CreateUserReq, UserResponse] {
-	return rk.Create("/",
+	return rk.Post("/",
 		func(_ context.Context, req CreateUserReq) (UserResponse, error) {
 			user := store.Create(req.Name, req.Email)
 			return userToResponse(user), nil

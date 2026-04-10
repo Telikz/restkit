@@ -223,6 +223,7 @@ func (api *Api) Mux() http.Handler {
 	}
 
 	// Register RestKit endpoints
+	optionsRegistered := make(map[string]bool)
 	for _, endpoint := range api.Endpoints {
 		handler := endpoint.GetHandler()
 
@@ -237,6 +238,13 @@ func (api *Api) Mux() http.Handler {
 			endpoint.GetMethod()+" "+endpoint.GetPath(),
 			handler,
 		)
+
+		// Register OPTIONS handler for CORS preflight (only once per path)
+		path := endpoint.GetPath()
+		if endpoint.GetMethod() != http.MethodOptions && !optionsRegistered[path] {
+			mux.Handle("OPTIONS "+path, handler)
+			optionsRegistered[path] = true
+		}
 	}
 
 	// Register mounted routers (wrap with config middleware)

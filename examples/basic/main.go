@@ -6,35 +6,33 @@ import (
 	"time"
 
 	rk "github.com/reststore/restkit"
-	"github.com/reststore/restkit/examples/basic/endpoints"
+	ep "github.com/reststore/restkit/examples/basic/endpoints"
 	"github.com/reststore/restkit/validators/playground"
 )
 
 func main() {
 	a := rk.NewApi()
+	a.WithSwaggerUI()
 	a.WithVersion("1.1")
 	a.WithTitle("User API")
 	a.WithSummary("Basic REST API")
 	a.WithDescription("RESTful API for managing users")
-	a.WithValidator(playground.NewValidator())
+	a.WithValidator(playground.NewValidator()) // use playground extra for vailidation.
 
 	// Add global middleware (applies to all endpoints)
 	a.WithMiddleware(rk.CORSMiddleware())
 	a.WithMiddleware(rk.LoggingMiddleware())
-
-	// Add individual endpoints
-	a.AddEndpoint(endpoints.Ping())
 
 	// Example of grouping endpoints under a common prefix
 	a.AddGroup(rk.NewGroup("/api/v1").
 		WithTitle("User Management v1").
 		WithDescription("All user-related endpoints").
 		WithEndpoints(
-			endpoints.GetUser(),
-			endpoints.ListUsers(),
-			endpoints.CreateUser(),
-			endpoints.UpdateUser(),
-			endpoints.DeleteUser(),
+			ep.GetUser(),
+			ep.ListUsers(),
+			ep.CreateUser(),
+			ep.UpdateUser(),
+			ep.DeleteUser(),
 		),
 	)
 
@@ -43,16 +41,15 @@ func main() {
 		WithTitle("User Management v2").
 		WithDescription("All user-related endpoints").
 		WithEndpoints(
-			endpoints.GetUser().WithPath("/get-user"),
-			endpoints.ListUsers().WithPath("/list-users"),
-			endpoints.CreateUser().WithPath("/create-user"),
-			endpoints.UpdateUser().WithPath("/update-user"),
-			endpoints.DeleteUser().WithPath("/delete-user"),
+			ep.GetUser().WithPath("/get-user"),
+			ep.ListUsers().WithPath("/list-users"),
+			ep.CreateUser().WithPath("/create-user"),
+			ep.UpdateUser().WithPath("/update-user"),
+			ep.DeleteUser().WithPath("/delete-user"),
 		),
 	)
 
-	a.WithSwaggerUI("/docs")
-
+	// Generate OpenAPI spec and save to file at "docs/openapi.json"
 	err := rk.GenerateOpenAPIFile("docs/openapi.json", a.GenerateOpenAPI())
 	if err != nil {
 		log.Println("could not generate openApi document")
@@ -69,7 +66,7 @@ func main() {
 
 	// Start the server
 	log.Println("Starting API server on :8080")
-	log.Println("Swagger UI available at http://localhost:8080/docs")
+	log.Println("Swagger UI available at http://localhost:8080/swagger")
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}

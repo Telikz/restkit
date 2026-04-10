@@ -87,32 +87,25 @@ func Get[Req any, Res any](
 	return core.Get(path, getFn)
 }
 
-func Create[Req any, Res any](
+func Post[Req any, Res any](
 	path string,
-	createFn func(ctx context.Context, req Req) (Res, error),
+	postFn func(ctx context.Context, req Req) (Res, error),
 ) *Endpoint[Req, Res] {
-	return core.Create(path, createFn)
+	return core.Post(path, postFn)
 }
 
-func Update[Req any, Res any](
+func Patch[Req any, Res any](
 	path string,
-	updateFn func(ctx context.Context, req Req) (Res, error),
+	patchFn func(ctx context.Context, req Req) (Res, error),
 ) *Endpoint[Req, Res] {
-	return core.Update(path, updateFn)
+	return core.Patch(path, patchFn)
 }
 
-func Delete[Req any](
+func Delete[Req any, Res any](
 	path string,
-	deleteFn func(ctx context.Context, req Req) error,
-) *Endpoint[Req, NoResponse] {
+	deleteFn func(ctx context.Context, req Req) (Res, error),
+) *Endpoint[Req, Res] {
 	return core.Delete(path, deleteFn)
-}
-
-func Search[Req any, Res any](
-	path string,
-	searchFn func(ctx context.Context, req Req) ([]Res, error),
-) *Endpoint[Req, []Res] {
-	return core.Search(path, searchFn)
 }
 
 func Stream[Req any, Res any](
@@ -146,6 +139,17 @@ type (
 
 	// ValidationError represents a single validation error with field and message.
 	ValidationError = core.ValidationError
+)
+
+// Ready to use API errors for common scenarios (not found, unauthorized, etc.).
+var (
+	ErrNotFound     = NewAPIError(404, "not_found", "resource not found")
+	ErrUnauthorized = NewAPIError(401, "unauthorized", "authentication required")
+	ErrForbidden    = NewAPIError(403, "forbidden", "access denied")
+	ErrBadRequest   = NewAPIError(400, "bad_request", "invalid request")
+	ErrInternal     = NewAPIError(500, "internal_error", "internal server error")
+	ErrValidation   = NewAPIError(422, "validation_error", "validation failed")
+	ErrMissingParam = NewAPIError(400, "missing_param", "required parameter missing")
 )
 
 var (

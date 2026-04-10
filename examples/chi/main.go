@@ -67,7 +67,7 @@ func main() {
 	// Mount the old chi router at /api/v1 with the provided metadata
 	_ = restchi.Mount(api, "/api/v1", chiRouter, meta)
 
-	api.WithServers("http://localhost:8081") // Set server URL for OpenAPI docs
+	api.WithServer("http://localhost:8081", "RestKit API", nil) // Set server URL for OpenAPI docs
 	log.Println("Serving RestKit with mounted Chi routes at :8081")
 	go http.ListenAndServe(":8081", api.Mux())
 
@@ -90,7 +90,7 @@ func main() {
 		),
 	)
 
-	api2.WithServers("http://localhost:8082") // Set server URL for OpenAPI docs
+	api2.WithServer("http://localhost:8082", "RestKit API", nil) // Set server URL for OpenAPI docs
 	log.Println("Serving RestKit API with old and new routes at :8082")
 	http.ListenAndServe(":8082", api2.Mux())
 }
@@ -127,7 +127,7 @@ func chiCreateUser(store *UserStore) http.HandlerFunc {
 
 // createUser defines a RestKit endpoint for creating a new user.
 func createUser(store *UserStore) *rk.Endpoint[CreateUserReq, UserResponse] {
-	return rk.Create("/",
+	return rk.Post("/",
 		func(_ context.Context, req CreateUserReq) (UserResponse, error) {
 			return userToResponse(store.Create(req.Name, req.Email)), nil
 		},

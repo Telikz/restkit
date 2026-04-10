@@ -43,3 +43,23 @@ func IsAPIError(err error) (APIError, bool) {
 	}
 	return APIError{}, false
 }
+
+func (e *APIError) WithDetails(details string) *APIError {
+	e.Details = details
+	return e
+}
+
+func (e *APIError) WithMessage(message string) *APIError {
+	e.Message = message
+	return e
+}
+
+func (e *APIError) WithCode(code string) *APIError {
+	e.Code = code
+	return e
+}
+
+func (e *APIError) WithStatus(status int) *APIError {
+	e.Status = status
+	return e
+}

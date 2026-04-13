@@ -1,38 +1,34 @@
-# RestKit - Type-Safe REST API Framework With OpenAPI Support
+# RestKit
 
 [![Go Version](https://img.shields.io/github/go-mod/go-version/RestStore/RestKit?style=flat-square&label=go)](https://golang.org/)
 [![Tests](https://github.com/RestStore/RestKit/actions/workflows/go.yml/badge.svg)](https://github.com/RestStore/RestKit/actions)
 [![Go Report Card](https://goreportcard.com/badge/github.com/reststore/restkit)](https://goreportcard.com/report/github.com/reststore/restkit)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/RestStore/RestKit/blob/main/LICENCE)
-[![Maintained](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/RestStore/RestKit/graphs/commit-activity)
-[![GitHub stars](https://img.shields.io/github/stars/RestStore/RestKit?style=flat-square)](https://github.com/RestStore/RestKit/stargazers)
 
-RestKit is a modern Go framework for building type-safe REST APIs with automatic OpenAPI documentation. It leverages generics to provide compile-time type safety while keeping the API simple and expressive.
+**Type-safe REST APIs with automatic OpenAPI documentation**
 
-## 🎯 Features
+RestKit brings compile-time type safety to REST APIs using Go generics, while automatically generating OpenAPI 3.0 specs from your code. Write handlers with typed requests and responses—no reflection in hot paths, no manual schema writing.
 
-- **Type-Safe Endpoints** - Define request/response types with compile-time type checking using Go generics
-- **Three Endpoint Patterns** - Full (Request + Response), Response-only, or Request-only endpoints
-- **Automatic OpenAPI 3.0** - Generate OpenAPI specs directly from your endpoint definitions
-- **Swagger UI Integration** - Built-in interactive API documentation
-- **Flexible Middleware** - CORS, logging, panic recovery, plus custom middleware support
-- **Request Binding & Validation** - JSON parsing, path parameters, struct validation with customization
-- **Response Serialization** - Type-safe JSON responses with proper error handling
-- **Endpoint Grouping** - Organize endpoints with common prefixes and shared middleware
-- **Router Agnostic** - Built on standard net/http with adapters for Chi and other routers
-- **Error Codes** - Standardized error responses with typed error codes
+## Why RestKit?
 
-## ⚙️ Installation
+- **Type safety without boilerplate** - Generic endpoints catch errors at compile time
+- **Auto-generated OpenAPI** - Swagger UI and schemas from your Go types
+- **Minimal overhead** - Microsecond-level framework cost ([benchmarks](#performance))
+- **Database integration** - Built-in sqlc support with context injection and auto-transactions
+- **Flexible middleware** - Apply at global, group, or endpoint level
+- **Progressive enhancement** - Mount existing routers, migrate incrementally
+- **Modern protocols** - SSE, WebSocket, gRPC, HTTP/3 support built-in
+- **Router agnostic** - Adapters for Chi, Echo, Gin, or use stdlib
 
-RestKit requires **Go 1.26 or higher**. Install it with:
+## Install
 
 ```bash
-go get -u github.com/reststore/restkit
+go get github.com/reststore/restkit
 ```
 
-## ⚡️ Quickstart
+Requires Go 1.26+
 
-Here's a complete example with type-safe user endpoints:
+## Quickstart
 
 ```go
 package main
@@ -41,12 +37,10 @@ import (
 	"context"
 	"log"
 	"net/http"
-	"time"
 
 	rk "github.com/reststore/restkit"
 )
 
-// Request/Response types with struct tags
 type CreateUserReq struct {
 	Name  string `json:"name" validate:"required,min=2"`
 	Email string `json:"email" validate:"required,email"`
@@ -58,564 +52,467 @@ type UserRes struct {
 	Email string `json:"email"`
 }
 
-// Handler with compile-time type safety
-func createUserHandler(ctx context.Context, req CreateUserReq) (UserRes, error) {
-	return UserRes{
-		ID:    1,
-		Name:  req.Name,
-		Email: req.Email,
-	}, nil
-}
-
 func main() {
-	api := rk.NewApi().
-		WithVersion("1.0.0").
-		WithTitle("User API").
-		WithDescription("Manage users")
-
-	createUserEndpoint := rk.NewEndpoint[CreateUserReq, UserRes]().
-		WithTitle("Create User").
-		WithDescription("Create a new user").
-		WithPath("/users").
-		WithMethod("POST").
-		WithHandler(createUserHandler)
-
-	api.Add(createUserEndpoint)
+	api := rk.NewApi()
 	api.WithSwaggerUI()
-	api.WithMiddleware(rk.LoggingMiddleware())
+	api.WithVersion("1.0.0")
+	api.WithTitle("User API")
 
-	server := &http.Server{
-		Addr:         ":8080",
-		Handler:      api.Mux(),
-		ReadTimeout:  15 * time.Second,
-		WriteTimeout: 15 * time.Second,
-	}
+	// Type-safe endpoint - compiler ensures handler matches types
+	api.Add(rk.Post("/users",
+		func(ctx context.Context, req CreateUserReq) (UserRes, error) {
+			// Auto-parsed JSON, validated, type-safe
+			return UserRes{ID: 1, Name: req.Name, Email: req.Email}, nil
+		}),
+	)
 
-	log.Println("Server running on http://localhost:8080")
-	log.Println("Swagger UI: http://localhost:8080/swagger")
-	log.Fatal(server.ListenAndServe())
+	log.Println("Server: http://localhost:8080")
+	log.Println("Swagger: http://localhost:8080/swagger")
+	http.ListenAndServe(":8080", api.Mux())
 }
 ```
 
-Visit `http://localhost:8080/swagger` to see the interactive Swagger UI.
+That's it. You now have:
+- Type-safe request/response handling
+- Automatic OpenAPI 3.0 spec at `/swagger/openapi.json`
+- Interactive Swagger UI at `/swagger`
+- Runtime validation (add `api.WithValidator(playground.NewValidator())`)
 
-## 📖 Endpoint Types
+## Core Concepts
 
-RestKit provides three endpoint patterns, each with sensible defaults:
+### Endpoint Helpers
 
-### Full Endpoint (Request + Response)
-
-```go
-endpoint := rest.NewEndpoint[RequestType, ResponseType]().
-	WithPath("/resource").
-	WithMethod("POST").
-	WithHandler(func(ctx context.Context, req RequestType) (ResponseType, error) {
-		// Your logic here
-		return res, nil
-	})
-```
-
-**Defaults:** POST method, JSON bind/write, auto-generated schemas
-
-### Response-Only Endpoint
+RestKit provides CRUD helpers with smart defaults:
 
 ```go
-endpoint := rest.NewEndpointRes[ResponseType]().
-	WithPath("/resource/{id}").
-	WithHandler(func(ctx context.Context) (ResponseType, error) {
-		// Your logic here
-		return res, nil
-	})
+// GET /users/{id} - path param auto-extracted
+rk.Get("/users/{id}",
+	func(ctx context.Context, req rk.GetRequest) (User, error) {
+		return db.GetUser(ctx, req.ID) // req.ID from path
+	},
+)
+
+// GET /users?limit=20&offset=0 - query params with defaults
+type ListReq struct {
+	Limit  int32 `query:"limit" default:"20"`
+	Offset int32 `query:"offset" default:"0"`
+}
+rk.List("/users",
+	func(ctx context.Context, req ListReq) ([]User, error) {
+		return db.ListUsers(ctx, req.Limit, req.Offset)
+	},
+)
+
+// POST /users - JSON body
+rk.Post("/users",
+	func(ctx context.Context, req CreateUserReq) (User, error) {
+		return db.CreateUser(ctx, req)
+	},
+)
+
+// PATCH /users/{id} - path + JSON body
+type UpdateReq struct {
+	ID   int64  `path:"id"`
+	Name string `json:"name"`
+}
+rk.Patch("/users/{id}",
+	func(ctx context.Context, req UpdateReq) error {
+		return db.UpdateUser(ctx, req.ID, req.Name)
+	},
+)
+
+// DELETE /users/{id}
+rk.Delete("/users/{id}",
+	func(ctx context.Context, req rk.DeleteRequest) error {
+		return db.DeleteUser(ctx, req.ID)
+	},
+)
 ```
-
-**Defaults:** GET method, auto-generated response schema
-
-### Request-Only Endpoint
-
-```go
-endpoint := rest.NewEndpointReq[RequestType]().
-	WithPath("/resource/{id}").
-	WithHandler(func(ctx context.Context, req RequestType) error {
-		// Your logic here
-		return nil
-	})
-```
-
-**Defaults:** DELETE method, JSON bind, auto-generated request schema
-
-## 🛠️ CRUD Helpers
-
-RestKit provides helpers for common CRUD operations that use struct tags for binding:
+All helpers use `NewEndpoint[Req, Res]()` under the hood with method-specific defaults.
 
 ### Struct Tags
 
-- `path:"id"` - Extract path parameters from the URL
-- `query:"name"` - Extract query parameters from the URL
-- `query:"name" default:"20"` - Query param with default value
-- `json:"field"` - JSON body field (for POST/PATCH)
-
-### Get Endpoint
+Bind URL params, query strings, and JSON bodies using struct tags:
 
 ```go
-type GetUserRequest struct {
-    ID int64 `path:"id"`  // Extracted from /users/{id}
-}
-
-func getUserEndpoint() *rk.Endpoint[GetUserRequest, UserResponse] {
-    return rk.GetEndpoint("/users/{id}", func(ctx context.Context, q *db.Queries, req GetUserRequest) (UserResponse, error) {
-        user, err := q.GetUser(ctx, req.ID)  // req.ID from path
-        // ... map to response
-    })
+type UpdateUserReq struct {
+	ID       int64   `path:"id"`                      // from /users/{id}
+	Name     string  `json:"name"`                    // from JSON body
+	Active   *bool   `query:"active"`                 // optional query param
+	PageSize int     `query:"page_size" default:"20"` // with default
 }
 ```
 
-### List Endpoint
+Works seamlessly with sqlc - use `*string`, `*int64` for nullable types.
+
+### Grouping & Organization
 
 ```go
-type ListUsersRequest struct {
-    Limit  int32 `query:"limit" default:"20"`
-    Offset int32 `query:"offset" default:"0"`
-}
-
-func listUsersEndpoint() *rk.Endpoint[ListUsersRequest, []UserResponse] {
-    return rk.ListEndpoint("/users", func(ctx context.Context, q *db.Queries, req ListUsersRequest) ([]UserResponse, error) {
-        users, err := q.ListUsers(ctx, db.ListUsersParams{
-            Limit:  int64(req.Limit),
-            Offset: int64(req.Offset),
-        })
-        // ... map to responses
-    })
-}
-```
-
-### Search Endpoint
-
-```go
-type SearchUsersRequest struct {
-    ID   *string `query:"id"`   // Optional filter (pointer = nullable)
-    Name *string `query:"name"`
-}
-
-func searchUsersEndpoint() *rk.Endpoint[SearchUsersRequest, []UserResponse] {
-    return rk.SearchEndpoint("/users/search", func(ctx context.Context, q *db.Queries, req SearchUsersRequest) ([]UserResponse, error) {
-        users, err := q.SearchUsers(ctx, db.SearchUsersParams{
-            ID:   req.ID,  // *string works with sqlc
-            Name: req.Name,
-        })
-        // ...
-    })
-}
-```
-
-### Create/Update/Delete
-
-```go
-// Create - JSON body only
-func createUserEndpoint() *rk.Endpoint[CreateUserRequest, UserResponse] {
-    return rk.CreateEndpoint("/users", func(ctx context.Context, q *db.Queries, req CreateUserRequest) (UserResponse, error) {
-        // req has JSON fields
-    })
-}
-
-// Update - Mix of path param and body
-func updateUserEndpoint() *rk.Endpoint[UpdateUserRequest, rk.NoResponse] {
-    return rk.UpdateEndpoint("/users/{id}", func(ctx context.Context, q *db.Queries, req UpdateUserRequest) error {
-        // req.ID from path, req.Name from JSON body
-        return q.UpdateUser(ctx, db.UpdateUserParams{
-            ID:   req.ID,
-            Name: req.Name,
-        })
-    })
-}
-
-// Delete - Path param only
-func deleteUserEndpoint() *rk.Endpoint[rk.DeleteRequest, rk.MessageResponse] {
-    return rk.DeleteEndpoint("/users/{id}", func(ctx context.Context, q *db.Queries, req rk.DeleteRequest) error {
-        return q.DeleteUser(ctx, req.ID)
-    })
-    // Returns: { "message": "deleted successfully" }
-}
-```
-
-## 👥 Endpoint Grouping
-
-Organize related endpoints with a common prefix:
-
-```go
-userGroup := rest.NewGroup("/api/v1/users").
+users := rk.NewGroup("/api/v1/users").
 	WithTitle("Users").
-	WithDescription("User management")
+	WithEndpoints(
+		rk.List("/", listUsers),
+		rk.Post("/", createUser),
+		rk.Get("/{id}", getUser),
+		rk.Patch("/{id}", updateUser),
+		rk.Delete("/{id}", deleteUser),
+	)
 
-// Add endpoints to group
-userGroup.WithEndpoints(
-	getUser(),
-	listUsers(),
-	createUser(),
-	updateUser(),
-	deleteUser(),
-)
-
-api.AddGroup(userGroup)
-
-// Routes become:
-// GET /api/v1/users/{id}
-// GET /api/v1/users
-// POST /api/v1/users
-// PUT /api/v1/users/{id}
-// DELETE /api/v1/users/{id}
+api.AddGroup(users)
+// Routes: GET/POST /api/v1/users, GET/PATCH/DELETE /api/v1/users/{id}
 ```
 
-## 📝 Request Binding
+### Validation
 
-By default, endpoints use JSON binding. Customize with:
-
-```go
-// JSON Binding (default)
-endpoint.WithBind(rest.JSONBinder[RequestType]())
-
-// Path Parameter Binding
-endpoint.WithBind(rest.PathParamBinder[int](rest.StringToInt))
-
-// Custom Binding
-endpoint.WithBind(func(r *http.Request) (RequestType, error) {
-	// Custom parsing logic
-	return req, nil
-})
-```
-
-## ✍️ Response Writing
-
-Default JSON response writing can be customized:
+Opt-in validation via go-playground/validator:
 
 ```go
-// JSON Response (default)
-endpoint.WithWrite(rest.JSONWriter[ResponseType]())
+import "github.com/reststore/restkit/validators/playground"
 
-// Custom Response
-endpoint.WithWrite(func(w http.ResponseWriter, res ResponseType) error {
-	w.Header().Set("Content-Type", "application/json")
-	return json.NewEncoder(w).Encode(res)
-})
-```
-
-## ✔️ Validation
-
-Validation is opt-in. By default, no validation is performed.
-
-To enable struct tag validation using go-playground/validator:
-
-```go
-import "github.com/reststore/restkit/validation/playground"
+api.WithValidator(playground.NewValidator())
 
 type CreateUserReq struct {
-    Name  string `json:"name" validate:"required,min=2,max=50"`
-    Email string `json:"email" validate:"required,email"`
-    Age   int    `json:"age" validate:"gte=18,lte=120"`
+	Name  string `json:"name" validate:"required,min=2,max=50"`
+	Email string `json:"email" validate:"required,email"`
+	Age   int    `json:"age" validate:"gte=18,lte=120"`
 }
 ```
 
-Importing the playground package automatically enables validation for all endpoints.
+### Middleware
 
-See [go-playground/validator docs](https://github.com/go-playground/validator) for all available tags.
-
-## 🔌 Middleware
-
-RestKit includes common middleware and supports custom middleware:
-
-### Built-in Middleware
+Apply middleware at three levels:
 
 ```go
-// HTTP request/response logging
-api.WithMiddleware(rest.LoggingMiddleware())
+// Global - applies to all endpoints (supports chaining)
+api.WithMiddleware(
+	rk.LoggingMiddleware(),
+	rk.RecoveryMiddleware(),
+	rk.CORSMiddleware(),
+)
 
-// CORS with default or custom options
-api.WithMiddleware(rest.CORSMiddleware())
+// Group - applies to all endpoints in the group
+users := rk.NewGroup("/users").
+	WithMiddleware(authMiddleware, rateLimitMiddleware).
+	WithEndpoints(...)
 
-// Panic recovery (converts panics to 500 responses)
-api.WithMiddleware(rest.RecoveryMiddleware())
+// Endpoint - applies to a single endpoint
+rk.Post("/users", createUser).
+	WithMiddleware(cacheMiddleware, validationMiddleware)
 ```
 
-### Custom Middleware
+**Built-in middleware:**
 
 ```go
+// CORS with configurable options
+api.WithMiddleware(rk.CORSMiddleware(
+	rk.CORSOptions.Origins("https://example.com"),
+	rk.CORSOptions.Methods("GET", "POST"),
+	rk.CORSOptions.Credentials(),
+))
+
+// Security headers (CSP, HSTS, X-Frame-Options, etc.)
+api.WithMiddleware(rk.SecurityHeaderMiddleware(
+	rk.SecurityHeadersOptions.CSP("default-src 'self'"),
+	rk.SecurityHeadersOptions.HSTS("max-age=31536000"),
+))
+
+// Request ID injection and propagation
+api.WithMiddleware(rk.RequestIDMiddleware(
+	rk.RequestIDOptions.Header("X-Request-ID"),
+))
+
+// Access request ID in handlers
+func handler(ctx context.Context, req Req) (Res, error) {
+	requestID := rk.RequestIDFromContext(ctx)
+	// ...
+}
+
+// Custom middleware
 api.WithMiddleware(func(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Before handler
-		log.Printf("Request: %s %s", r.Method, r.URL.Path)
+		// before
 		next.ServeHTTP(w, r)
-		// After handler
+		// after
 	})
 })
 ```
 
-Middleware runs in the order added and is applied globally to all endpoints.
+### Database Integration
 
-## 📖 OpenAPI & Swagger UI
-
-RestKit automatically generates OpenAPI 3.0 specs from your endpoints:
+**Inject database queries into context** - works seamlessly with sqlc:
 
 ```go
-api.WithSwaggerUI("/docs") // Enable Swagger UI at /docs
-// or keep it empty for default /swagger
-```
+import "your-project/db"
 
-Access at:
-- **Swagger UI**: `/docs`
-- **OpenAPI JSON**: `/docs/openapi.json`
+queries := db.New(database)
 
-The spec is generated from:
-- Endpoint titles and descriptions
-- Auto-generated schemas from request/response types
-- HTTP methods and paths
-- Endpoint grouping (becomes API tags)
+// Inject queries globally
+api.WithMiddleware(rk.DBMiddleware(queries))
 
-## 🛣️ Path Parameters
-
-### Using Struct Tags (Recommended)
-
-Define a request struct with `path` tags:
-
-```go
-type GetUserRequest struct {
-    ID int64 `path:"id"`
-}
-
-func getUserEndpoint() *rk.Endpoint[GetUserRequest, UserResponse] {
-    return rk.GetEndpoint("/users/{id}", func(ctx context.Context, q *db.Queries, req GetUserRequest) (UserResponse, error) {
-        // req.ID is automatically extracted from the URL path
-        user, err := q.GetUser(ctx, req.ID)
-        // ...
-    })
+// Access in handlers
+func getUser(ctx context.Context, req rk.GetRequest) (User, error) {
+	q := rk.Queries(ctx).(*db.Queries)
+	return q.GetUser(ctx, req.ID)
 }
 ```
 
-### Manual Access
-
-For custom scenarios, access URL parameters directly from context:
+**Automatic transactions** - commits on success (2xx), rolls back on error:
 
 ```go
-func getUser(ctx context.Context) (UserRes, error) {
-	userID := rk.URLParam(ctx, "id")
-	// Fetch and return user
-}
+api.WithMiddleware(rk.TransactionMiddleware(
+	database,
+	db.New,        // creates queries from *sql.DB
+	db.WithTx,     // wraps queries with transaction
+))
 
-getEndpoint := rk.NewEndpointRes[UserRes]().
-	WithPath("/users/{id}").
-	WithHandler(getUser)
-```
-
-Parameters are extracted from the path pattern and available in the context.
-
-## ⚠️ Error Handling
-
-RestKit provides standardized error responses with typed error codes:
-
-```go
-// Default error handler (JSON)
-endpoint.WithErrorHandler(rest.JSONErrorWriter)
-
-// Custom error handler
-endpoint.WithErrorHandler(func(w http.ResponseWriter, r *http.Request, err error) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusBadRequest)
-	json.NewEncoder(w).Encode(map[string]string{
-		"error": err.Error(),
+// Now every request runs in a transaction
+func createUser(ctx context.Context, req CreateUserReq) (User, error) {
+	q := rk.Queries(ctx).(*db.Queries)
+	// Automatically committed if no error, rolled back otherwise
+	return q.CreateUser(ctx, db.CreateUserParams{
+		Name:  req.Name,
+		Email: req.Email,
 	})
-})
-```
-
-Error codes include:
-- `ErrCodeBadRequest` - Malformed requests
-- `ErrCodeValidation` - Validation failures
-- `ErrCodeBind` - Request parsing errors
-- `ErrCodeNotFound` - Resource not found
-- `ErrCodeUnauthorized` - Authentication required
-- `ErrCodeForbidden` - Access denied
-- `ErrCodeInternal` - Server errors
-- `ErrCodeMissingParam` - Missing path parameters
-- `ErrCodeConfiguration` - Endpoint misconfiguration
-
-## 🎯 Nullable Types
-
-For optional query parameters that need to be nullable for sqlc:
-
-```go
-type SearchUsersRequest struct {
-    ID   *string `query:"id"`   // Optional: nil when not provided
-    Name *string `query:"name"`
 }
 ```
 
-Or convert values with pointer helpers:
+See `examples/sqlc` for a complete working example.
+
+## Advanced Features
+
+### Server-Sent Events (SSE)
+
+Stream real-time data to clients:
 
 ```go
-users, err := q.SearchUsers(ctx, db.SearchUsersParams{
-    ID:   rk.StringPtr(req.ID),   // string -> *string (nil if empty)
-    Name: rk.StringPtr(req.Name),
+rk.Stream("/events/{id}",
+ func(ctx context.Context, req EventReq) (<-chan rk.Event[Data], error) {
+	stream := make(chan rk.Event[Data])
+	go func() {
+		defer close(stream)
+		for i := range 10 {
+			stream <- rk.Event[Data]{
+				ID:    fmt.Sprintf("%d", i),
+				Event: "message",
+				Data:  Data{Message: fmt.Sprintf("Event %d", i)},
+			}
+			time.Sleep(time.Second)
+		}
+	}()
+	return stream, nil
 })
 ```
 
-Available helpers: `StringPtr`, `IntPtr`, `Int64Ptr`, `Int32Ptr`, `BoolPtr`, `Float64Ptr`, `TimePtr`
+### WebSocket Support
 
-## 🔍 Schema Generation
-
-Schemas are automatically generated from your Go types for OpenAPI documentation:
+Real-time bidirectional communication:
 
 ```go
-type User struct {
-	ID    int    `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
-}
+import "github.com/reststore/restkit/extra/websocket"
 
-// Schema auto-generated for OpenAPI spec
-endpoint.WithResponseSchema(rest.SchemaFrom[User]())
-
-// Or override manually:
-endpoint.WithResponseSchema(map[string]any{
-	"type": "object",
-	"properties": map[string]any{
-		"id":    map[string]any{"type": "integer"},
-		"name":  map[string]any{"type": "string"},
-		"email": map[string]any{"type": "string"},
-	},
-	"required": []string{"id", "name", "email"},
+websocket.New("/ws/{room}",
+ func(ctx context.Context, req WsReq, conn *websocket.Conn) error {
+	for {
+		msgType, msg, err := conn.ReadMessage()
+		if err != nil { return nil }
+		conn.WriteMessage(msgType, []byte("Echo: " + string(msg)))
+	}
 })
 ```
 
-## 🔀 Router Integration
+### gRPC Gateway
 
-RestKit is built on Go's standard net/http. Use adapters to integrate with other routers:
-
-### Chi Router Adapter
+Expose gRPC services as REST endpoints:
 
 ```go
+import rkgrpc "github.com/reststore/restkit/extra/grpc"
+
+rkgrpc.GRPC("/hello", grpcClient,
+ func(ctx context.Context, c pb.GreeterClient, req *pb.HelloRequest,
+ ) (*pb.HelloReply, error) {
+	return c.SayHello(ctx, req)
+})
+```
+
+### HTTP/3 Support
+
+Run HTTP/2 and HTTP/3 simultaneously:
+
+```go
+import "github.com/reststore/restkit/extra/http3"
+
+http3.Serve(api, ":8080", ":8081", "cert.pem", "key.pem")
+// HTTP/2 on :8080 (TCP), HTTP/3 on :8081 (UDP)
+```
+
+### Custom Serializers
+
+YAML, pretty JSON, or custom formats:
+
+```go
+// YAML responses
+import rkyml "github.com/reststore/restkit/serializers/yaml"
+api.WithSerializer(rkyml.Serializer())
+api.WithDeserializer(rkyml.Deserializer())
+
+// Pretty JSON (indented)
+api.WithSerializer(rk.Serializers.JSONPretty())
+
+// Custom
+api.WithSerializer(func(w http.ResponseWriter, data any) error {
+	// your serialization logic
+})
+```
+
+## OpenAPI & Swagger
+
+Automatic OpenAPI 3.0 generation from your Go types:
+
+```go
+api.WithSwaggerUI()  // default: /swagger
+
+// Multiple server URLs
+api.WithServer("https://api.prod.com", "Production", nil)
+api.WithServer("https://api.staging.com", "Staging", nil)
+
+// Export spec to file
+rk.GenerateOpenAPIFile("docs/openapi.json", api.GenerateOpenAPI())
+```
+
+Access Swagger UI at `/swagger`. Schemas auto-generated from struct types. Groups become OpenAPI tags.
+
+## Router Adapters
+
+### Use Your Existing Router
+
+Built on stdlib `net/http`, with adapters for popular routers:
+
+```go
+// Chi
 import restchi "github.com/reststore/restkit/adapters/chi"
+router := chi.NewRouter()
+restchi.RegisterRoutes(router, api)
+http.ListenAndServe(":8080", router)
 
-// Register RestKit endpoints with Chi
-chiRouter := chi.NewRouter()
-restchi.RegisterRoutes(chiRouter, api)
+// Echo
+import restecho "github.com/reststore/restkit/adapters/echo"
+e := echo.New()
+restecho.RegisterRoutes(e, api)
+e.Start(":8080")
 
-// Start server with Chi router
-http.ListenAndServe(":8080", chiRouter)
+// Gin
+import restgin "github.com/reststore/restkit/adapters/gin"
+router := gin.Default()
+restgin.RegisterRoutes(router, api)
+router.Run(":8080")
 ```
 
-### Mount External Router
+Or use stdlib directly: `http.ListenAndServe(":8080", api.Mux())`
+
+### Progressive Enhancement
+
+**Mount existing routers into RestKit** - add type safety and OpenAPI docs without rewriting:
 
 ```go
-// Mount external Chi router to RestKit API
-restchi.Mount(api, "/", chiRouter,
-	[]restkit.RouteMeta{
-		{
-			Method: "GET",
-			Path:   "/users",
-			Info: restkit.RouteInfo{
-				Summary:      "List users",
-				ResponseType: []User{},
-			},
+// Your existing Chi router with legacy endpoints
+legacyRouter := chi.NewRouter()
+legacyRouter.Get("/users", oldHandler)
+legacyRouter.Post("/users", oldCreateHandler)
+
+// Create RestKit API
+api := rk.NewApi().WithSwaggerUI()
+
+// Mount the legacy router with metadata for OpenAPI docs
+restchi.Mount(api, "/api/v1", legacyRouter, []rk.RouteMeta{
+	{
+		Method: "GET",
+		Path:   "/users",
+		Info:   rk.RouteInfo{
+			Summary: "List users",
+			ResponseType: []User{}},
+	},
+	{
+		Method: "POST",
+		Path:   "/users",
+		Info:   rk.RouteInfo{
+			Summary:      "Create user",
+			RequestType:  CreateUserReq{},
+			ResponseType: User{},
 		},
-	)
+	},
+})
+
+// Add new RestKit endpoints alongside legacy routes
+api.AddGroup(rk.NewGroup("/api/v2/users").WithEndpoints(
+	rk.Get("/{id}", getUser),
+	rk.Post("/", createUser),
+))
+
+// Both legacy and RestKit routes work, all in Swagger
+http.ListenAndServe(":8080", api.Mux())
 ```
 
-## 💡 Philosophy
+**Benefits:**
+- ✅ Add OpenAPI docs to existing routes without changes
+- ✅ Enable validation on legacy endpoints (via `RequestType` metadata)
+- ✅ Enhance route-by-route at your own pace
+- ✅ Run legacy and modern endpoints side-by-side
 
-RestKit brings simplicity to Go with compile-time type safety.
-Taking inspiration from frameworks like FastEndpoints in .NET, RestKit provides a familiar, fluent API for defining REST endpoints while leveraging Go's strengths.
+## Performance
 
-The framework is designed around:
-- **Type Safety** - Catch errors at compile time, not runtime
-- **Minimal Boilerplate** - Get productive quickly
-- **Standard Library** - Built on Go's net/http, no external runtime dependencies
-- **Developer Experience** - Familiar patterns from modern web frameworks
-- **Performance** - Fast HTTP handling without reflection in hot paths
-
-## 🚀 Benchmarks
-
-RestKit keeps performance close to raw handlers while giving you type safety and automatic OpenAPI docs.
-Here's how it stacks up:
-
-### Real-World Performance
-
-Testing against raw Chi and stdlib, RestKit stays competitive:
-
-| What | RestKit | Raw Chi | Stdlib |
-|------|---------|---------|--------|
-| Simple GET | 138 µs | 136 µs | 136 µs |
-| GET with params | 140 µs | 138 µs | 138 µs |
-| POST with JSON | 195 µs | 165 µs | 171 µs |
-
-For simple endpoints, we're within 1-2% of raw handlers. POST requests show a bit more overhead because RestKit is automatically validating and binding your request types, things you'd normally write by hand.
-
-### Handler-Level Performance
-
-At the handler level, the overhead is minimal:
+Minimal overhead - type safety without sacrificing speed:
 
 ```
-Handler call                    6.5 ns
-Handler with path params       6.8 µs
-Route context creation         474 ns
+Simple GET request:     1.5 µs   (1605 B/op, 17 allocs/op)
+GET with path params:   2.1 µs   (2552 B/op, 21 allocs/op)
+POST with JSON:         3.3 µs   (6359 B/op, 24 allocs/op)
+Handler call overhead:  2.2 ns   (0 allocs)
 ```
 
-Most of your time goes into HTTP overhead, network I/O, and your actual business logic, not the framework.
+The overhead is negligible compared to network I/O and database queries.
+You get type safety, auto-validation, and OpenAPI generation with performance close to hand-written handlers.
 
-### Benchmark Yourself
-
-Want to see the numbers on your machine? Run:
-
+Run benchmarks yourself:
 ```bash
 go test -bench=. -benchmem ./tests
 ```
 
-Specific comparisons:
+## Examples
+
+Complete working examples in `examples/`:
 
 ```bash
-# Just RestKit endpoints
-go test -bench=RestKit -benchmem ./tests
-
-# Compare RestKit, Chi, and stdlib side-by-side
-go test -bench='RestKit|Chi|Stdlib' -benchmem ./tests
+go run ./examples/basic       # groups, validation, CRUD
+go run ./examples/sqlc        # sqlc integration with RestKit
+go run ./examples/stream      # Server-Sent Events (SSE)
+go run ./examples/websocket   # WebSocket endpoints
+go run ./examples/grpc        # gRPC gateway
+go run ./examples/http3       # HTTP/3 support
+go run ./examples/yaml        # YAML serialization
+go run ./examples/serializer  # custom serializers/deserializers
+go run ./examples/chi         # Chi router adapter
+go run ./examples/echo        # Echo router adapter
+go run ./examples/gin         # Gin router adapter
+go run ./examples/stdlib      # Standard library router
 ```
 
-## 👀 Examples
+Visit `http://localhost:8080/swagger` to explore the API.
 
-See the `examples/` directory for complete working examples:
+## Development
 
 ```bash
-# Basic example with groups and versions
-go run ./examples/basic
-
-# Chi router integration
-go run ./examples/chi
-
-# Mounting external Chi router
-go run ./examples/chi_mount
+just fmt     # format (gofumpt + golines, required before commit)
+just tidy    # tidy all modules
+go test ./...  # run tests
 ```
 
-Then visit `http://localhost:8080/docs` to explore the API.
+## Contributing
 
-## 💻 Development
-
-To contribute to RestKit:
-
-```bash
-# Run tests
-go test ./...
-
-# Run formatting and linting
-go fmt ./... && gofumpt -l -w . && golines -w -m 80 .
-```
-
-## 👍 Contributing
-
-Contributions are welcome! Please:
-
-1. Open an issue to discuss your changes
-2. Fork the repository
-3. Create a feature branch
+1. Open an issue to discuss changes
+2. Fork and create a feature branch
+3. Run `just fmt` before committing
 4. Submit a pull request
 
 ## 📄 License
 
 Licensed under the Apache License 2.0. See the [LICENSE](./LICENCE) file for details.
-
-Copyright 2026 Robin Olsen

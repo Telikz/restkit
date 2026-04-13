@@ -20,6 +20,7 @@ release version arguments="":
     git tag {{arguments}} -a "serializers/yaml/v$VERSION" -m "Release serializers/yaml v$VERSION" && \
     git tag {{arguments}} -a "extra/http3/v$VERSION" -m "Release extra/http3 v$VERSION" && \
     git tag {{arguments}} -a "extra/websocket/v$VERSION" -m "Release extra/websocket v$VERSION" && \
+    git tag {{arguments}} -a "extra/grpc/v$VERSION" -m "Release extra/grpc v$VERSION" && \
     git push {{arguments}} origin "v$VERSION" "adapters/chi/v$VERSION" "adapters/echo/v$VERSION" "adapters/gin/v$VERSION" "adapters/stdlib/v$VERSION" "validators/playground/v$VERSION" "serializers/yaml/v$VERSION" "extra/http3/v$VERSION" "extra/websocket/v$VERSION" && \
     echo "Released v$VERSION"
 

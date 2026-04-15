@@ -3,6 +3,7 @@ package core
 import (
 	ep "github.com/reststore/restkit/internal/endpoints"
 	mw "github.com/reststore/restkit/internal/middleware"
+	"github.com/reststore/restkit/internal/utils"
 )
 
 // ParseID converts a string ID to int64.
@@ -19,3 +20,7 @@ var StringToInt = mw.StringToInt
 
 // StringToString is a no-op converter for string path params.
 var StringToString = mw.StringToString
+
+func UpdateFields[T any, E any, R any](base T, existing E, req R) T {
+	return utils.UpdateFields(base, existing, req)
+}

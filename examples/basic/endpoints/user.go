@@ -93,18 +93,9 @@ func UpdateUser() *rk.Endpoint[UpdateUserRequest, UpdateUserResponse] {
 				return UpdateUserResponse{},
 					rk.ErrNotFound.WithMessage("User not found")
 			}
-
-			if req.Name != "" {
-				existing.Name = req.Name
-			}
-			if req.Email != "" {
-				existing.Email = req.Email
-			}
-
-			users[req.ID] = existing
 			return UpdateUserResponse{
 				Message: "User updated successfully",
-				User:    existing,
+				User:    rk.UpdateFields(User{}, existing, req),
 			}, nil
 		},
 	)

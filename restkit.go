@@ -101,6 +101,13 @@ func Patch[Req any, Res any](
 	return core.Patch(path, patchFn)
 }
 
+func Put[Req any, Res any](
+	path string,
+	putFn func(ctx context.Context, req Req) (Res, error),
+) *Endpoint[Req, Res] {
+	return core.Put(path, putFn)
+}
+
 func Delete[Req any, Res any](
 	path string,
 	deleteFn func(ctx context.Context, req Req) (Res, error),
@@ -318,3 +325,7 @@ var (
 	// ParseUUID converts a string ID to UUID [16]byte.
 	ParseUUID = core.ParseUUID
 )
+
+func UpdateFields[T any, E any, R any](base T, existing E, req R) T {
+	return core.UpdateFields(base, existing, req)
+}

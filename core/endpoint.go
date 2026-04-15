@@ -93,6 +93,13 @@ func Post[Req any, Res any](
 	return ep.Post(path, postFn)
 }
 
+func Put[Req any, Res any](
+	path string,
+	putFn func(ctx context.Context, req Req) (Res, error),
+) *Endpoint[Req, Res] {
+	return ep.Put(path, putFn)
+}
+
 func Patch[Req any, Res any](
 	path string,
 	patchFn func(ctx context.Context, req Req) (Res, error),

@@ -20,6 +20,9 @@ RestKit brings compile-time type safety to REST APIs using Go generics, while au
 - **Modern protocols** - SSE, WebSocket, gRPC, HTTP/3 support built-in
 - **Router agnostic** - Adapters for Chi, Echo, Gin, or use stdlib
 
+## RestKit Powers RestStore APIs
+[RestStore](https://reststore.dev) is a REST API platform built on RestKit, showcasing its capabilities in production. Explore the [RestStore API](https://reststore.dev/api/v1/docs) to see RestKit in action with real-world endpoints, OpenAPI docs, and interactive Swagger UI.
+
 ## Install
 
 ```bash
